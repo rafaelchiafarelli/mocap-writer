@@ -19,6 +19,18 @@ updates are pulled with `git fetch upstream && git merge upstream/master`
 (`upstream` = `https://github.com/trelby/trelby.git`). This fork stays under
 GPL-2.0; Trelby's original README follows.
 
+**Running it.** Only Docker is needed on the host (Windows 11 with WSL2, or a
+Linux desktop); nothing else gets installed:
+
+```bash
+docker/run.sh [work-dir]   # builds the image on first use, then opens the window
+```
+
+`work-dir` (default: the current directory) is where scripts are opened and
+saved; settings persist in `~/.config/mocap-writer`. The image
+(`docker/Dockerfile`, hashed `docker/requirements.lock`) holds only the
+environment: the repository is mounted, so code edits need no rebuild.
+
 ---
 
 ## Trelby (upstream README)
