@@ -1,0 +1,16 @@
+*~
+*.pyc
+*.pyo
+.trelby/
+*.trelby
+!tests/fixtures/*.trelby
+.tox/
+MANIFEST
+.pybuild/
+
+# virtual environment and IDE stuff
+/venv/
+/.vscode/
+
+#Choco
+*.nupkg

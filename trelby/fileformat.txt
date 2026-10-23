@@ -1,0 +1,242 @@
+The screenplay is represented as a series of lines. Lines are separated by
+a single byte 0x0A. The file is encoded in UTF-8, and begins with the
+Unicode byte order mark (BOM), i.e. the bytes "EF BB BF".
+
+After the BOM, the first line contains "#Version x", where x is the
+file format number, currently either 1, 2 or 3.
+
+If file format is 2, configuration sections come next. They are of the
+form "#Begin-X ", [lines belonging to X], "#End-X ". Each line in the
+middle is of the type "key:value".
+
+Config values can be booleans, integers, floating point values, text
+strings, or lists. Booleans are either "True" or "False", integers are
+[0-9]+, floating point values are [0-9]+\.[0-9]+, text strings are
+all the characters between ":" and "\n".
+
+If you have a a config directive named Foo that is a list, the format is:
+
+Foo:2
+Foo/1:val1
+Foo/2:val2
+
+i.e. the directive itself contains the number of items in the list, and
+then key-name/x items contain the list values, where x is in the range [1,
+list-size].
+
+The following config sections exists and appear in the file in this order:
+
+ Auto-Completion/([Scene|Character|Transition|Shot]):
+
+  Enabled (boolean): Whether auto-completion is on.
+
+  Items (list of strings): Auto-completion values.
+
+
+ Config:
+
+  FontSize (int): Font size in the PDF output in 1/72 inch units.
+
+  Margin/(Bottom|Left|Right|Top) (floating point): Margins in millimeters.
+
+  Paper/(Height|Width) (floating point): Paper size in millimeters.
+
+  PageBreakActionLines (integer): How many lines of action must be left on
+  bottom of a page.
+
+  PageBreakDialogueLines (integer): How many lines of dialogue must be
+  left on bottom of a page.
+
+  SceneContinueds (boolean): Whether to include scene continueds.
+
+  SceneContinuedIndent (integer): How many characters to indent the
+  "(CONTINUED)" text from the left margin.
+
+  ShowSceneNumbers (boolean): Whether to include scene numbers.
+
+  ShowMargins (boolean): Whether to show margins by drawing lines.
+
+  ShowLineNumbers (boolean): Whether to prefix each line with its line
+  number.
+
+  IncludeTOC (boolean): Whether to add a table of contents.
+
+  ShowTOC (boolean): Whether to show the table of contents when opening
+  the PDF file.
+
+  OpenOnCurrentPage (boolean): If True, display current page in the PDF
+  file when opening it.
+
+  RemoveNotes (boolean): Whether to remove Note elements from PDF output.
+
+  OutlineNotes (boolean): Whether to draw a rectangle around Note elements
+  in PDF output.
+
+  Cursor/(Line|Column) (integer): Cursor position.
+
+  String/(MoreDialogue|ContinuedPageEnd|ContinuedPageStart|
+  DialogueContinued) (string): The "(MORE)", "(CONTINUED)", "CONTINUED:",
+  " (cont'd)" texts to use.
+
+  Font/(Normal|Bold|Italic|Bold-Italic)/(Name|Filename) (string): If using
+  user-specified Courier fonts, these contain the Postscript name of the
+  font and if embedded in the PDF file, the filename of the .ttf file. See
+  the manual for details.
+
+  In addition, there are element-type specific config directives, which
+  are named "Element/x/y", where x is (Scene|Action|Character|Dialogue|
+  Parenthetical|Transition|Shot|Note|Act break) and y is one of:
+
+   BeforeSpacing (integer): How many lines to leave empty above a block,
+   in units of line * 10, i.e. a value of 15 would mean 1.5 lines.
+
+   IntraSpacing (integer): Like BeforeSpacing, but for intra-element
+   lines.
+
+   Indent (integer): How many characters to indent from the left margin.
+
+   Width (integer): How many characters wide, max.
+
+   The following are found twice, as "Screen/y" and "Export/y". The first
+   one is used to display the element on-screen, while the second one is
+   used when generating PDF output.
+
+   AllCaps (boolean): Whether to show text as all caps.
+
+   Bold: (boolean): Whether to bold text.
+
+   Italic: (boolean): Whether to italicize text.
+
+   Underlined: (boolean): Whether to underline text.
+
+
+ Locations:
+
+  Locations (list of lists of strings): Each inner list lists scene names
+  to treat as the same location.
+
+
+ Spell-Checker-Dict:
+
+  Words (list of strings): Script-specific spell checker dictionary.
+
+
+After this (in version 1 files after "#Version 1") there is more
+configuration, but in a different syntax, that is mostly due to historical
+accidents.
+
+These config lines are of the form: "#", "Config-Name", " " (space),
+"Config-Value". Config-Value can be empty.
+
+Config values (none are required):
+
+"Title-Page". Value: None. Starts a new title page.
+
+"Title-String". Adds a new string to the current title page. If no title
+pages exist yet, creates one. Example:
+
+ 0.000000,70.000000,24,cb,Helvetica,,text here
+
+ Format is: xpos,ypos,fontsize,flags,font,reserved,text
+
+  'xpos' and 'ypos' are floating point values, giving the offset in
+  millimeters of the upper-left corner of the text string from the
+  upper-left corner of the page.
+
+  'fontsize' is font size in points, e.g. 1/72 inch units.
+
+  'flags' contains any combination of the following characters:
+
+   c: Text is centered horizontally on the page. In this case xpos is not
+   used for anything.
+
+   r: Text is right-justified; meaning of xpos changes to mean the
+   rightmost edge of the last character.
+
+   b, i, u: Text is bold / italic / underlined.
+
+  'font' is the font name. Currently supported are Courier, Helvetica and
+  Times (Times-Roman).
+
+  'reserved' is reserved for future expansion and is empty for now.
+
+  'text' is the text string. Multi-line strings are indicated by embedded
+  \n escapes. The literal \ character is escaped as \\. For multi-line
+  string, each additional line's y position should be increased by the
+  font's size.
+
+"Header-String". Adds a new header string. Example:
+
+ 1,0,r,,${PAGE}.
+
+ Format is: line,xoff,flags,reserved,text
+
+ 'line' is the 1-based line number.
+
+ 'xoff' is the number of characters by which the string is offsetted in
+ the horizontal direction. Can be negative.
+
+ 'flags' contains:
+
+  Any combination of the following characters:
+
+   b, i, u: Text is bold / italic / underlined.
+
+  One of the following characters:
+
+   l, c, r: Alignment is left / centered / right.
+
+  'reserved' is reserved for future expansion and is empty for now.
+
+  'text' is the text string.
+
+"Header-Empty-Lines". Value: integer >= 0. If there are header lines, this
+is the number of empty lines between headers and actual script contents.
+
+If file format is >= 3, between the config data and the actual script data
+is a "#Start-Script " line. With it, config sections can be added without
+increasing the file format version number, as unknown config parts can be
+skipped.
+
+After the above, the actual script starts. Each line has two bytes at the
+beginning that signal the type of linebreak at the end of that line and
+the general type of the line, and everything after that is the text of the
+line.
+
+Linebreak types:
+
+'>' - A single space.
+
+'&' - Nothing.
+
+'|' - Forced.
+
+'.' - Last line of the element.
+
+More linebreak types are possibly going to be added in the future without
+increasing the fileformat version number, so unknown linebreak types
+should be converted to '>', and a warning given to user about this.
+
+Line types:
+
+'\' - Scene heading.
+
+'.' - Action.
+
+'_' - Character.
+
+':' - Dialogue.
+
+'(' - Parenthetical.
+
+'/' - Transition.
+
+'=' - Shot
+
+'%' - Note
+
+More line types are probably going to be added in the future without
+increasing the fileformat version number, so unknown line types should be
+converted to Action, and a warning given to user about this.
+
+See sample.trelby for an example screenplay.

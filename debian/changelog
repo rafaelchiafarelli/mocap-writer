@@ -1,0 +1,129 @@
+trelby (2.4.16) unstable; urgency=low
+
+  * Translation support
+  * Italian translation
+  * New icons
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Fri, 03 Oct 2025 09:45:00 +0000
+
+trelby (2.4.15) unstable; urgency=low
+
+  * Fix Crtl_Left, Right; map to word move.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Tue, 06 May 2025 09:45:00 +0000
+
+trelby (2.4.14) unstable; urgency=low
+
+  * Fix config and manual paths.
+  * Fix errors around script custom font selection.
+  * Fix GH test run config.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Mon, 06 Dec 2024 09:45:00 +0000
+
+trelby (2.4.13) unstable; urgency=low
+
+  * Add option to hide side toolbar.
+  * Fix settings Save As.
+  * Fix tab "x".
+  * Fix Fade In import.
+  * Allow loading large scripts.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Sat, 04 Jan 2024 16:23:00 +0000
+
+trelby (2.4.12) unstable; urgency=low
+
+  * Fix scrolling by removing horizontal scrolling.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Tue, 31 Dec 2024 16:23:00 +0000
+
+trelby (2.4.11) unstable; urgency=low
+
+  * Packaging updates.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Mon, 30 Sep 2024 13:11:00 +0000
+
+trelby (2.4.10) unstable; urgency=low
+
+  * Add horizontal scrolling support.
+  * MacOS improvements.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Thu, 21 Sep 2023 14:11:00 +0000
+
+trelby (2.4.9) unstable; urgency=low
+
+  * Move PDF generation to reportlab.
+  * Support non Latin1 characters.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Thu, 21 Sep 2023 14:11:00 +0000
+
+trelby (2.4.8) unstable; urgency=low
+
+  * Fixes to diaglog placement, screenplay comparison.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Mon, 24 Oct 2022 14:11:00 +0000
+
+trelby (2.4.7) unstable; urgency=low
+
+  * Fix Python < 3.9 compatibility.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Mon, 24 Oct 2022 14:11:00 +0000
+
+trelby (2.4.6) unstable; urgency=low
+
+  * Fix Celtx import, et. el.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Mon, 10 Oct 2022 10:05:00 +0000
+
+trelby (2.4.4-1) unstable; urgency=low
+
+  * Fix Fountain import
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Fri, 22 Jul 2022 08:43:00 +0000
+
+trelby (2.4.3) unstable; urgency=low
+
+  * Import/export fixes.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Tue, 02 Mar 2021 11:39:00 +0000
+
+trelby (2.4.2) unstable; urgency=low
+
+  * Dictionary fix, deprecate mock.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Tue, 02 Mar 2021 11:39:00 +0000
+
+trelby (2.4.1) unstable; urgency=low
+
+  * Fix undo, copy/paste and find/replace bugs.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Tue, 02 Mar 2021 11:39:00 +0000
+
+trelby (2.4) unstable; urgency=low
+
+  * Python 3 port.
+
+ -- Gwyn Ciesla <gwync@protonmail.com>  Fri, 08 Jan 2021 15:28:00 +0000
+
+trelby (2.3-dev) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Osku Salerma <osku.salerma@gmail.com>  Mon, 26 Nov 2012 16:00:00 +0000
+
+trelby (2.2) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Osku Salerma <osku.salerma@gmail.com>  Wed, 26 Sep 2012 16:00:00 +0000
+
+trelby (2.1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Anil Gulecha <anil.verve@gmail.com>  Sun, 25 Mar 2012 16:00:00 +0000
+
+trelby (2.0) unstable; urgency=low
+
+  * Initial release.
+
+ -- Anil Gulecha <anil.verve@gmail.com>  Mon, 2 Jan 2012 12:00:00 +0000
