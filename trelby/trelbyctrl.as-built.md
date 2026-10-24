@@ -115,7 +115,7 @@ Settings and dialogs
   not change.
 - **Import formats**: one more `elif` on the file-name ending in
   `importFile` (`trelby/trelbyctrl.py:169-182`) plus the file-dialog
-  wildcard in `MyFrame.OnImportScript` (`trelby/trelbyframe.py:616-641`).
+  wildcard in `MyFrame.OnImportScript` (`trelby/trelbyframe.py:617-642`).
 - **Export formats**: one more filter in the wildcard and branch in
   `OnExportScript` (`trelby/trelbyctrl.py:1085-1115`); the branch order is
   the filter index.

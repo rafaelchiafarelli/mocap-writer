@@ -69,7 +69,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
      (`trelby/trelby.py:118-120`); each command-line script is opened with
      `openScript` (`trelby/trelby.py:123`);
   8. `checkFonts()` warns if a screen font is not fixed-width
-     (`trelby/trelby.py:132`, `trelby/trelbyframe.py:520`);
+     (`trelby/trelby.py:132`, `trelby/trelbyframe.py:521`);
   9. **splash**: if `splashTime > 0` (default 3 s, `trelby/config.py:1157`) a
      `SplashWindow` is shown and closes itself on a one-shot timer
      (`trelby/trelby.py:135`, `trelby/splash.py:61-64`, `trelby/splash.py:106`).
@@ -80,7 +80,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   (`trelby/trelbyframe.py:50-189`), the vertical toolbar from the SVG icons in `trelby/resources/`
   (recolored for dark system themes, `trelby/trelbyframe.py:193-241`), the tab bar
   (`misc.MyTabCtrl`), the status area (`misc.MyStatus`) and the right-click
-  menus (`trelby/trelbyframe.py:280-303`).
+  menus (`trelby/trelbyframe.py:281-304`).
 - Each open script is one tab: a `MyPanel` (`trelby/trelbypanel.py:7`)
   holding a `MyCtrl` editor widget (`trelby/trelbyctrl.py:49`) and a vertical
   scroll bar. `MyCtrl` owns one `Screenplay` (`self.sp`) and binds paint,
@@ -89,10 +89,12 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   default title page and header (`trelby/titles.py:15`,
   `trelby/headers.py:16`).
 - Menu commands go to `MyFrame.On<Name>`, which mostly forwards to the
-  current tab's `MyCtrl.On<Name>` (e.g. `trelby/trelbyframe.py:605-609`).
+  current tab's `MyCtrl.On<Name>` (e.g. `trelby/trelbyframe.py:606-610`).
 - Status area: page `x / y`, current element type, and what Tab and Enter
   will produce next (`MyCtrl.updateCommon`, `trelby/trelbyctrl.py:324`), and
-  the zoom control `- 100 % +` (`trelby/misc.py:209-214`).
+  the zoom control `- 100 % +` (`trelby/misc.py:209-214`). The status area
+  passes the keyboard focus back to the script when a click gives it focus
+  (`MyFrame.OnStatusFocus`, `trelby/trelbyframe.py:826`).
 
 ## Stage 2 — the screenplay model
 
@@ -143,7 +145,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
     selection if `overwriteSelectionOnInsert` and is inserted with
     `Screenplay.addCharCmd` (`trelby/trelbyctrl.py:1316-1340`).
   - Anything else is looked up in `MyFrame.kbdCommands`
-    (`trelby/trelbyframe.py:490-508`, built from `cfgGl.commands`,
+    (`trelby/trelbyframe.py:491-509`, built from `cfgGl.commands`,
     `trelby/config.py:692`). Menu commands call `MyFrame.On<Name>`; the rest
     call `MyCtrl.cmd<Name>` (`trelby/trelbyctrl.py:1347-1353`), which mostly
     forward to `Screenplay.<name>Cmd`.
@@ -238,7 +240,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   `#Title-Page` lines, `#Header-String` lines, `#Header-Empty-Lines`,
   `#Start-Script`, then one line per `Line`: line-break char + type char +
   text (`trelby/line.py:22`). UTF-8.
-- **Open**: `MyFrame.openScript` (`trelby/trelbyframe.py:512`) reuses the
+- **Open**: `MyFrame.openScript` (`trelby/trelbyframe.py:513`) reuses the
   current tab if it is untouched, else opens a new one, and calls
   `MyCtrl.loadFile` (`trelby/trelbyctrl.py:125`) → `Screenplay.load`
   (`trelby/screenplay.py:222`). Versions 1–3 are accepted; unknown line
@@ -248,11 +250,11 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   (`trelby/screenplay.py:368-376`).
 - **Revert** reloads from disk (`trelby/trelbyctrl.py:737`). **Close** asks
   before discarding changes (`trelby/trelbyctrl.py:698`). **Exit** writes the
-  window state and removes temporary files (`trelby/trelbyframe.py:972`).
+  window state and removes temporary files (`trelby/trelbyframe.py:978`).
 
 ## Stage 6 — import (`myimport`)
 
-- `MyFrame.OnImportScript` (`trelby/trelbyframe.py:611`) picks a file, reuses
+- `MyFrame.OnImportScript` (`trelby/trelbyframe.py:612`) picks a file, reuses
   the tab if it is untouched, and calls `MyCtrl.importFile`
   (`trelby/trelbyctrl.py:167`), which dispatches **on the file name's
   ending**:
