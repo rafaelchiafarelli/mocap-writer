@@ -1,6 +1,9 @@
 # editor-ux — mocap-writer
 
 **Status:** In progress — view epic done (zoom, dark theme); typing not started.
+**Landed partially into `features` (Rafael, 2026-10-24)** with only the view
+epic, to free the flat container branches for pdf-import; the typing epic
+gets a fresh `editor-ux` chain later.
 
 **Goal:** the editor is comfortable for long sessions: zoom without touching
 the toolbar, a dark theme, a predictable Tab, and capitalized words in Action
