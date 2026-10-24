@@ -20,6 +20,7 @@ import trelby.misc as misc
 import trelby.myimport as myimport
 import trelby.opts as opts
 import trelby.pml as pml
+import trelby.propwords as propwords
 import trelby.reports as reports
 import trelby.screenplay as screenplay
 import trelby.spellcheck as spellcheck
@@ -329,7 +330,8 @@ class MyCtrl(wx.Control):
         if self.sp.tabMakesNew():
             tabNext = "%s" % self.gd.cfgGl.getType(cur.newTypeTab).ti.name
         else:
-            tabNext = "%s" % self.gd.cfgGl.getType(cur.nextTypeTab).ti.name
+            nextLt = self.gd.cfgGl.nextTypeTab(cur.lt)
+            tabNext = "%s" % self.gd.cfgGl.getType(nextLt).ti.name
 
         enterNext = self.gd.cfgGl.getType(cur.newTypeEnter).ti.name
 
@@ -372,6 +374,7 @@ class MyCtrl(wx.Control):
         self.gd.cfgGl.recalc()
         self.refreshGuiConfig()
         self.gd.mainFrame.updateKbdCommands()
+        self.gd.mainFrame.updateThemeMenu()
 
         for c in self.gd.mainFrame.getCtrls():
             c.sp.cfgGl = self.gd.cfgGl
@@ -420,6 +423,21 @@ class MyCtrl(wx.Control):
     def OnZoomReset(self):
         if self.gd.cfgGl.zoomReset():
             self.applyZoom()
+
+    # switch the screen to the Dark theme if 'dark', else to Light, and
+    # save it like the zoom.
+    def OnDarkTheme(self, dark):
+        theme = config.THEME_DARK if dark else config.THEME_LIGHT
+
+        if not self.gd.cfgGl.setTheme(theme):
+            return
+
+        self.refreshGuiConfig()
+
+        # the tab bar and status area draw with the theme's colors too.
+        self.gd.mainFrame.Refresh(False)
+
+        util.writeToFile(self.gd.confFilename, self.gd.cfgGl.save(), self.gd.mainFrame)
 
     def applyHeaders(self, newHeaders):
         self.sp.headers = newHeaders
@@ -1542,6 +1560,17 @@ class MyCtrl(wx.Control):
                         uli = ulinesHdr
 
                     uli.append((t.x, y + lineh - 1, len(t.text) * fx - 1))
+
+                # capitalized words in Action lines are props: underline
+                # them, on screen only. the line's own text, not t.text,
+                # which is all caps if the Action style is.
+                elif (t.line != -1) and (ls[t.line].lt == screenplay.ACTION):
+                    for start, end, word in propwords.find_prop_words(
+                        ls[t.line].text
+                    ):
+                        ulines.append(
+                            (t.x + start * fx, y + lineh - 1, (end - start) * fx - 1)
+                        )
 
         if ulines:
             dc.SetPen(self.gd.cfgGui.textPen)
