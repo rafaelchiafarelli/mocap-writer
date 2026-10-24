@@ -13,7 +13,7 @@ run.
 - Line types (`trelby/screenplay.py:17-25`): `SCENE` 1, `ACTION` 2,
   `CHARACTER` 3, `DIALOGUE` 4, `PAREN` 5, `TRANSITION` 6, `SHOT` 7, `NOTE` 8,
   `ACTBREAK` 9. The values are written nowhere: files use the one-character
-  codes from `config._init` (`trelby/config.py:1615-1634`).
+  codes from `config._init` (`trelby/config.py:1739-1758`).
 - The constants are defined **before** the imports
   (`trelby/screenplay.py:4-48`) because `config` and `line` import
   `screenplay` back (circular import).
@@ -165,10 +165,10 @@ Export
 
 - **Element types.** A new type needs: a constant here
   (`trelby/screenplay.py:17-25`); a code character and name in
-  `config._init` (`trelby/config.py:1615`); per-script defaults in
-  `Config.__init__` (`trelby/config.py:391-458`); an Enter/Tab row in
-  `ConfigGlobal.__init__` (`trelby/config.py:627-689`); a `ChangeTo<Type>`
-  command in the alphabetical command list (`trelby/config.py:692`), a
+  `config._init` (`trelby/config.py:1739`); per-script defaults in
+  `Config.__init__` (`trelby/config.py:438-505`); an Enter/Tab row in
+  `ConfigGlobal.__init__` (`trelby/config.py:686-748`); a `ChangeTo<Type>`
+  command in the alphabetical command list (`trelby/config.py:751`), a
   `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1156-1184`) and a
   `to<Type>Cmd` here (`trelby/screenplay.py:3252-3277`); a menu id in
   `trelby/ids.py:71-91` and the right-click menu
@@ -180,7 +180,7 @@ Export
 - **Enter/Tab behaviour** is data, not code: `splitElementCmd` / `tabCmd`
   read `cfgGl.getType(lt).newTypeEnter|newTypeTab|nextTypeTab|prevTypeTab`
   (`trelby/screenplay.py:3115`, `trelby/screenplay.py:3129-3134`); the table
-  is in `trelby/config.py:627-689`. `tabMakesNew` decides "new element vs.
+  is in `trelby/config.py:686-748`. `tabMakesNew` decides "new element vs.
   convert" (`trelby/screenplay.py:2027`).
 - **Typing rules** (auto-capitalize, `INT.`/`EXT.` → Scene, `(` → Paren) are
   hard-coded in `addCharCmd` (`trelby/screenplay.py:3202-3239`) and

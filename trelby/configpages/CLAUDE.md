@@ -17,8 +17,10 @@ write them back on every change.
 
 Global settings (`ConfigGlobal`)
 - `globalaboutpanel.py` — `GlobalAboutPanel`: explanatory text only.
-- `colorspanel.py` — `ColorsPanel`: list of every color var in
-  `cfg.cvars.color`, change / reset to default, and the
+- `colorspanel.py` — `ColorsPanel`: a Light / Dark theme choice
+  (`cfg.setTheme`, `trelby/configpages/colorspanel.py:16-37`), the list of
+  every color var in `cfg.cvars.color` (the chosen theme's values), change /
+  reset to the theme's default (`cfg.getThemeDefault`), and the
   `useCustomElemColors` switch (`trelby/configpages/colorspanel.py:8`).
 - `displaypanel.py` — `DisplayPanel`: the four screen fonts (rejects
   non-fixed-width fonts; picking one also sets `fontYdelta` to the font's
