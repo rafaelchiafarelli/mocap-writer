@@ -51,8 +51,8 @@ action otherwise). Prefixes are compared upper-cased and literally, so
 - Regexes in basic strings (`"..."`) need doubled backslashes; literal
   strings (`'...'`) do not.
 - No per-program profiles: the planned Final Draft / Celtx / Word / Google
-  Docs profiles were dropped when the layout became detected (task file
-  `initiatives/pdf-import/epics/importer/tasks/1-pdf-importer.md`).
+  Docs profiles were dropped when the layout became detected (pdf-import
+  initiative, task importer/1, now in git history).
 
 ## Touchpoints
 - Read by: `trelby/pdfimport.py` (CLI `--profile`),
