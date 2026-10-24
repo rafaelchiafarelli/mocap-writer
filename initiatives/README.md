@@ -11,6 +11,7 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 2. **editor-ux** — zoom, dark theme, Tab order, capitalized words in Action
 3. **fountain-native** — open/save Fountain as the native format; scene ids and numbering; notes on text spans
 4. **film-bible** — the maps (sets, characters, props, wardrobe) as folders in the film root
-5. **story-structure** — where we are in the story (acts, beats): a study first
+5. **preprod-link** — feed the mocap-preprod agents: scene index, Sync to spec (script-to-spec on every change), review of proposals
+6. **story-structure** — where we are in the story (acts, beats): a study first
 
-`film-bible` needs `fountain-native/scenes` (scene ids). `pdf-import` and `editor-ux` need nothing.
+`film-bible` needs `fountain-native/scenes` (scene ids). `preprod-link` needs `film-bible`. `pdf-import` and `editor-ux` need nothing.
