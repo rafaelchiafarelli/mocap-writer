@@ -329,7 +329,8 @@ class MyCtrl(wx.Control):
         if self.sp.tabMakesNew():
             tabNext = "%s" % self.gd.cfgGl.getType(cur.newTypeTab).ti.name
         else:
-            tabNext = "%s" % self.gd.cfgGl.getType(cur.nextTypeTab).ti.name
+            nextLt = self.gd.cfgGl.nextTypeTab(cur.lt)
+            tabNext = "%s" % self.gd.cfgGl.getType(nextLt).ti.name
 
         enterNext = self.gd.cfgGl.getType(cur.newTypeEnter).ti.name
 

@@ -225,11 +225,16 @@
 		element's style. Shift + Tab will always switch the element's
 		style.</para>
 
-		<para>What kind of element Enter/Tab/Shift + Tab will
-		create/switch to is dependent on the current style of the element,
-		and is configurable by the user (see <xref
-		linkend="elements_gcfg"/>). These values for Enter/Tab are always
-		shown to the right of the tab-bar.</para>
+		<para>When Tab switches the style, it goes round one cycle:
+		Scene, Action, Character, Dialogue and back to Scene. Shift + Tab
+		goes round the same cycle backward. An element outside the cycle
+		(e.g. a Parenthetical) switches to Action. The cycle is the
+		TabOrder setting of the configuration file.</para>
+
+		<para>What kind of element Enter/Tab will create is dependent on
+		the current style of the element, and is configurable by the user
+		(see <xref linkend="elements_gcfg"/>). These values for Enter/Tab
+		are always shown to the right of the tab-bar.</para>
 
 		<para>Other ways to change an element's style are right-clicking
 		with the mouse which will show a menu where you can change the
@@ -1173,10 +1178,10 @@
 		style you're configuring. All things below that are
 		element-specific settings.</para>
 
-		<para>The 'Enter/Tab creates' and 'Tab/Shift+Tab switches to'
-		affect what element is created when Enter or Tab is pressed in
-		this element style, or what element style Tab/Shift+Tab switches
-		the element to. See <xref linkend="add_element"/> for more
+		<para>The 'Enter creates' and 'Tab creates' settings affect what
+		element is created when Enter or Tab is pressed in this element
+		style. What Tab/Shift+Tab switches the element to is one cycle for
+		all styles. See <xref linkend="add_element"/> for more
 		information.</para>
 
 	  </sect2>

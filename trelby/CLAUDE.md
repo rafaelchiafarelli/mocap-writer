@@ -55,7 +55,7 @@ Model and file format
 - `fileformat.txt` — the `.trelby` format description (sections, config
   keys, line codes).
 - `sample.trelby` — sample script, loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1339`).
+  (`trelby/trelbyctrl.py:1340`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -208,10 +208,10 @@ Data and folders
   suite passes because collection imports `test_validate.py`. Bug: [bugs/tooling/1](../initiatives/bugs/epics/tooling/tasks/1-tests-underscore.md).
 - **`_("...".format(x))` formats before translating**, so the translated
   string is never found for those messages (e.g. `trelby/trelbyctrl.py:134`,
-  `trelby/config.py:1321`). Throughout the package. Bug: [bugs/config-i18n/3](../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md).
+  `trelby/config.py:1319`). Throughout the package. Bug: [bugs/config-i18n/3](../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md).
 - **`TRELBY_TESTING` env var** makes `config`, `misc`, `util` and `gutil`
   import a `Mock` instead of `wx` (`trelby/config.py:14-19`) and leaves
-  `ConfigGlobal.commands` empty (`trelby/config.py:751-754`).
+  `ConfigGlobal.commands` empty (`trelby/config.py:740-743`).
 - **Text input is Latin-1 only when typed**: `util.isValidInputChar`
   accepts codes 32–255 (`trelby/util.py:219`), but paste, import and
   find/replace do not filter (`util.toInputStr` only removes form feeds and
@@ -225,9 +225,9 @@ Data and folders
 - **Character map → Insert, Name database → Insert and Edit → Insert
   non-breaking space are broken:** they call
   `MyCtrl.OnKeyChar(util.MyKeyEvent(...))` (`trelby/charmapdlg.py:27`,
-  `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:942`), but
+  `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:943`), but
   `OnKeyChar` → `util.eventKeyCode` calls `ev.GetUnicodeKey()`
-  (`trelby/trelbyctrl.py:1316`, `trelby/util.py:210`),
+  (`trelby/trelbyctrl.py:1317`, `trelby/util.py:210`),
   which `util.MyKeyEvent` does not have (`trelby/util.py:789-810`) →
   `AttributeError`. Bug: [bugs/editor/1](../initiatives/bugs/epics/editor/tasks/1-insert-char-crash.md).
 - **`opts.py --conf` crashes:** `str(sys.argv[i + 1], "UTF-8", "ignore")`
@@ -245,7 +245,7 @@ Data and folders
   `(a.x < a.y)` for `(a.x < b.x)` (`trelby/titles.py:58`). Bug: [bugs/editor/9](../initiatives/bugs/epics/editor/tasks/9-titles-sort-noop.md).
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
-  branch (load `sample.trelby`) is reachable (`trelby/trelbyctrl.py:1339-1344`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
+  branch (load `sample.trelby`) is reachable (`trelby/trelbyctrl.py:1340-1345`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
 - **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:992-993`
   → `OnSave`); other modified tabs are discarded. Bug: [bugs/editor/2](../initiatives/bugs/epics/editor/tasks/2-exit-saves-current-tab.md).
 - **Help → Commands → Save** uses `wx.OVERWRITE_PROMPT`

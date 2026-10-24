@@ -90,6 +90,14 @@ THEME_NAMES = {THEME_LIGHT: "Light", THEME_DARK: "Dark"}
 # "Color/..." names, so configs from before themes load as light.
 THEME_SAVE_PREFIX = {THEME_LIGHT: "", THEME_DARK: "Dark/"}
 
+# the default element cycle of Tab / Shift+Tab (ConfigGlobal.tabOrder).
+TAB_ORDER_DEFAULT = [
+    screenplay.SCENE,
+    screenplay.ACTION,
+    screenplay.CHARACTER,
+    screenplay.DIALOGUE,
+]
+
 # the dark theme's default colors, by ConfigGlobal color attribute. the
 # light theme's defaults are the addColor values in setupVars. every
 # text / background pair drawn on screen has a contrast of at least 4.5:1
@@ -235,9 +243,8 @@ class TypeGlobal:
             v.addElemName("newTypeEnter", screenplay.ACTION, "NewTypeEnter")
             v.addElemName("newTypeTab", screenplay.ACTION, "NewTypeTab")
 
-            # what element to switch to when user hits tab / shift-tab.
-            v.addElemName("nextTypeTab", screenplay.ACTION, "NextTypeTab")
-            v.addElemName("prevTypeTab", screenplay.ACTION, "PrevTypeTab")
+            # what element to switch to when user hits tab / shift-tab is
+            # not per type: it is ConfigGlobal.tabOrder.
 
             v.makeDicts()
 
@@ -687,64 +694,46 @@ class ConfigGlobal:
         t = TypeGlobal(screenplay.SCENE)
         t.newTypeEnter = screenplay.ACTION
         t.newTypeTab = screenplay.CHARACTER
-        t.nextTypeTab = screenplay.ACTION
-        t.prevTypeTab = screenplay.TRANSITION
         self.types[t.lt] = t
 
         t = TypeGlobal(screenplay.ACTION)
         t.newTypeEnter = screenplay.ACTION
         t.newTypeTab = screenplay.CHARACTER
-        t.nextTypeTab = screenplay.CHARACTER
-        t.prevTypeTab = screenplay.CHARACTER
         self.types[t.lt] = t
 
         t = TypeGlobal(screenplay.CHARACTER)
         t.newTypeEnter = screenplay.DIALOGUE
         t.newTypeTab = screenplay.PAREN
-        t.nextTypeTab = screenplay.ACTION
-        t.prevTypeTab = screenplay.ACTION
         self.types[t.lt] = t
 
         t = TypeGlobal(screenplay.DIALOGUE)
         t.newTypeEnter = screenplay.CHARACTER
         t.newTypeTab = screenplay.ACTION
-        t.nextTypeTab = screenplay.PAREN
-        t.prevTypeTab = screenplay.ACTION
         self.types[t.lt] = t
 
         t = TypeGlobal(screenplay.PAREN)
         t.newTypeEnter = screenplay.DIALOGUE
         t.newTypeTab = screenplay.ACTION
-        t.nextTypeTab = screenplay.CHARACTER
-        t.prevTypeTab = screenplay.DIALOGUE
         self.types[t.lt] = t
 
         t = TypeGlobal(screenplay.TRANSITION)
         t.newTypeEnter = screenplay.SCENE
         t.newTypeTab = screenplay.TRANSITION
-        t.nextTypeTab = screenplay.SCENE
-        t.prevTypeTab = screenplay.CHARACTER
         self.types[t.lt] = t
 
         t = TypeGlobal(screenplay.SHOT)
         t.newTypeEnter = screenplay.ACTION
         t.newTypeTab = screenplay.CHARACTER
-        t.nextTypeTab = screenplay.ACTION
-        t.prevTypeTab = screenplay.SCENE
         self.types[t.lt] = t
 
         t = TypeGlobal(screenplay.ACTBREAK)
         t.newTypeEnter = screenplay.SCENE
         t.newTypeTab = screenplay.ACTION
-        t.nextTypeTab = screenplay.SCENE
-        t.prevTypeTab = screenplay.SCENE
         self.types[t.lt] = t
 
         t = TypeGlobal(screenplay.NOTE)
         t.newTypeEnter = screenplay.ACTION
         t.newTypeTab = screenplay.CHARACTER
-        t.nextTypeTab = screenplay.ACTION
-        t.prevTypeTab = screenplay.CHARACTER
         self.types[t.lt] = t
 
         # keyboard commands. these must be in alphabetical order.
@@ -1222,6 +1211,15 @@ class ConfigGlobal:
         # fontYdelta only (ConfigGui), never the PDF.
         v.addInt("zoom", 100, "Zoom", ZOOM_MIN, ZOOM_MAX)
 
+        # the element cycle for Tab (forward) and Shift+Tab (backward)
+        # when they convert the current element, see nextTypeTab.
+        v.addList(
+            "tabOrder",
+            TAB_ORDER_DEFAULT,
+            "TabOrder",
+            mypickle.ElementNameVar("", screenplay.ACTION, ""),
+        )
+
         # screen color theme. its colors are the color settings below;
         # docker/run.sh also reads it to pick GTK's dark variant.
         v.addInt("theme", THEME_LIGHT, "Theme", THEME_FIRST, THEME_LAST)
@@ -1415,6 +1413,35 @@ class ConfigGlobal:
     def recalc(self):
         for it in self.cvars.numeric.values():
             util.clampObj(self, it.name, it.minVal, it.maxVal)
+
+        # drop repeats; a cycle needs two elements.
+        order = list(dict.fromkeys(self.tabOrder))
+
+        if len(order) < 2:
+            order = list(TAB_ORDER_DEFAULT)
+
+        self.tabOrder = order
+
+    # the element Tab converts element type 'lt' to: the next one in
+    # tabOrder, wrapping around. an element outside the cycle enters it at
+    # Action (or the cycle's first element if Action is not in it).
+    def nextTypeTab(self, lt):
+        return self.stepTypeTab(lt, 1)
+
+    # the same for Shift+Tab, going backward.
+    def prevTypeTab(self, lt):
+        return self.stepTypeTab(lt, -1)
+
+    def stepTypeTab(self, lt, step):
+        order = self.tabOrder
+
+        if lt not in order:
+            if screenplay.ACTION in order:
+                return screenplay.ACTION
+
+            return order[0]
+
+        return order[(order.index(lt) + step) % len(order)]
 
     # set zoom to 'zoom' percent, snapped to ZOOM_STEP and clamped to
     # [ZOOM_MIN, ZOOM_MAX]. returns True if the zoom changed.
