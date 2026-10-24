@@ -2,6 +2,6 @@
 
 - **Status:** Open
 - **Symptom:** With `--test`, only the first test hotkey (load `sample.trelby`) works.
-- **Where:** the three characters became U+FFFD (`trelby/trelbyctrl.py:1340-1345`)
+- **Where:** the three characters became U+FFFD (`trelby/trelbyctrl.py:1341-1346`)
 - **Reproduce:** Found by reading the code in the as-built review (2026-10-24).
 - **Impact:** test mode only.
