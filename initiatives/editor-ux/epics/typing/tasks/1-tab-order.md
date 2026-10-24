@@ -1,5 +1,15 @@
 ## 1. Tab order
 
+- **Status:** Done (2026-10-24) — `ConfigGlobal.tabOrder` (saved as
+  `TabOrder`, default Scene → Action → Character → Dialogue) with
+  `nextTypeTab(lt)` / `prevTypeTab(lt)`; the per-type `nextTypeTab` /
+  `prevTypeTab` fields and their two Settings → Elements combos are gone.
+  **Decided in implementation, for Rafael to check:** an element outside
+  the cycle (Paren, Transition, Shot, Act break, Note) goes to Action on
+  both Tab and Shift+Tab; Tab at the end of an element still creates
+  `newTypeTab` (unchanged); the cycle has no settings page (config file
+  only). `tests/test_taborder.py`, `tests/test_changetype.py`
+
 - **Type:** code
 - **Depends on:** —
 - **Contract:**

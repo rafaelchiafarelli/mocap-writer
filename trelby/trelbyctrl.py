@@ -20,6 +20,7 @@ import trelby.misc as misc
 import trelby.myimport as myimport
 import trelby.opts as opts
 import trelby.pml as pml
+import trelby.propwords as propwords
 import trelby.reports as reports
 import trelby.screenplay as screenplay
 import trelby.spellcheck as spellcheck
@@ -329,7 +330,8 @@ class MyCtrl(wx.Control):
         if self.sp.tabMakesNew():
             tabNext = "%s" % self.gd.cfgGl.getType(cur.newTypeTab).ti.name
         else:
-            tabNext = "%s" % self.gd.cfgGl.getType(cur.nextTypeTab).ti.name
+            nextLt = self.gd.cfgGl.nextTypeTab(cur.lt)
+            tabNext = "%s" % self.gd.cfgGl.getType(nextLt).ti.name
 
         enterNext = self.gd.cfgGl.getType(cur.newTypeEnter).ti.name
 
@@ -1542,6 +1544,17 @@ class MyCtrl(wx.Control):
                         uli = ulinesHdr
 
                     uli.append((t.x, y + lineh - 1, len(t.text) * fx - 1))
+
+                # capitalized words in Action lines are props: underline
+                # them, on screen only. the line's own text, not t.text,
+                # which is all caps if the Action style is.
+                elif (t.line != -1) and (ls[t.line].lt == screenplay.ACTION):
+                    for start, end, word in propwords.find_prop_words(
+                        ls[t.line].text
+                    ):
+                        ulines.append(
+                            (t.x + start * fx, y + lineh - 1, (end - start) * fx - 1)
+                        )
 
         if ulines:
             dc.SetPen(self.gd.cfgGui.textPen)

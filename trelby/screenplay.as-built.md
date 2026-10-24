@@ -13,7 +13,7 @@ run.
 - Line types (`trelby/screenplay.py:17-25`): `SCENE` 1, `ACTION` 2,
   `CHARACTER` 3, `DIALOGUE` 4, `PAREN` 5, `TRANSITION` 6, `SHOT` 7, `NOTE` 8,
   `ACTBREAK` 9. The values are written nowhere: files use the one-character
-  codes from `config._init` (`trelby/config.py:1739-1758`).
+  codes from `config._init` (`trelby/config.py:1766-1785`).
 - The constants are defined **before** the imports
   (`trelby/screenplay.py:4-48`) because `config` and `line` import
   `screenplay` back (circular import).
@@ -165,11 +165,11 @@ Export
 
 - **Element types.** A new type needs: a constant here
   (`trelby/screenplay.py:17-25`); a code character and name in
-  `config._init` (`trelby/config.py:1739`); per-script defaults in
-  `Config.__init__` (`trelby/config.py:438-505`); an Enter/Tab row in
-  `ConfigGlobal.__init__` (`trelby/config.py:686-748`); a `ChangeTo<Type>`
-  command in the alphabetical command list (`trelby/config.py:751`), a
-  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1158-1186`) and a
+  `config._init` (`trelby/config.py:1766`); per-script defaults in
+  `Config.__init__` (`trelby/config.py:445-512`); an Enter/Tab row in
+  `ConfigGlobal.__init__` (`trelby/config.py:693-737`); a `ChangeTo<Type>`
+  command in the alphabetical command list (`trelby/config.py:740`), a
+  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1160-1188`) and a
   `to<Type>Cmd` here (`trelby/screenplay.py:3252-3277`); a menu id in
   `trelby/ids.py:71-91` and the right-click menu
   (`trelby/trelbyframe.py:287-295`); entries in the export maps `htmlMap`
@@ -178,9 +178,11 @@ Export
   (`trelby/screenplay.py:1622-1698`); `findError` rules if it has sequencing
   constraints.
 - **Enter/Tab behaviour** is data, not code: `splitElementCmd` / `tabCmd`
-  read `cfgGl.getType(lt).newTypeEnter|newTypeTab|nextTypeTab|prevTypeTab`
-  (`trelby/screenplay.py:3115`, `trelby/screenplay.py:3129-3134`); the table
-  is in `trelby/config.py:686-748`. `tabMakesNew` decides "new element vs.
+  read `cfgGl.getType(lt).newTypeEnter|newTypeTab` and
+  `cfgGl.nextTypeTab(lt)` / `prevTypeTab(lt)`, the `tabOrder` cycle
+  (`trelby/screenplay.py:3115`, `trelby/screenplay.py:3129-3134`,
+  `trelby/screenplay.py:3143-3144`); the table is in
+  `trelby/config.py:693-737`. `tabMakesNew` decides "new element vs.
   convert" (`trelby/screenplay.py:2027`).
 - **Typing rules** (auto-capitalize, `INT.`/`EXT.` → Scene, `(` → Paren) are
   hard-coded in `addCharCmd` (`trelby/screenplay.py:3202-3239`) and
@@ -190,7 +192,7 @@ Export
   `getElementsAsList()`, so it sees export caps but no styles.
 - **Import** produces `lines` only; whatever imports must give lines that
   satisfy the invariants above before `reformatAll` + `paginate`
-  (`trelby/trelbyctrl.py:191-195`).
+  (`trelby/trelbyctrl.py:192-196`).
 
 ## Gotchas
 
