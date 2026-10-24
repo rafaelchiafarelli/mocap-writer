@@ -1,6 +1,6 @@
 # bugs — epics
 
-- **editor** — the wx editor: commands, dialogs, painting, view modes (12)
+- **editor** — the wx editor: commands, dialogs, painting, view modes (14)
 - **import-export** — import, Fountain/PDF/FDX export, fonts (10)
 - **config-i18n** — options, config and state files, translations (6)
 - **tooling** — tests, tools, packaging, build scripts (7)
