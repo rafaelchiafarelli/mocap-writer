@@ -181,7 +181,8 @@ Data and folders
 - `names.txt` — name database: `N<type>` lines start a group, `M<name>` /
   `F<name>` lines add names (204 761 lines).
 - `__init__.py` — empty.
-- `configpages/` — the settings-dialog pages (its own `CLAUDE.md`).
+- `configpages/` — the settings-dialog pages (its own `CLAUDE.md`; two of
+  them break when the GUI language is not English).
 - `resources/` — icons, toolbar SVGs, splash logo, quotes (its own
   `CLAUDE.md`).
 - `locales/` — compiled gettext catalogs `en` and `it` (its own `CLAUDE.md`).
