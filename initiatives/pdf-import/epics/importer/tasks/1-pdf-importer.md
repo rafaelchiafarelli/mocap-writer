@@ -25,11 +25,15 @@
       lines, so a film session can write a profile
     - the profile format, and one starter profile per source program built
       from the fixtures
-- **Pre-work:** **neutral** PDF fixtures, one per source program (Final Draft,
-  Celtx, Word, Google Docs), made by hand by Rafael: the text of
-  `mocap-previz/docs/exploration/script-to-previz/spikes/fountain/sample_ptbr.fountain`
-  typed in each program and exported to PDF (no film text), committed under
-  `tests/fixtures/pdf/`
+- **Pre-work:**
+  - Done (2026-10-24): `pdfplumber` 0.11.10 in `docker/requirements.in`
+    and the lockfile (`fixes/000067/pdfplumber-dependency`)
+  - **Open — blocks the task:** **neutral** PDF fixtures, one per source
+    program (Final Draft, Celtx, Word, Google Docs), made by hand by
+    Rafael: the text of
+    `mocap-previz/docs/exploration/script-to-previz/spikes/fountain/sample_ptbr.fountain`
+    typed in each program and exported to PDF (no film text), committed
+    under `tests/fixtures/pdf/`
 - **Out of scope:** OCR; writing profiles for the film's own PDFs and importing
   them (a film session does that with `probe` and the CLI on the film root)
 - **Tests:** each fixture → expected `.fountain`; unknown indent stops with
