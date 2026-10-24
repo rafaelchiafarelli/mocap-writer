@@ -759,6 +759,45 @@ def importFountain(fileName, frame, titlePages):
     return ret, titlePages
 
 
+# import a screenplay PDF (trelby/pdfimport.py): the layout is detected from
+# the PDF itself, nothing is asked. Every doubtful spot is imported as well
+# as possible and becomes an "IMPORT:" note in the script; a report window
+# lists the layout found and the issues. Returns a list of Lines, or None
+# after telling the user why (unreadable file, no text). If
+# $MOCAP_WRITER_PDF_TRACE names a directory, the decision for every piece of
+# text is also written there as <name>.trace.tsv.
+def importPdf(fileName: str, frame: wx.Frame) -> Optional[List[Line]]:
+    import os
+
+    import trelby.pdfimport as pdfimport
+
+    traceDir = os.environ.get("MOCAP_WRITER_PDF_TRACE")
+    trace = [] if traceDir else None
+    issues = []
+    layout = []
+    lines = None
+
+    try:
+        lines = pdfimport.importPdf(fileName, None, trace, None, issues, True, False, layout)
+    except (OSError, pdfimport.PdfImportError) as e:
+        wx.MessageBox(str(e), _("Error"), wx.OK, frame)
+
+    text = pdfimport.report(fileName, layout, issues)
+
+    if trace is not None:
+        base = os.path.splitext(os.path.basename(fileName))[0]
+        tracePath = os.path.join(traceDir, base + ".trace.tsv")
+        pdfimport.writeTrace(trace, tracePath)
+        text += "\n\n" + _("Trace written to:") + " " + tracePath
+
+    if lines is not None:
+        dlg = misc.TextDlg(frame, text, _("PDF import report"))
+        dlg.ShowModal()
+        dlg.Destroy()
+
+    return lines
+
+
 # import text file from fileName, return list of Line objects for the
 # screenplay or None if something went wrong. returned list always
 # contains at least one line.
