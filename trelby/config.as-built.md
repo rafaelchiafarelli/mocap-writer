@@ -120,7 +120,7 @@ one-character file codes. All saved settings go through `mypickle.Vars`
   `text` → `cfgGl.textColor` and `cfgGui.textColor`. The settings page lists
   every color var automatically (`trelby/configpages/colorspanel.py:8`).
   Per-element text colors `text<Name>Color` exist for each type but are used
-  only when `useCustomElemColors` is on (`trelby/trelbyctrl.py:1490-1493`).
+  only when `useCustomElemColors` is on (`trelby/trelbyctrl.py:1494-1497`).
   There is no theme concept: one set of values, light by default.
 - **Screen fonts / zoom** — `fontNormal` … `fontBoldItalic`
   (`trelby/config.py:1172-1175`) are `wx.NativeFontInfo` strings; draft

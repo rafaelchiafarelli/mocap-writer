@@ -20,7 +20,7 @@ with the result.
   last line as `LB_LAST` (e.g. `trelby/myimport.py:63-72`), so line breaks
   inside an element survive as forced breaks.
 - Text goes through `util.cleanInput` / `util.toInputStr`, which only drop
-  form feeds and turn tabs into `|` (`trelby/util.py:220-232`); characters
+  form feeds and turn tabs into `|` (`trelby/util.py:233-245`); characters
   outside Latin-1 are kept.
 - Unknown element names become Action.
 
