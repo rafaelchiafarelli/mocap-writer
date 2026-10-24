@@ -108,16 +108,16 @@ with the result.
 - **`importFountain` returns a bare `None`** on a read error or empty file
   (`trelby/myimport.py:442-447`), but the caller unpacks two values
   (`trelby/trelbyctrl.py:176-178`) → `TypeError`. A cancelled options
-  dialog returns `(None, titlePages)` correctly (`trelby/myimport.py:459-461`).
+  dialog returns `(None, titlePages)` correctly (`trelby/myimport.py:459-461`). Bug: [bugs/import-export/1](../initiatives/bugs/epics/import-export/tasks/1-fountain-import-none.md).
 - `importFountain` reads `frame.panel.ctrl.sp.cfg` for the Action width
   (`trelby/myimport.py:718`), so it needs the real frame, not just any wx
   parent.
 - `importFountain` indexes `prelines[titleIdx]` without a bounds check while
   gathering title keys (`trelby/myimport.py:518-531`); a file that is only a
   title block, with no blank line and no final newline after it, raises
-  `IndexError`.
+  `IndexError`. Bug: [bugs/import-export/2](../initiatives/bugs/epics/import-export/tasks/2-fountain-import-title-only.md).
 - The `kwPattern` range `[A-za-z]` also matches `[ \ ] ^ _` and the
-  backtick (`trelby/myimport.py:503`), as in the exporter.
+  backtick (`trelby/myimport.py:503`), as in the exporter. Bug: [bugs/import-export/5](../initiatives/bugs/epics/import-export/tasks/5-title-keyword-pattern.md).
 - Dead code: the `try: util.toLatin1(...) except: … .decode(...)` loop
   (`trelby/myimport.py:472-476`) can never take the `except` branch,
   because `toLatin1` encodes with `"ignore"` (`trelby/util.py:188-189`); its

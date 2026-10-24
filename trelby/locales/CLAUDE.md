@@ -20,7 +20,7 @@ these files → translated GUI strings.
 - Strings built as `_("…{}".format(x))` are never found in the catalog (see
   `trelby/CLAUDE.md`, gotchas). Translated strings are also used as
   attribute names and save keys in a few places (`trelby/globaldata.py:70`,
-  `trelby/configpages/CLAUDE.md`).
+  `trelby/configpages/CLAUDE.md`). Bug: [bugs/config-i18n/3](../../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md), [bugs/config-i18n/4](../../initiatives/bugs/epics/config-i18n/tasks/4-mru-translated-key.md).
 
 ## Touchpoints
 - Called by: `trelby/translations.py`.

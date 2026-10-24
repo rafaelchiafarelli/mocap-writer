@@ -17,7 +17,7 @@ used by the build, the tests or Docker.
   modules (`tools/add_words.py:9-12`), reads `../dict_en.dat` (now
   `trelby/dict_en.dat`) and writes `str` to a file opened in binary mode
   (`tools/add_words.py:30-32`). `update_icns.py` reads `../resources`
-  (`tools/update_icns.py:7`), but the icons are in `trelby/resources/`.
+  (`tools/update_icns.py:7`), but the icons are in `trelby/resources/`. Bug: [bugs/tooling/3](../initiatives/bugs/epics/tooling/tasks/3-tools-stale.md).
 - `icnsutil` is not in `docker/requirements.lock`.
 
 ## Touchpoints

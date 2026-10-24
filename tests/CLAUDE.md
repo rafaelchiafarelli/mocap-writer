@@ -47,18 +47,18 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - **`_` comes from `test_validate.py`**: it is the only test module that
   loads the translations (`tests/test_validate.py:5`), which installs `_` as
   a builtin. The whole suite passes; running a single test file such as
-  `tests/test_cut.py` fails with `NameError: name '_' is not defined`.
+  `tests/test_cut.py` fails with `NameError: name '_' is not defined`. Bug: [bugs/tooling/1](../initiatives/bugs/epics/tooling/tasks/1-tests-underscore.md).
 - `tests/test_myimport.py` swaps `sys.modules["wx"]` for a `Mock` at import
   time; modules imported earlier by other tests keep the real `wx`, so the
   result depends on import order. Nothing in the suite sets
-  `TRELBY_TESTING` (`trelby/config.py:14`).
+  `TRELBY_TESTING` (`trelby/config.py:14`). Bug: [bugs/tooling/2](../initiatives/bugs/epics/tooling/tasks/2-tests-wx-mock-order.md).
 - `execute_random_tests.py` still imports `u` and `screenplay` as top-level
   modules via `sys.path` (`tests/execute_random_tests.py:16-20`), the
-  pre-package layout.
+  pre-package layout. Bug: [bugs/tooling/4](../initiatives/bugs/epics/tooling/tasks/4-random-tests-stale.md).
 - Not covered by any test: the wx GUI (`trelbyframe`, `trelbyctrl`,
   `viewmode`, dialogs), `.trelby` save round-trip, Fountain/FDX/HTML/RTF/text
   export, Fountain/FDX/Astx/Fade In import, pagination results, undo/redo.
-- Two `SyntaxWarning`s from `trelby/titles.py` appear in every run.
+- Two `SyntaxWarning`s from `trelby/titles.py` appear in every run. Bug: [bugs/tooling/5](../initiatives/bugs/epics/tooling/tasks/5-titles-escapes.md).
 
 ## Touchpoints
 - Tests: `trelby/screenplay.py`, `trelby/myimport.py`, `trelby/pdf.py`,

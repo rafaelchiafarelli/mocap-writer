@@ -204,7 +204,7 @@ Export
   `cursorColumn`, which `save` writes into the script config
   (`trelby/screenplay.py:173-174`, `trelby/screenplay.py:368-371`).
 - Completing with End replaces the line text with no undo record and no
-  re-wrap (`moveLineEndCmd`, `trelby/screenplay.py:2925-2931`).
+  re-wrap (`moveLineEndCmd`, `trelby/screenplay.py:2925-2931`). Bug: [bugs/editor/5](../initiatives/bugs/epics/editor/tasks/5-end-completion-no-undo.md).
 - `generateFountain`: `kwPattern` is `^([A-za-z][^:]+:)` — the range `A-z`
   also matches `[ \ ] ^ _` and the backtick (`trelby/screenplay.py:683`);
   `looksLikeScene` is a bare prefix test, so an action or heading starting
@@ -215,13 +215,13 @@ Export
   Fountain importer reads back (`trelby/myimport.py:611-612`), not a
   Fountain rule; `titleLine.items[0]`
   raises `IndexError` on a title string with no items
-  (`trelby/screenplay.py:689`).
+  (`trelby/screenplay.py:689`). Bug: [bugs/import-export/4](../initiatives/bugs/epics/import-export/tasks/4-fountain-export-scene-guess.md), [bugs/import-export/5](../initiatives/bugs/epics/import-export/tasks/5-title-keyword-pattern.md), [bugs/import-export/6](../initiatives/bugs/epics/import-export/tasks/6-fountain-export-empty-title.md).
 - `generateHtml` uses one `<pre>` per screen line, not per element
   (`trelby/screenplay.py:561-569`).
 - `generateFDX` writes notes as an Action paragraph wrapping a `ScriptNote`,
   all with `ID="1"` (`trelby/screenplay.py:624-629`).
 - `_(... .format())` on load errors: messages are formatted before lookup,
-  so they are never translated (`trelby/screenplay.py:244`).
+  so they are never translated (`trelby/screenplay.py:244`). Bug: [bugs/config-i18n/3](../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md).
 
 ## Tests
 

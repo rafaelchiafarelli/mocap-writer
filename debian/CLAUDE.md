@@ -21,10 +21,10 @@ Mocap Studio does not use it (it runs the program from `docker/`).
 
 ## Key facts / gotchas
 - The run dependencies list `python3-cryptography` but not
-  `python3-reportlab`, which the PDF writer imports (`trelby/pdf.py:4-6`).
+  `python3-reportlab`, which the PDF writer imports (`trelby/pdf.py:4-6`). Bug: [bugs/tooling/6](../initiatives/bugs/epics/tooling/tasks/6-debian-packaging.md).
 - `install` puts `icon256.png` in `/usr/share/resources`
-  (`debian/install:1`), which no desktop environment searches.
-- The description still lists only `.fdx` and `.celtx` imports.
+  (`debian/install:1`), which no desktop environment searches. Bug: [bugs/tooling/6](../initiatives/bugs/epics/tooling/tasks/6-debian-packaging.md).
+- The description still lists only `.fdx` and `.celtx` imports. Bug: [bugs/tooling/6](../initiatives/bugs/epics/tooling/tasks/6-debian-packaging.md).
 
 ## Touchpoints
 - Uses: `setup.cfg` / `pyproject.toml` (pybuild), `doc/Makefile`,

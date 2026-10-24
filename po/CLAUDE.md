@@ -21,9 +21,9 @@
   the code stay in the template until cleaned by hand.
 - Strings written as `_("…{}".format(x))` reach `xgettext` with the `{}`
   placeholder but are looked up after formatting, so they are never
-  translated at run time (`trelby/CLAUDE.md`, gotchas).
+  translated at run time (`trelby/CLAUDE.md`, gotchas). Bug: [bugs/config-i18n/3](../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md).
 - `TRANSLATION_NOTES.txt` lists `t_01_update_pot.sh` twice; the second step
-  is meant to be `t_02_update_po.sh`.
+  is meant to be `t_02_update_po.sh`. Bug: [bugs/tooling/7](../initiatives/bugs/epics/tooling/tasks/7-translation-notes-step.md).
 - Needs the gettext tools, which are not in the Docker image.
 
 ## Touchpoints
