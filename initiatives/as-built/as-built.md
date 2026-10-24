@@ -1,6 +1,7 @@
 # as-built — mocap-writer
 
-**Status:** Planned — not started. **Initiative 0** (Rafael, 2026-10-24): it
+**Status:** baseline epic done (tasks 1–3); waiting for Rafael's approval
+(initiative gate). **Initiative 0** (Rafael, 2026-10-24): it
 comes before `pdf-import`, so planning and code generation start from a
 documented program.
 

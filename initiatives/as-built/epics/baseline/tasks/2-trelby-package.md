@@ -1,5 +1,7 @@
 ## 2. The trelby/ package
 
+- **Status:** Done (2026-10-24) — `trelby/CLAUDE.md` (55 module bullets)
+  and six `<module>.as-built.md`; every `file:line` checked
 - **Type:** documentation (no code)
 - **Depends on:** baseline/1
 - **Contract:**
