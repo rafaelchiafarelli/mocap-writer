@@ -34,7 +34,7 @@ desktop entry. Files are addressed as `trelby/resources/<file>` relative to
 ## Key facts / gotchas
 - `trelby.desktop` says `Icon=trelby256`, but `debian/install` copies
   `icon256.png` to `/usr/share/resources` (`debian/install:1`), not to an
-  icon theme directory, so the desktop entry's icon is not found by name.
+  icon theme directory, so the desktop entry's icon is not found by name. Bug: [bugs/tooling/6](../../initiatives/bugs/epics/tooling/tasks/6-debian-packaging.md).
 - Licenses: Faenza icons are GPL (allowed for tools under the Mocap Studio
   license rule); the other files have no license note of their own and fall
   under the repository's GPL-3.0-or-later (`setup.cfg`). `quotes.txt` holds

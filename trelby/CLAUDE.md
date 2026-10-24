@@ -193,10 +193,10 @@ Data and folders
   own fails with `NameError: name '_' is not defined` unless something
   imported `tests/test_validate.py`'s translation load first (seen running
   `tests/test_cut.py tests/test_myimport.py` alone: 8 failures). The full
-  suite passes because collection imports `test_validate.py`.
+  suite passes because collection imports `test_validate.py`. Bug: [bugs/tooling/1](../initiatives/bugs/epics/tooling/tasks/1-tests-underscore.md).
 - **`_("...".format(x))` formats before translating**, so the translated
   string is never found for those messages (e.g. `trelby/trelbyctrl.py:134`,
-  `trelby/config.py:1227`). Throughout the package.
+  `trelby/config.py:1227`). Throughout the package. Bug: [bugs/config-i18n/3](../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md).
 - **`TRELBY_TESTING` env var** makes `config`, `misc`, `util` and `gutil`
   import a `Mock` instead of `wx` (`trelby/config.py:14-19`) and leaves
   `ConfigGlobal.commands` empty (`trelby/config.py:687-690`).
@@ -205,49 +205,52 @@ Data and folders
   find/replace do not filter (`util.toInputStr` only removes form feeds and
   turns tabs into `|`, `trelby/util.py:220`). The `toUTF8` / `fromUTF8` /
   `cleanInput` helpers are identity functions left from the Python 2 code
-  (`trelby/util.py:194-232`).
+  (`trelby/util.py:194-232`). Bug: [bugs/import-export/7](../initiatives/bugs/epics/import-export/tasks/7-non-latin1-title-pdf.md).
 - **Non-Latin-1 text in Helvetica or Times** (title pages) raises
   `IndexError`: `FontMetrics.getTextWidth` indexes a 256-entry table with
   `ord(ch)` (`trelby/fontinfo.py:57-60`). Courier has no table, so script
-  text is safe.
+  text is safe. Bug: [bugs/import-export/7](../initiatives/bugs/epics/import-export/tasks/7-non-latin1-title-pdf.md).
 - **Character map → Insert, Name database → Insert and Edit → Insert
   non-breaking space are broken:** they call
   `MyCtrl.OnKeyChar(util.MyKeyEvent(...))` (`trelby/charmapdlg.py:27`,
   `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:901`), but
   `OnKeyChar` calls `ev.GetUnicodeKey()` (`trelby/trelbyctrl.py:1275`),
   which `util.MyKeyEvent` does not have (`trelby/util.py:776-797`) →
-  `AttributeError`.
+  `AttributeError`. Bug: [bugs/editor/1](../initiatives/bugs/epics/editor/tasks/1-insert-char-crash.md).
 - **`opts.py --conf` crashes:** `str(sys.argv[i + 1], "UTF-8", "ignore")`
-  (`trelby/opts.py:28`) raises `TypeError` on a `str` in Python 3.
+  (`trelby/opts.py:28`) raises `TypeError` on a `str` in Python 3. Bug: [bugs/config-i18n/1](../initiatives/bugs/epics/config-i18n/tasks/1-conf-option-crash.md).
 - **`globaldata.makeConfDir` has an invalid `except` clause**
   `except OSError(os.errno, os.strerror)` (`trelby/globaldata.py:93`);
   `misc.init` already creates `confPath` (`trelby/misc.py:72-73`), so it is
-  only reached if that failed.
+  only reached if that failed. Bug: [bugs/config-i18n/5](../initiatives/bugs/epics/config-i18n/tasks/5-makeconfdir-except.md).
 - **`util.loadLatin1EncodedFile` reads bytes:** it passes `"ISO-8859-1"` as
   the `binary` argument of `loadFile` (`trelby/util.py:1013`). On
   `MemoryError`, `loadFile` returns an unbound `ret`
-  (`trelby/util.py:990-1007`).
+  (`trelby/util.py:990-1007`). Bug: [bugs/config-i18n/6](../initiatives/bugs/epics/config-i18n/tasks/6-loadlatin1-bytes.md).
 - **`Titles.sort()` does nothing**: it rebinds a local
   (`trelby/titles.py:60-61`), and its compare function has a typo
-  `(a.x < a.y)` for `(a.x < b.x)` (`trelby/titles.py:58`).
+  `(a.x < a.y)` for `(a.x < b.x)` (`trelby/titles.py:58`). Bug: [bugs/editor/9](../initiatives/bugs/epics/editor/tasks/9-titles-sort-noop.md).
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
-  branch (load `sample.trelby`) is reachable (`trelby/trelbyctrl.py:1298-1303`).
+  branch (load `sample.trelby`) is reachable (`trelby/trelbyctrl.py:1298-1303`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
 - **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:972-973`
-  → `OnSave`); other modified tabs are discarded.
+  → `OnSave`); other modified tabs are discarded. Bug: [bugs/editor/2](../initiatives/bugs/epics/editor/tasks/2-exit-saves-current-tab.md).
 - The MRU list is saved under the **translated** key `_("Files")`
   (`trelby/globaldata.py:70`), so switching `$LANG` loses the recent-files
-  list.
+  list. Bug: [bugs/config-i18n/4](../initiatives/bugs/epics/config-i18n/tasks/4-mru-translated-key.md).
 - `misc.progPath` is the repository root (parent of `trelby/`,
   `trelby/misc.py:54`), so resources are addressed as
   `trelby/resources/...` (`trelby/splash.py:39`).
 - `trelby/manual.html`, `dict_en.dat.gz`, `names.txt.gz` and `trelby.1.gz`
   are build products of `../Makefile`, not in git; Help → Manual opens
   `trelby/manual.html` (`trelby/trelbyframe.py:952`), which does not exist
-  in a plain checkout.
+  in a plain checkout. Bug: [bugs/editor/11](../initiatives/bugs/epics/editor/tasks/11-help-manual-missing.md).
 - Two invalid escape sequences in `titles.py`, `" \qc"` / `" \qr"`
   (`trelby/titles.py:158-160`): `SyntaxWarning` in every test run, output
-  unchanged.
+  unchanged. Bug: [bugs/tooling/5](../initiatives/bugs/epics/tooling/tasks/5-titles-escapes.md).
+- Toolbar tooltips open partly off-screen (Rafael's review of unmodified
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:190`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:207-212`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 

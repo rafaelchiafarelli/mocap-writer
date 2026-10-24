@@ -62,9 +62,9 @@ Shared
   after the translation (Italian `…Annotazione`, `…Combinazione`,
   `po/it.po`), while the rest of the code reads `paginateEntry`,
   `newEnterCombo`, … → `AttributeError` when those pages open with
-  `LANG=it`.
+  `LANG=it`. Bug: [bugs/config-i18n/2](../../initiatives/bugs/epics/config-i18n/tasks/2-translated-attribute-names.md).
 - "Open PDF on current page" (`trelby/configpages/pdfpanel.py:26`) has no
-  effect: the PDF writer ignores it (`trelby/pdf.py:266-269`).
+  effect: the PDF writer ignores it (`trelby/pdf.py:266-269`). Bug: [bugs/import-export/9](../../initiatives/bugs/epics/import-export/tasks/9-pdf-open-on-page.md).
 - The folder has no `__init__.py`; `trelby.configpages.*` imports work as a
   namespace package (`trelby/cfgdlg.py:4-18`).
 - Pages hold no state of their own beyond widgets; cancelling the dialog

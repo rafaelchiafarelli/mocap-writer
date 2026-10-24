@@ -65,20 +65,20 @@ watermarks, the dialogue chart and script comparison all build PML and call
 - `doc.defPage` ("open PDF on current page", set by
   `Screenplay.generatePML`, `trelby/screenplay.py:862-863`) is ignored: the
   `/OpenAction` code is commented out (`trelby/pdf.py:266-269`). The
-  `pdfOpenOnCurrentPage` setting therefore has no effect.
+  `pdfOpenOnCurrentPage` setting therefore has no effect. Bug: [bugs/import-export/9](../initiatives/bugs/epics/import-export/tasks/9-pdf-open-on-page.md).
 - Rotated text (watermarks) goes through `addLiteral` with
   `escapeStr`, so only characters ReportLab's literal path can encode come
-  out right (comment at `trelby/pdf.py:77`).
+  out right (comment at `trelby/pdf.py:77`). Bug: [bugs/import-export/8](../initiatives/bugs/epics/import-export/tasks/8-watermark-non-latin.md).
 - Left-overs from the pre-ReportLab writer: `FontInfo.number` / `pdfObj`,
   `PDFObject`, `genStream` (with a Python 2 `s.encode("zlib")`)
   (`trelby/pdf.py:199-309`) are not used by `generate`.
 - `PDFLineOp` with fewer than two points prints a message to stdout and
   draws nothing (`trelby/pdf.py:115-118`).
 - An unknown custom font name with no file raises a plain `Exception`
-  (`trelby/pdf.py:325-333`); callers do not catch it.
+  (`trelby/pdf.py:325-333`); callers do not catch it. Bug: [bugs/import-export/10](../initiatives/bugs/epics/import-export/tasks/10-pdf-unknown-font.md).
 - Text widths for Helvetica/Times use 256-entry tables; a character above
   U+00FF in a title string raises `IndexError` in `fontinfo`
-  (`trelby/fontinfo.py:57-60`), before this module is reached.
+  (`trelby/fontinfo.py:57-60`), before this module is reached. Bug: [bugs/import-export/7](../initiatives/bugs/epics/import-export/tasks/7-non-latin1-title-pdf.md).
 
 ## Tests
 

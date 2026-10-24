@@ -121,27 +121,27 @@ Settings and dialogs
 - `loadFile` wraps `util.loadFile` in `str(...)`
   (`trelby/trelbyctrl.py:126`): a read error returns `None`, which becomes
   the string `"None"`, so the `None` check below never fires and the user
-  gets a second error ("too few lines") from `Screenplay.load`.
+  gets a second error ("too few lines") from `Screenplay.load`. Bug: [bugs/editor/4](../initiatives/bugs/epics/editor/tasks/4-loadfile-none.md).
 - `importFile` unpacks `importFountain`'s result as a pair
   (`trelby/trelbyctrl.py:176-178`), but `importFountain` returns a bare
   `None` when the file cannot be read or is empty
-  (`trelby/myimport.py:442-447`) → `TypeError`.
+  (`trelby/myimport.py:442-447`) → `TypeError`. Bug: [bugs/import-export/1](../initiatives/bugs/epics/import-export/tasks/1-fountain-import-none.md).
 - `importFile` dispatches on `fileName.endswith("fdx")` etc. — no dot, case
   sensitive (`trelby/trelbyctrl.py:169-181`); `SCRIPT.FDX` is read as plain
-  text.
+  text. Bug: [bugs/import-export/3](../initiatives/bugs/epics/import-export/tasks/3-import-extension-match.md).
 - `OnInsertNbsp` (`trelby/trelbyctrl.py:900`), the character map and the
   name database feed `util.MyKeyEvent` into `OnKeyChar`, which calls
   `ev.GetUnicodeKey()` (`trelby/trelbyctrl.py:1275`); `MyKeyEvent` has only
-  `GetKeyCode` (`trelby/util.py:785`) → `AttributeError`.
+  `GetKeyCode` (`trelby/util.py:785`) → `AttributeError`. Bug: [bugs/editor/1](../initiatives/bugs/epics/editor/tasks/1-insert-char-crash.md).
 - `OnCopySystem` lays text out with a fresh default `Screenplay`, so the
   formatted copy uses default element widths, not the script's
-  (`trelby/trelbyctrl.py:748-756`).
+  (`trelby/trelbyctrl.py:748-756`). Bug: [bugs/editor/6](../initiatives/bugs/epics/editor/tasks/6-copy-system-default-widths.md).
 - `OnPaint` keys its per-font text batches by testing
   `fi.font not in texts`, where `texts` is a list of `(font, data)` tuples
   (`trelby/trelbyctrl.py:1482-1485`); the test is always true, so every
   string gets its own `DrawTextList` call. Output is correct, just slower.
 - Test-mode hotkeys: all three compare against U+FFFD, so only "load
-  `sample.trelby`" is reachable (`trelby/trelbyctrl.py:1298-1303`).
+  `sample.trelby`" is reachable (`trelby/trelbyctrl.py:1298-1303`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
 - `toolbarshown` and the `KC_CTRL_*` constants at the top
   (`trelby/trelbyctrl.py:35-46`) are unused, as are the same names in
   `trelby/trelby.py:20-31`.

@@ -101,9 +101,9 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:69-82`):
 - In layout and side-by-side modes the scene number counter starts from
   `getSceneNumber` of the first line on the page, but `sceneContNr`
   (`CONTINUED (2)`) is reset on every page, so screen and PDF can differ
-  there (`trelby/viewmode.py:342-345`, `trelby/viewmode.py:455-458`).
+  there (`trelby/viewmode.py:342-345`, `trelby/viewmode.py:455-458`). Bug: [bugs/editor/8](../initiatives/bugs/epics/editor/tasks/8-scene-cont-number.md).
 - `ViewModeSideBySide.makeLineVisible` ignores direction and just sets the
-  top line (`trelby/viewmode.py:539-540`).
+  top line (`trelby/viewmode.py:539-540`). Bug: [bugs/editor/7](../initiatives/bugs/epics/editor/tasks/7-side-by-side-scroll.md).
 - The abstract methods raise `Exception("… " + _("not implemented"))`
   (`trelby/viewmode.py:83-114`).
 
