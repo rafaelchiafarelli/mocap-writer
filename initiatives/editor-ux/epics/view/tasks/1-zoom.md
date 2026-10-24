@@ -2,9 +2,9 @@
 
 - **Status:** Done (2026-10-24) — `ConfigGlobal.zoom` + `ConfigGui`
   scaling, commands, Ctrl + wheel, status control; `tests/test_zoom.py`;
-  checked on screen (WSLg) in draft and layout. Open question for Rafael:
-  no horizontal scrolling, so a page wider than the window is cut on the
-  right at high zoom
+  checked on screen (WSLg) in draft and layout. A page wider than the
+  window is cut on the right (no horizontal scrolling): left as is, recorded
+  as bugs/editor/12 (Rafael)
 - **Type:** code
 - **Depends on:** —
 - **Contract:**

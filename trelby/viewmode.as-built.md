@@ -99,7 +99,7 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:69-82`):
 - There is no horizontal scrolling: a page wider than the widget (a high
   zoom or a narrow window) is left-aligned and its right part is not shown,
   cursor included (`cox` clamped at 0, `trelby/viewmode.py:214`,
-  `trelby/viewmode.py:298`).
+  `trelby/viewmode.py:298`). Bug: [bugs/editor/12](../initiatives/bugs/epics/editor/tasks/12-no-horizontal-scroll.md).
 - `getScreen` is called several times per keystroke (`isLineVisible`,
   `makeLineVisible`, `OnPaint`), and in layout modes each call rebuilds PML
   pages; `PageCache` is only used for page-up scanning
