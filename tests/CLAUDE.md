@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 77 tests.
+objects directly and never create the wx GUI. 86 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -40,6 +40,12 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `zoomScale`, config round trip, and the PML/PDF text ops unchanged by
   the zoom. The zoomed `wx.Font`s themselves need a display and are not
   tested. Loads the translations itself, so it runs alone.
+- `test_theme.py` — `ConfigGlobal` themes: `DARK_COLORS` covers every color
+  var, switching applies a theme's colors and keeps each theme's custom
+  colors, the config round trip (light under `Color/…`, dark under
+  `Dark/Color/…`), an old config loads as light, and a WCAG contrast of at
+  least 4.5:1 for each dark text / background pair drawn on screen. Loads
+  the translations itself.
 - `test_keycode.py` — `util.eventKeyCode`: arrows and other non-character
   keys fall back to their `WXK_` code, characters keep their Unicode value.
 - `test_util.py` — `util.replace`, `splitToWords`, `escapeStrings`; the file

@@ -76,6 +76,53 @@ ZOOM_MIN = 50
 ZOOM_MAX = 300
 ZOOM_STEP = 10
 
+# color themes of the screen (never the PDF). each theme keeps its own
+# copy of every color setting, so switching does not lose custom colors.
+THEME_LIGHT = 0
+THEME_DARK = 1
+
+# for range checking above value
+THEME_FIRST, THEME_LAST = THEME_LIGHT, THEME_DARK
+
+THEME_NAMES = {THEME_LIGHT: "Light", THEME_DARK: "Dark"}
+
+# prefix of each theme's color save names. light keeps the original
+# "Color/..." names, so configs from before themes load as light.
+THEME_SAVE_PREFIX = {THEME_LIGHT: "", THEME_DARK: "Dark/"}
+
+# the dark theme's default colors, by ConfigGlobal color attribute. the
+# light theme's defaults are the addColor values in setupVars. every
+# text / background pair drawn on screen has a contrast of at least 4.5:1
+# (tests/test_theme.py).
+DARK_COLORS = {
+    "textColor": (220, 220, 220),
+    "textHdrColor": (150, 150, 150),
+    "textBgColor": (30, 30, 30),
+    "workspaceColor": (45, 45, 48),
+    "pageBorderColor": (80, 80, 80),
+    "pageShadowColor": (15, 15, 15),
+    "selectedColor": (38, 79, 120),
+    "cursorColor": (72, 72, 160),
+    "autoCompFgColor": (235, 235, 235),
+    "autoCompBgColor": (92, 76, 20),
+    "noteColor": (66, 52, 38),
+    "pagebreakColor": (70, 70, 70),
+    "pagebreakNoAdjustColor": (70, 70, 70),
+    "tabTextColor": (220, 220, 220),
+    "tabBorderColor": (80, 80, 80),
+    "tabBarBgColor": (37, 37, 38),
+    "tabNonActiveBgColor": (64, 64, 64),
+    "textSceneColor": (220, 220, 220),
+    "textActionColor": (220, 220, 220),
+    "textCharacterColor": (220, 220, 220),
+    "textDialogueColor": (220, 220, 220),
+    "textParentheticalColor": (220, 220, 220),
+    "textTransitionColor": (220, 220, 220),
+    "textShotColor": (220, 220, 220),
+    "textAct breakColor": (220, 220, 220),
+    "textNoteColor": (220, 220, 220),
+}
+
 # construct reverse lookup tables
 
 for k, v in list(_char2lb.items()):
@@ -621,6 +668,18 @@ class ConfigGlobal:
 
         self.__class__.cvars.setDefaults(self)
 
+        # every theme's colors, key = theme, value = {color attribute:
+        # MyColor}. the active theme's colors are the color attributes
+        # themselves; its entry here is refreshed from them by
+        # storeThemeColors.
+        self.themeColors = {
+            theme: {
+                name: self.getThemeDefault(theme, name)
+                for name in self.cvars.color
+            }
+            for theme in THEME_NAMES
+        }
+
         # type configs, key = line type, value = TypeGlobal
         self.types = {}
 
@@ -1163,6 +1222,10 @@ class ConfigGlobal:
         # fontYdelta only (ConfigGui), never the PDF.
         v.addInt("zoom", 100, "Zoom", ZOOM_MIN, ZOOM_MAX)
 
+        # screen color theme. its colors are the color settings below;
+        # docker/run.sh also reads it to pick GTK's dark variant.
+        v.addInt("theme", THEME_LIGHT, "Theme", THEME_FIRST, THEME_LAST)
+
         # how many lines to scroll per mouse wheel event
         v.addInt("mouseWheelLines", 4, "MouseWheelLines", 1, 50)
 
@@ -1265,7 +1328,27 @@ class ConfigGlobal:
     def load(self, s):
         vals = self.cvars.makeVals(s)
 
+        # the unprefixed color save names are the light theme's, so load
+        # them over the light colors.
+        self.storeThemeColors()
+        for name in self.cvars.color:
+            setattr(self, name, self.themeColors[THEME_LIGHT][name])
+
         self.cvars.load(vals, "", self)
+
+        for name in self.cvars.color:
+            self.themeColors[THEME_LIGHT][name] = getattr(self, name)
+
+        for theme, prefix in THEME_SAVE_PREFIX.items():
+            if theme == THEME_LIGHT:
+                continue
+
+            for it in self.cvars.color.values():
+                name = prefix + it.name2
+                if name in vals:
+                    self.themeColors[theme][it.name] = it.fromStr(
+                        vals, vals[name], name
+                    )
 
         for t in self.types.values():
             t.load(vals, "Element/")
@@ -1274,10 +1357,20 @@ class ConfigGlobal:
             cmd.load(vals, "Command/")
 
         self.recalc()
+        self.loadThemeColors()
 
     # save config into a string and return that.
     def save(self):
-        s = self.cvars.save("", self)
+        self.storeThemeColors()
+
+        s = ""
+        for it in self.cvars:
+            if it.name2 and it.name not in self.cvars.color:
+                s += it.toStr(getattr(self, it.name), it.name2)
+
+        for theme, prefix in THEME_SAVE_PREFIX.items():
+            for it in self.cvars.color.values():
+                s += it.toStr(self.themeColors[theme][it.name], prefix + it.name2)
 
         for t in self.types.values():
             s += t.save("Element/")
@@ -1286,6 +1379,37 @@ class ConfigGlobal:
             s += cmd.save("Command/")
 
         return s
+
+    # default value of color attribute 'name' in 'theme'.
+    def getThemeDefault(self, theme, name):
+        if theme == THEME_DARK:
+            return util.MyColor(*DARK_COLORS[name])
+
+        return self.cvars.getDefault(name)
+
+    # copy the color attributes into the active theme's entry of
+    # themeColors.
+    def storeThemeColors(self):
+        for name in self.cvars.color:
+            self.themeColors[self.theme][name] = getattr(self, name)
+
+    # set the color attributes from the active theme's entry of
+    # themeColors.
+    def loadThemeColors(self):
+        for name in self.cvars.color:
+            setattr(self, name, self.themeColors[self.theme][name])
+
+    # switch to 'theme', keeping the current theme's colors for when it is
+    # chosen again. returns True if the theme changed.
+    def setTheme(self, theme):
+        if theme == self.theme:
+            return False
+
+        self.storeThemeColors()
+        self.theme = theme
+        self.loadThemeColors()
+
+        return True
 
     # fix up all invalid config values.
     def recalc(self):
