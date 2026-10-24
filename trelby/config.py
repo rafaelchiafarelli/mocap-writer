@@ -71,6 +71,11 @@ SCROLL_UP = 0
 SCROLL_DOWN = 1
 SCROLL_CENTER = 2
 
+# screen zoom, in percent of the screen fonts' size
+ZOOM_MIN = 50
+ZOOM_MAX = 300
+ZOOM_STEP = 10
+
 # construct reverse lookup tables
 
 for k, v in list(_char2lb.items()):
@@ -1118,6 +1123,28 @@ class ConfigGlobal:
                     isMenu=True,
                 ),
                 Command("Watermark", _("Generate watermarked PDFs."), isMenu=True),
+                Command(
+                    "ZoomIn",
+                    _("Make the script view bigger."),
+                    [
+                        util.Key(ord("+"), ctrl=True).toInt(),
+                        util.Key(ord("+"), ctrl=True, shift=True).toInt(),
+                        util.Key(ord("="), ctrl=True).toInt(),
+                    ],
+                    isMenu=True,
+                ),
+                Command(
+                    "ZoomOut",
+                    _("Make the script view smaller."),
+                    [util.Key(ord("-"), ctrl=True).toInt()],
+                    isMenu=True,
+                ),
+                Command(
+                    "ZoomReset",
+                    _("Show the script view at 100 %."),
+                    [util.Key(ord("0"), ctrl=True).toInt()],
+                    isMenu=True,
+                ),
             ]
         )
 
@@ -1131,6 +1158,10 @@ class ConfigGlobal:
 
         # vertical distance between rows, in pixels
         v.addInt("fontYdelta", 18, "FontYDelta", 4, 125)
+
+        # script view zoom, in percent. scales the screen fonts and
+        # fontYdelta only (ConfigGui), never the PDF.
+        v.addInt("zoom", 100, "Zoom", ZOOM_MIN, ZOOM_MAX)
 
         # how many lines to scroll per mouse wheel event
         v.addInt("mouseWheelLines", 4, "MouseWheelLines", 1, 50)
@@ -1260,6 +1291,30 @@ class ConfigGlobal:
     def recalc(self):
         for it in self.cvars.numeric.values():
             util.clampObj(self, it.name, it.minVal, it.maxVal)
+
+    # set zoom to 'zoom' percent, snapped to ZOOM_STEP and clamped to
+    # [ZOOM_MIN, ZOOM_MAX]. returns True if the zoom changed.
+    def setZoom(self, zoom):
+        zoom = round(zoom / ZOOM_STEP) * ZOOM_STEP
+        zoom = util.clamp(zoom, ZOOM_MIN, ZOOM_MAX)
+
+        changed = zoom != self.zoom
+        self.zoom = zoom
+
+        return changed
+
+    def zoomIn(self):
+        return self.setZoom(self.zoom + ZOOM_STEP)
+
+    def zoomOut(self):
+        return self.setZoom(self.zoom - ZOOM_STEP)
+
+    def zoomReset(self):
+        return self.setZoom(100)
+
+    # 'val' (a screen size: font points or pixels) at the current zoom.
+    def zoomScale(self, val):
+        return val * self.zoom / 100
 
     def getType(self, lt):
         return self.types[lt]
@@ -1487,12 +1542,20 @@ class ConfigGui:
                 )
                 setattr(cfgGl, fname, fi.font.GetNativeFontInfo().ToString())
 
+            # zoom applies to the screen font only; cfgGl keeps the
+            # unzoomed font string.
+            if cfgGl.zoom != 100:
+                fi.font = fi.font.Scaled(cfgGl.zoom / 100)
+
             fx, fy = util.getTextExtent(fi.font, "O")
 
             fi.fx = max(1, fx)
             fi.fy = max(1, fy)
 
             self.fonts.append(fi)
+
+        # draft-mode row height at the current zoom
+        self.fontYdelta = max(1, round(cfgGl.zoomScale(cfgGl.fontYdelta)))
 
     # TextType -> FontInfo
     def tt2fi(self, tt):

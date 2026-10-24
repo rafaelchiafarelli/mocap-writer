@@ -24,7 +24,7 @@ code-level docs are the `CLAUDE.md` files and `../trelby.process.md`.
 
 ## Key facts / gotchas
 - The built `manual.html` is not in git and not in the Docker image, so
-  Help → Manual opens a missing file (`trelby/trelbyframe.py:952`). Bug: [bugs/editor/11](../initiatives/bugs/epics/editor/tasks/11-help-manual-missing.md).
+  Help → Manual opens a missing file (`trelby/trelbyframe.py:963`). Bug: [bugs/editor/11](../initiatives/bugs/epics/editor/tasks/11-help-manual-missing.md).
 - `version.xml` duplicates the version in `trelby/misc.py:20`,
   `setup.cfg` and `choco/trelby.nuspec`; nothing keeps them in sync.
 - Out of scope for the as-built rule: the manual is user documentation, not

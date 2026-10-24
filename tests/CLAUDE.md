@@ -1,8 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 68 tests at the fork
-baseline.
+objects directly and never create the wx GUI. 75 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -37,6 +36,10 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `test_characterreport.py` — each report's `generate()` returns a PDF.
 - `test_locations.py` — `Locations.refresh`.
 - `test_pagelist.py` — `PageList` formatting.
+- `test_zoom.py` — `ConfigGlobal` zoom: steps, limits, snapping,
+  `zoomScale`, config round trip, and the PML/PDF text ops unchanged by
+  the zoom. The zoomed `wx.Font`s themselves need a display and are not
+  tested. Loads the translations itself, so it runs alone.
 - `test_util.py` — `util.replace`, `splitToWords`, `escapeStrings`; the file
   itself is ISO-8859-1 encoded.
 - `execute_random_tests.py` — manual fuzzer: random command sequences on a
@@ -61,7 +64,7 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - Two `SyntaxWarning`s from `trelby/titles.py` appear in every run. Bug: [bugs/tooling/5](../initiatives/bugs/epics/tooling/tasks/5-titles-escapes.md).
 
 ## Touchpoints
-- Tests: `trelby/screenplay.py`, `trelby/myimport.py`, `trelby/pdf.py`,
+- Tests: `trelby/screenplay.py`, `trelby/config.py`, `trelby/myimport.py`, `trelby/pdf.py`,
   the report modules, `trelby/locations.py`, `trelby/pagelist.py`,
   `trelby/util.py`.
 - Run by: `docker/test.sh`, `.github/workflows/main.yml`.
