@@ -15,6 +15,10 @@ with the native file.
   layout), input of `importTextFile`.
 - `test.celtx` — the same script as a Celtx zip (`script-ujq.html` inside),
   input of `importCeltx`.
+- `pdf/letter-test.toml` — PDF import profile for the PDFs that
+  `tests/test_pdfimport.py` draws (US Letter, Final Draft-like layout:
+  right-aligned transitions, margin scene numbers at 72/552, dual-dialogue
+  columns).
 - `custom-font/Jost-400-Book.ttf` — TrueType font for the custom-font PDF
   test; `custom-font/LICENSE.md` — SIL Open Font License 1.1.
 
@@ -27,5 +31,5 @@ with the native file.
   CC-BY, GPL family) and is used only as test data.
 
 ## Touchpoints
-- Read by: `tests/u.py`, `tests/test_myimport.py`,
+- Read by: `tests/u.py`, `tests/test_myimport.py`, `tests/test_pdfimport.py`,
   `tests/test_renderscreenplay.py`.

@@ -178,6 +178,8 @@ class MyCtrl(wx.Control):
             )
         elif fileName.endswith("fadein"):
             lines = myimport.importFadein(fileName, self.gd.mainFrame)
+        elif fileName.lower().endswith(".pdf"):
+            lines = myimport.importPdf(fileName, self.gd.mainFrame)
         else:
             lines = myimport.importTextFile(fileName, self.gd.mainFrame)
 
