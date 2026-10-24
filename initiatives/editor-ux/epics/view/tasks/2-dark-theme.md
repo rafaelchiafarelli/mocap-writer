@@ -1,5 +1,10 @@
 ## 2. Dark theme
 
+- **Status:** Done (2026-10-24) — `ConfigGlobal.theme` + `themeColors`
+  (each theme keeps its own colors), `DARK_COLORS` declared once, Light /
+  Dark choice in Settings → Colors, `GTK_THEME=Adwaita:dark` from
+  `docker/run.sh`; `tests/test_theme.py`. Smoke-run in Dark (no errors);
+  not checked by eye on screen
 - **Type:** code
 - **Depends on:** —
 - **Contract:**

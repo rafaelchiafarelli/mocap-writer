@@ -5,7 +5,7 @@ desktop entry. Files are addressed as `trelby/resources/<file>` relative to
 `misc.progPath` (the repository root, `trelby/misc.py:54`).
 **Entry points:** none; read by `MyFrame.addTB` (toolbar SVGs,
 `trelby/trelbyframe.py:193-238`), `MyFrame.mySetIcons` (window icons,
-`trelby/trelbyframe.py:410-418`), `SplashWindow` (`trelby/splash.py:39`,
+`trelby/trelbyframe.py:413-421`), `SplashWindow` (`trelby/splash.py:39`,
 `trelby/splash.py:124`), `MyFSButton` (`trelby/misc.py:131`).
 **Inputs → Outputs:** static files → bitmaps and text in the GUI.
 

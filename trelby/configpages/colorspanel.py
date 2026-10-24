@@ -12,6 +12,30 @@ class ColorsPanel(wx.Panel):
 
         vsizer = wx.BoxSizer(wx.VERTICAL)
 
+        # the colors listed below are the chosen theme's
+        self.themeRb = wx.RadioBox(
+            self,
+            -1,
+            _("Theme"),
+            style=wx.RA_SPECIFY_ROWS,
+            majorDimension=1,
+            # in THEME_LIGHT, THEME_DARK order
+            choices=[_("Light"), _("Dark")],
+        )
+        self.Bind(wx.EVT_RADIOBOX, self.OnTheme, id=self.themeRb.GetId())
+        vsizer.Add(self.themeRb, 0, wx.BOTTOM, 5)
+
+        vsizer.Add(
+            wx.StaticText(
+                self,
+                -1,
+                _("Menus and dialogs follow the theme after a restart."),
+            ),
+            0,
+            wx.BOTTOM,
+            10,
+        )
+
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.colorsLb = wx.ListBox(self, -1, size=(300, 250))
@@ -79,13 +103,22 @@ class ColorsPanel(wx.Panel):
         self.cfg2gui()
 
     def OnDefaultColor(self, event):
-        setattr(self.cfg, self.color, self.cfg.cvars.getDefault(self.color))
+        setattr(
+            self.cfg,
+            self.color,
+            self.cfg.getThemeDefault(self.cfg.theme, self.color),
+        )
+        self.cfg2gui()
+
+    def OnTheme(self, event):
+        self.cfg.setTheme(self.themeRb.GetSelection())
         self.cfg2gui()
 
     def OnMisc(self, event=None):
         self.cfg.useCustomElemColors = self.useCustomElemColors.GetValue()
 
     def cfg2gui(self):
+        self.themeRb.SetSelection(self.cfg.theme)
         self.useCustomElemColors.SetValue(self.cfg.useCustomElemColors)
 
         self.colorSample.SetBackgroundColour(getattr(self.cfg, self.color).toWx())
