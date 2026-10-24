@@ -17,7 +17,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   - `test_addchar.py` — typing a space / non-breaking space at the end of
     a line;
   - `test_changetype.py` — changing the type of one or several selected
-    elements (Tab, Shift-Tab, to Transition);
+    elements (Tab, Shift-Tab, to Transition), and the full Tab and
+    Shift-Tab cycles;
   - `test_copypaste.py` — `paste`;
   - `test_cut.py` — `getSelectedAsCD(doDelete=True)`;
   - `test_delete.py` — delete forward / backward, joining elements;
@@ -61,6 +62,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `Dark/Color/…`), an old config loads as light, and a WCAG contrast of at
   least 4.5:1 for each dark text / background pair drawn on screen. Loads
   the translations itself.
+- `test_taborder.py` — `ConfigGlobal.tabOrder`: the default cycle and its
+  wrap-around, elements outside the cycle, config round trip, `recalc`
+  clean-up. Loads the translations itself.
 - `test_keycode.py` — `util.eventKeyCode`: arrows and other non-character
   keys fall back to their `WXK_` code, characters keep their Unicode value.
 - `test_wxnames.py` — every `wx.<name>` used in `trelby/` exists in the
