@@ -103,7 +103,7 @@ with the result.
   list[Line] | None` here that meets the contract above, an `elif` on the
   file-name ending in `MyCtrl.importFile` (`trelby/trelbyctrl.py:170-185`),
   and an entry in the import dialog's wildcard
-  (`trelby/trelbyframe.py:617-645`). PDF followed this path, with the
+  (`trelby/trelbyframe.py:620-648`). PDF followed this path, with the
   wx-free work in its own module (`pdfimport.py`).
 - **Fountain import** is self-contained in `importFountain`; its helper
   predicates (`isScene`, `isTransition`, `isNote`, …,

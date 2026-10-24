@@ -59,7 +59,7 @@ Model and file format
 - `fileformat.txt` — the `.trelby` format description (sections, config
   keys, line codes).
 - `sample.trelby` — sample script, loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1341`).
+  (`trelby/trelbyctrl.py:1357`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -82,6 +82,9 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit (`trelby/trelbyframe.py:26`).
+  View → Dark theme is a check item kept in step with the theme
+  (`updateThemeMenu`, `trelby/trelbyframe.py:795-799`, called from
+  `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   (`trelby/trelbypanel.py:7`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
@@ -91,7 +94,7 @@ Application and editor (wx)
   where each line is drawn and which line/column a mouse position hits.
   Detail: [viewmode.as-built.md](viewmode.as-built.md).
 - `ids.py` — wx menu ids and `idToLTMap` (right-click "Element type" ids →
-  line types, `trelby/ids.py:81`).
+  line types, `trelby/ids.py:82`).
 - `misc.py` — platform flags, `progPath` / `confPath` (`misc.init`,
   `trelby/misc.py:23`), `version` (`trelby/misc.py:20`), and shared widgets:
   `MyTabCtrl` (tab bar, `trelby/misc.py:287`), `MyStatus` (status area
@@ -229,9 +232,9 @@ Data and folders
 - **Character map → Insert, Name database → Insert and Edit → Insert
   non-breaking space are broken:** they call
   `MyCtrl.OnKeyChar(util.MyKeyEvent(...))` (`trelby/charmapdlg.py:27`,
-  `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:944`), but
+  `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:960`), but
   `OnKeyChar` → `util.eventKeyCode` calls `ev.GetUnicodeKey()`
-  (`trelby/trelbyctrl.py:1318`, `trelby/util.py:210`),
+  (`trelby/trelbyctrl.py:1334`, `trelby/util.py:210`),
   which `util.MyKeyEvent` does not have (`trelby/util.py:789-810`) →
   `AttributeError`. Bug: [bugs/editor/1](../initiatives/bugs/epics/editor/tasks/1-insert-char-crash.md).
 - **`opts.py --conf` crashes:** `str(sys.argv[i + 1], "UTF-8", "ignore")`
@@ -249,8 +252,8 @@ Data and folders
   `(a.x < a.y)` for `(a.x < b.x)` (`trelby/titles.py:58`). Bug: [bugs/editor/9](../initiatives/bugs/epics/editor/tasks/9-titles-sort-noop.md).
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
-  branch (load `sample.trelby`) is reachable (`trelby/trelbyctrl.py:1341-1346`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
-- **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:992-993`
+  branch (load `sample.trelby`) is reachable (`trelby/trelbyctrl.py:1357-1362`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
+- **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:1004-1005`
   → `OnSave`); other modified tabs are discarded. Bug: [bugs/editor/2](../initiatives/bugs/epics/editor/tasks/2-exit-saves-current-tab.md).
 - **Help → Commands → Save** uses `wx.OVERWRITE_PROMPT`
   (`trelby/commandsdlg.py:94`), which wxPython 4 calls
@@ -263,14 +266,14 @@ Data and folders
   `trelby/resources/...` (`trelby/splash.py:39`).
 - `trelby/manual.html`, `dict_en.dat.gz`, `names.txt.gz` and `trelby.1.gz`
   are build products of `../Makefile`, not in git; Help → Manual opens
-  `trelby/manual.html` (`trelby/trelbyframe.py:972`), which does not exist
+  `trelby/manual.html` (`trelby/trelbyframe.py:984`), which does not exist
   in a plain checkout. Bug: [bugs/editor/11](../initiatives/bugs/epics/editor/tasks/11-help-manual-missing.md).
 - Two invalid escape sequences in `titles.py`, `" \qc"` / `" \qr"`
   (`trelby/titles.py:158-160`): `SyntaxWarning` in every test run, output
   unchanged. Bug: [bugs/tooling/5](../initiatives/bugs/epics/tooling/tasks/5-titles-escapes.md).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:190`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:207-212`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:192`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:209-214`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 

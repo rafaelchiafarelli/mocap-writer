@@ -1,6 +1,6 @@
 # editor-ux — mocap-writer
 
-**Status:** Built (2026-10-24) — view epic (zoom, dark theme) and typing
+**Status:** Built (2026-10-24) — view epic (zoom, dark theme, dark theme in the View menu) and typing
 epic (Tab cycle, capitalized words in Action) done. Waiting for the
 initiative gate (Rafael's approval), so the `editor-ux` branch has not
 merged into `features`. The view epic had already landed in `features`

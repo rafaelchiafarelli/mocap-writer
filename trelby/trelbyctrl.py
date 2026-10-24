@@ -374,6 +374,7 @@ class MyCtrl(wx.Control):
         self.gd.cfgGl.recalc()
         self.refreshGuiConfig()
         self.gd.mainFrame.updateKbdCommands()
+        self.gd.mainFrame.updateThemeMenu()
 
         for c in self.gd.mainFrame.getCtrls():
             c.sp.cfgGl = self.gd.cfgGl
@@ -422,6 +423,21 @@ class MyCtrl(wx.Control):
     def OnZoomReset(self):
         if self.gd.cfgGl.zoomReset():
             self.applyZoom()
+
+    # switch the screen to the Dark theme if 'dark', else to Light, and
+    # save it like the zoom.
+    def OnDarkTheme(self, dark):
+        theme = config.THEME_DARK if dark else config.THEME_LIGHT
+
+        if not self.gd.cfgGl.setTheme(theme):
+            return
+
+        self.refreshGuiConfig()
+
+        # the tab bar and status area draw with the theme's colors too.
+        self.gd.mainFrame.Refresh(False)
+
+        util.writeToFile(self.gd.confFilename, self.gd.cfgGl.save(), self.gd.mainFrame)
 
     def applyHeaders(self, newHeaders):
         self.sp.headers = newHeaders

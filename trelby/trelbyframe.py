@@ -124,6 +124,8 @@ class MyFrame(wx.Frame):
         viewMenu.AppendCheckItem(
             ID_VIEW_SHOW_FORMATTING, "(&S) " + _("Show formatting")
         )
+        viewMenu.AppendCheckItem(ID_VIEW_DARK_THEME, "(&T) " + _("Dark theme"))
+        viewMenu.Check(ID_VIEW_DARK_THEME, gd.cfgGl.theme == config.THEME_DARK)
         viewMenu.Append(ID_VIEW_FULL_SCREEN, "(&F) " + _("Fullscreen") + "\tF11")
 
         scriptMenu = wx.Menu()
@@ -341,6 +343,7 @@ class MyFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.OnViewModeChange, id=ID_VIEW_STYLE_LAYOUT)
             self.Bind(wx.EVT_MENU, self.OnViewModeChange, id=ID_VIEW_STYLE_SIDE_BY_SIDE)
             self.Bind(wx.EVT_MENU, self.OnShowFormatting, id=ID_VIEW_SHOW_FORMATTING)
+            self.Bind(wx.EVT_MENU, self.OnDarkTheme, id=ID_VIEW_DARK_THEME)
             self.Bind(wx.EVT_MENU, self.ToggleFullscreen, id=ID_VIEW_FULL_SCREEN)
             self.Bind(wx.EVT_MENU, self.OnFindNextError, id=ID_SCRIPT_FIND_ERROR)
             self.Bind(wx.EVT_MENU, self.OnPaginate, id=ID_SCRIPT_PAGINATE)
@@ -785,6 +788,15 @@ class MyFrame(wx.Frame):
     def OnShowFormatting(self, event=None):
         self.showFormatting = self.menuBar.IsChecked(ID_VIEW_SHOW_FORMATTING)
         self.panel.ctrl.Refresh(False)
+
+    def OnDarkTheme(self, event=None):
+        self.panel.ctrl.OnDarkTheme(self.menuBar.IsChecked(ID_VIEW_DARK_THEME))
+
+    # make View -> Dark theme show the current theme.
+    def updateThemeMenu(self):
+        self.menuBar.Check(
+            ID_VIEW_DARK_THEME, self.gd.cfgGl.theme == config.THEME_DARK
+        )
 
     def OnViewModeDraft(self):
         self.menuBar.Check(ID_VIEW_STYLE_DRAFT, True)
