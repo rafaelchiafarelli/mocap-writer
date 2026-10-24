@@ -1,6 +1,7 @@
 # fountain-native — epics (execution order)
 
-1. **io** — open and save Fountain as the native format (1 task)
+1. **io** — open and save Fountain as the native format (2 tasks: 1 done
+   2026-10-24; 2, per-script settings, **waits for Rafael's decision**)
 2. **scenes** — scene ids and automatic numbering (1 task, **waits for Rafael's decision**)
 3. **notes** — notes on spans of text (1 task, waits for its format decision)
 

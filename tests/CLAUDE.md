@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 115 tests.
+objects directly and never create the wx GUI. 147 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -62,6 +62,13 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `Dark/Color/…`), an old config loads as light, and a WCAG contrast of at
   least 4.5:1 for each dark text / background pair drawn on screen. Loads
   the translations itself.
+- `test_fountain.py` — the native Fountain format (`trelby/fountain.py`):
+  open → save → open byte-identical on `fixtures/fountain/*` (also with CRLF
+  and a BOM, and without a final newline), every element type, title page
+  read and edited, hidden source (boneyard, synopsis, `##`, `===`) kept,
+  one edit rewrites one line, scene number and `^` kept on edit, insert and
+  delete, forced `.` / `!` / `@` / `>` only when needed, lost elements
+  reported, `test.trelby` saved as Fountain. Loads the translations itself.
 - `test_propwords.py` — `propwords.find_prop_words`: positions, accents,
   one-letter words, punctuation, mixed case and digits, an all-caps line.
 - `test_taborder.py` — `ConfigGlobal.tabOrder`: the default cycle and its
@@ -95,13 +102,16 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   stay out of the repo (decided in the pdf-import initiative, task
   importer/1, now in git history).
 - Not covered by any test: the wx GUI (`trelbyframe`, `trelbyctrl`,
-  `viewmode`, dialogs), `.trelby` save round-trip, Fountain/FDX/HTML/RTF/text
-  export, Fountain/FDX/Astx/Fade In import, pagination results, undo/redo.
+  `viewmode`, dialogs; the Fountain open/save in `MyCtrl` was checked by
+  hand through the real window, 2026-10-24), `.trelby` save round-trip,
+  Fountain/FDX/HTML/RTF/text export, Fountain/FDX/Astx/Fade In import (the
+  native `.fountain` open/save is `test_fountain.py`), pagination results,
+  undo/redo.
 - Two `SyntaxWarning`s from `trelby/titles.py` appear in every run. Bug: [bugs/tooling/5](../initiatives/bugs/epics/tooling/tasks/5-titles-escapes.md).
 
 ## Touchpoints
 - Tests: `trelby/screenplay.py`, `trelby/config.py`, `trelby/myimport.py`,
-  `trelby/pdfimport.py`, `trelby/pdf.py`,
+  `trelby/pdfimport.py`, `trelby/fountain.py`, `trelby/pdf.py`,
   the report modules, `trelby/locations.py`, `trelby/pagelist.py`,
   `trelby/util.py`.
 - Run by: `docker/test.sh`, `.github/workflows/main.yml`.

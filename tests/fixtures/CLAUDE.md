@@ -10,7 +10,7 @@ with the native file.
 ## Files
 - `test.trelby` — the reference script, `#Version 2` format (no
   `#Start-Script` line; read with `startSeen = True`,
-  `trelby/screenplay.py:286`). Default for `u.load()`.
+  `trelby/screenplay.py:291`). Default for `u.load()`.
 - `test.txt` — the same script as indented plain text (Trelby's text export
   layout), input of `importTextFile`.
 - `test.celtx` — the same script as a Celtx zip (`script-ujq.html` inside),
@@ -19,6 +19,16 @@ with the native file.
   `tests/test_pdfimport.py` draws (US Letter, Final Draft-like layout:
   right-aligned transitions, margin scene numbers at 72/552, dual-dialogue
   columns).
+- `fountain/sample_ptbr.fountain` — neutral Portuguese sample (accents,
+  act section, synopsis, `#12#`, dual `^`, a non-heading `CENA 13 ...`,
+  forced `.`), copied from
+  `mocap-previz/docs/exploration/script-to-previz/spikes/fountain/`.
+- `fountain/elements.fountain` — every Fountain element the writer maps or
+  keeps hidden: multi-line title page, sections, synopsis, boneyard,
+  emphasis, forced elements, extensions, dual dialogue, `"  "` dialogue
+  line, transitions, centered text, shot, notes, page break.
+- `fountain/no-final-newline.fountain` — a file whose last line has no
+  newline.
 - `custom-font/Jost-400-Book.ttf` — TrueType font for the custom-font PDF
   test; `custom-font/LICENSE.md` — SIL Open Font License 1.1.
 
@@ -31,5 +41,5 @@ with the native file.
   CC-BY, GPL family) and is used only as test data.
 
 ## Touchpoints
-- Read by: `tests/u.py`, `tests/test_myimport.py`, `tests/test_pdfimport.py`,
+- Read by: `tests/u.py`, `tests/test_fountain.py`, `tests/test_myimport.py`, `tests/test_pdfimport.py`,
   `tests/test_renderscreenplay.py`.
