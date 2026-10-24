@@ -20,7 +20,7 @@ with the result.
   last line as `LB_LAST` (e.g. `trelby/myimport.py:63-72`), so line breaks
   inside an element survive as forced breaks.
 - Text goes through `util.cleanInput` / `util.toInputStr`, which only drop
-  form feeds and turn tabs into `|` (`trelby/util.py:220-232`); characters
+  form feeds and turn tabs into `|` (`trelby/util.py:233-245`); characters
   outside Latin-1 are kept.
 - Unknown element names become Action.
 
@@ -92,7 +92,7 @@ with the result.
   list[Line] | None` here that meets the contract above, an `elif` on the
   file-name ending in `MyCtrl.importFile` (`trelby/trelbyctrl.py:169-182`),
   and an entry in the import dialog's wildcard
-  (`trelby/trelbyframe.py:614-639`). Text extracted from a PDF that keeps
+  (`trelby/trelbyframe.py:617-642`). Text extracted from a PDF that keeps
   indentation could go through the `importTextFile` path (indent
   statistics + `ImportDlg`), which already handles Trelby's own text export
   layout.

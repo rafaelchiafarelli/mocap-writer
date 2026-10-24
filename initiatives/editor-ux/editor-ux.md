@@ -1,6 +1,6 @@
 # editor-ux — mocap-writer
 
-**Status:** Planned — not started.
+**Status:** In progress — view epic done (zoom, dark theme); typing not started.
 
 **Goal:** the editor is comfortable for long sessions: zoom without touching
 the toolbar, a dark theme, a predictable Tab, and capitalized words in Action

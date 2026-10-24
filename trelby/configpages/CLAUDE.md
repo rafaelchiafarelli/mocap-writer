@@ -17,8 +17,10 @@ write them back on every change.
 
 Global settings (`ConfigGlobal`)
 - `globalaboutpanel.py` — `GlobalAboutPanel`: explanatory text only.
-- `colorspanel.py` — `ColorsPanel`: list of every color var in
-  `cfg.cvars.color`, change / reset to default, and the
+- `colorspanel.py` — `ColorsPanel`: a Light / Dark theme choice
+  (`cfg.setTheme`, `trelby/configpages/colorspanel.py:16-37`), the list of
+  every color var in `cfg.cvars.color` (the chosen theme's values), change /
+  reset to the theme's default (`cfg.getThemeDefault`), and the
   `useCustomElemColors` switch (`trelby/configpages/colorspanel.py:8`).
 - `displaypanel.py` — `DisplayPanel`: the four screen fonts (rejects
   non-fixed-width fonts; picking one also sets `fontYdelta` to the font's
@@ -68,7 +70,7 @@ Shared
 - The folder has no `__init__.py`; `trelby.configpages.*` imports work as a
   namespace package (`trelby/cfgdlg.py:4-18`).
 - Pages hold no state of their own beyond widgets; cancelling the dialog
-  just drops the deep copy (`trelby/trelbyctrl.py:1097-1115`).
+  just drops the deep copy (`trelby/trelbyctrl.py:1136-1154`).
 
 ## Touchpoints
 - Called by: `trelby/cfgdlg.py`.

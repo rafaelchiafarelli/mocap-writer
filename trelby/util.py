@@ -202,6 +202,19 @@ def fromUTF8(s):
     return s
 
 
+# the key code of a wx char event: its Unicode character, or for keys that
+# are not characters (arrows, Home, End, F-keys...), which have none, the
+# wx.WXK_ code. without the fallback those keys find no command, get
+# skipped, and GTK uses the arrows to move the keyboard focus away.
+def eventKeyCode(ev):
+    kc = ev.GetUnicodeKey()
+
+    if kc == wx.WXK_NONE:
+        kc = ev.GetKeyCode()
+
+    return kc
+
+
 # returns True if kc (key-code) is a valid character to add to the script.
 def isValidInputChar(kc):
     # [0x80, 0x9F] = unspecified control characters in ISO-8859-1, added
