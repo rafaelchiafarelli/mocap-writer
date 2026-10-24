@@ -63,6 +63,7 @@ class SplashWindow(wx.Frame):
             wx.Timer()
             self.timer.Start(delay, True)
 
+        self.Bind(wx.EVT_TIMER, self.OnTimer)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)

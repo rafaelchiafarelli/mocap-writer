@@ -3,3 +3,4 @@
 wxPython==4.2.5
 lxml
 reportlab
+pytest

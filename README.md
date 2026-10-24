@@ -13,7 +13,7 @@ project's language), runs on Windows and Linux, and its GPL-2.0 license
 allows commercial use. Proprietary tools such as Celtx were rejected because
 they keep the script in a closed format on their servers.
 
-What changes here is driven by the Mocap Studio workflow (planning will live in
+What changes here is driven by the Mocap Studio workflow (planning lives in
 `initiatives/`, process in `.claude/skills/mocap-workflow/`). Upstream
 updates are pulled with `git fetch upstream && git merge upstream/master`
 (`upstream` = `https://github.com/trelby/trelby.git`). This fork stays under
