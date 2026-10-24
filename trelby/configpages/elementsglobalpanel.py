@@ -34,8 +34,6 @@ class ElementsGlobalPanel(wx.Panel):
 
         self.addTypeCombo("newEnter", _("Enter creates"), self, gsizer)
         self.addTypeCombo("newTab", _("Tab creates"), self, gsizer)
-        self.addTypeCombo("nextTab", _("Tab switches to"), self, gsizer)
-        self.addTypeCombo("prevTab", _("Shift+Tab switches to"), self, gsizer)
 
         vsizer.Add(gsizer)
 
@@ -78,17 +76,9 @@ class ElementsGlobalPanel(wx.Panel):
         tcfg.newTypeTab = self.newTabCombo.GetClientData(
             self.newTabCombo.GetSelection()
         )
-        tcfg.nextTypeTab = self.nextTabCombo.GetClientData(
-            self.nextTabCombo.GetSelection()
-        )
-        tcfg.prevTypeTab = self.prevTabCombo.GetClientData(
-            self.prevTabCombo.GetSelection()
-        )
 
     def cfg2gui(self):
         tcfg = self.cfg.types[self.lt]
 
         util.reverseComboSelect(self.newEnterCombo, tcfg.newTypeEnter)
         util.reverseComboSelect(self.newTabCombo, tcfg.newTypeTab)
-        util.reverseComboSelect(self.nextTabCombo, tcfg.nextTypeTab)
-        util.reverseComboSelect(self.prevTabCombo, tcfg.prevTypeTab)

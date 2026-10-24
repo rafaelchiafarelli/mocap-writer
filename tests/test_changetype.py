@@ -65,3 +65,42 @@ def testChangeManyElemes():
     assert ls[12].lb == scr.LB_LAST
 
     assert ls[13].lt == scr.DIALOGUE
+
+
+# Tab cycles Scene -> Action -> Character -> Dialogue -> Scene and Shift+Tab
+# goes back (editor-ux/typing/1). the cursor is at the start of a non-empty
+# element, so Tab converts instead of creating a new element.
+def testTabCycle():
+    sp = u.load()
+    ls = sp.lines
+
+    sp.cmd("moveDown")
+    assert ls[1].lt == scr.ACTION
+
+    for lt in (scr.CHARACTER, scr.DIALOGUE, scr.SCENE, scr.ACTION):
+        sp.cmd("tab")
+        assert ls[1].lt == lt
+
+
+def testShiftTabCycle():
+    sp = u.load()
+    ls = sp.lines
+
+    sp.cmd("moveDown")
+
+    for lt in (scr.SCENE, scr.DIALOGUE, scr.CHARACTER, scr.ACTION):
+        sp.cmd("toPrevTypeTab")
+        assert ls[1].lt == lt
+
+
+# an element outside the cycle enters it at Action, both ways.
+def testTabOutsideCycle():
+    sp = u.load()
+    ls = sp.lines
+
+    sp.cmd("moveDown")
+
+    for cmd in ("tab", "toPrevTypeTab"):
+        sp.cmd("toTransition")
+        sp.cmd(cmd)
+        assert ls[1].lt == scr.ACTION
