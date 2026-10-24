@@ -33,16 +33,18 @@ pytest result.
   (the header omits it because of `--no-emit-find-links`); existing pins
   are kept.
 - `run.sh` — builds the image if it does not exist, then runs it as the host
-  user with the repo at `/app:ro`, the work dir at `/work`,
-  `~/.config/mocap-writer` at `/config`, and X11 or WSLg display sockets
-  (`docker/run.sh:12-51`); when the config holds `Theme:1` (Dark) it adds
-  `GTK_THEME=Adwaita:dark` so menus, toolbar and dialogs are dark
-  (`docker/run.sh:30-35`); a host `MOCAP_WRITER_PDF_TRACE` is passed through
-  (`docker/run.sh:37-42`) for the instrumented PDF import — give it a path
-  inside the container, e.g. `/work/trace`.
+  user with the repo at `/app:ro`, `~/.config/mocap-writer` at `/config`,
+  X11 or WSLg display sockets, every Windows drive `/mnt/<letter>` and the
+  work dir **at their own paths** (`docker/run.sh:46-61`), so the file
+  dialogs show the same paths as WSL; `MOCAP_WRITER_WORK_DIR` = the work
+  dir makes the dialogs start there (`trelby/trelby.py:102-108`). When the
+  config holds `Theme:1` (Dark) it adds `GTK_THEME=Adwaita:dark` so menus,
+  toolbar and dialogs are dark (`docker/run.sh:32-37`); a host
+  `MOCAP_WRITER_PDF_TRACE` (a WSL path) is passed through
+  (`docker/run.sh:39-44`) for the instrumented PDF import.
 - `pdfimport.sh` — rebuilds the image quietly, then runs
-  `python -m trelby.pdfimport "$@"` with the current directory at `/work`
-  (also the working directory) and the repo at `/app:ro`
+  `python -m trelby.pdfimport "$@"` with the current directory mounted at
+  its own path (also the working directory) and the repo at `/app:ro`
   (`docker/pdfimport.sh:9-15`); starter profiles are at
   `/app/trelby/pdfprofiles/`.
 - `test.sh` — rebuilds the image quietly (cached), then
@@ -54,7 +56,9 @@ pytest result.
   always builds) or `docker build` by hand, or `run.sh` keeps the old image.
 - The repository is mounted read-only, so the program cannot write next to
   its code; Trelby writes only to `$XDG_CONFIG_HOME/trelby` (`/config`),
-  the work dir and temp files.
+  the work dir, the Windows drives and temp files.
+- A work dir inside a Windows drive is mounted twice (the drive and the
+  dir itself, same path); Docker allows the nested mount.
 - `-p no:cacheprovider` because `/app` is read-only.
 - The image has no DocBook toolchain, so `trelby/manual.html` is never
   built in it.

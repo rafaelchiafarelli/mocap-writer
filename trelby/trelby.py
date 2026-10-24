@@ -101,6 +101,12 @@ class MyApp(wx.App):
         # a different directory.
         misc.scriptDir = cfgGl.scriptDir
 
+        # docker/run.sh passes the directory it was started for; the file
+        # dialogs start there instead of the configured directory
+        workDir = os.environ.get("MOCAP_WRITER_WORK_DIR")
+        if workDir and os.path.isdir(workDir):
+            misc.scriptDir = workDir
+
         if util.fileExists(gd.stateFilename):
             s = util.loadFile(gd.stateFilename, None)
 

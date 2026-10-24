@@ -8,7 +8,7 @@ drawn by `viewmode`), the page language and PDF writer (`pml`, `pdf`), import
 `../trelby.process.md`.
 
 **Entry points:**
-- `trelby.main()` (`trelby/trelby.py:142`) — the GUI program; called by
+- `trelby.main()` (`trelby/trelby.py:148`) — the GUI program; called by
   `../trelby.py`.
 - `screenplay.Screenplay.load(s, cfgGl)` / `.save()` — the `.trelby` format
   without any GUI (what the tests use, `tests/u.py`).
