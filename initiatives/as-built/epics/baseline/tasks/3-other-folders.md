@@ -1,5 +1,7 @@
 ## 3. The other folders
 
+- **Status:** Done (2026-10-24) — `CLAUDE.md` in all 14 folders; every
+  `file:line` checked
 - **Type:** documentation (no code)
 - **Depends on:** baseline/2
 - **Contract:**
