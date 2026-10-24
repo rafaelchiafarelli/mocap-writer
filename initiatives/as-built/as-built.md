@@ -1,6 +1,6 @@
 # as-built — mocap-writer
 
-**Status:** Planned — not started. **Initiative 0** (Rafael, 2026-10-24): it
+**Status:** In progress — baseline/1 done. **Initiative 0** (Rafael, 2026-10-24): it
 comes before `pdf-import`, so planning and code generation start from a
 documented program.
 
