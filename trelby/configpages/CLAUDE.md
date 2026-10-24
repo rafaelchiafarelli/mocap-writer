@@ -3,7 +3,7 @@
 **Role:** One `wx.Panel` per page of `CfgDlg` (`trelby/cfgdlg.py:21`). Each
 page edits a deep copy of a config object in place; the dialog's Apply / OK
 hands that copy to `MyCtrl.applyGlobalCfg` or `MyCtrl.applyCfg`
-(`trelby/trelbyctrl.py:353-395`).
+(`trelby/trelbyctrl.py:355-398`).
 **Entry points:** `CfgDlg.AddPage(PanelClass, name)` (`trelby/cfgdlg.py:80`)
 instantiates `PanelClass(listbook, -1, cfg)` or, for the four pages that
 open their own dialogs, `PanelClass(listbook, -1, cfg, cfgDlg)`
@@ -27,7 +27,9 @@ Global settings (`ConfigGlobal`)
   height, `trelby/configpages/displaypanel.py:95-121`), row spacing
   `fontYdelta`, page-break indicators.
 - `elementsglobalpanel.py` — `ElementsGlobalPanel`: the Enter/Tab table,
-  four combos per element type (`trelby/configpages/elementsglobalpanel.py:35-38`).
+  two combos per element type, Enter creates / Tab creates
+  (`trelby/configpages/elementsglobalpanel.py:35-36`). The Tab / Shift+Tab
+  cycle (`ConfigGlobal.tabOrder`) has no settings page.
 - `keyboardpanel.py` — `KeyboardPanel`: per command, list / add / delete
   keys, show conflicts (`trelby/configpages/keyboardpanel.py:6`).
 - `miscpanel.py` — `MiscPanel`: default script directory, PDF viewer path and
@@ -60,7 +62,7 @@ Shared
 - **Translated attribute names break two pages outside English:**
   `setattr(self, name + _("Entry"), …)` (`trelby/configpages/miscpanel.py:150`)
   and `setattr(self, name + _("Combo"), …)`
-  (`trelby/configpages/elementsglobalpanel.py:66`) create attributes named
+  (`trelby/configpages/elementsglobalpanel.py:64`) create attributes named
   after the translation (Italian `…Annotazione`, `…Combinazione`,
   `po/it.po`), while the rest of the code reads `paginateEntry`,
   `newEnterCombo`, … → `AttributeError` when those pages open with
@@ -70,7 +72,7 @@ Shared
 - The folder has no `__init__.py`; `trelby.configpages.*` imports work as a
   namespace package (`trelby/cfgdlg.py:4-18`).
 - Pages hold no state of their own beyond widgets; cancelling the dialog
-  just drops the deep copy (`trelby/trelbyctrl.py:1138-1156`).
+  just drops the deep copy (`trelby/trelbyctrl.py:1156-1174`).
 
 ## Touchpoints
 - Called by: `trelby/cfgdlg.py`.
