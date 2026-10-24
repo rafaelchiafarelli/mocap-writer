@@ -169,10 +169,10 @@ Export
   `Config.__init__` (`trelby/config.py:445-512`); an Enter/Tab row in
   `ConfigGlobal.__init__` (`trelby/config.py:693-737`); a `ChangeTo<Type>`
   command in the alphabetical command list (`trelby/config.py:740`), a
-  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1160-1188`) and a
+  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1176-1204`) and a
   `to<Type>Cmd` here (`trelby/screenplay.py:3252-3277`); a menu id in
-  `trelby/ids.py:71-91` and the right-click menu
-  (`trelby/trelbyframe.py:287-295`); entries in the export maps `htmlMap`
+  `trelby/ids.py:72-92` and the right-click menu
+  (`trelby/trelbyframe.py:289-297`); entries in the export maps `htmlMap`
   (`trelby/screenplay.py:489`), `xmlMap` (`trelby/screenplay.py:610`) and the
   Fountain branches; pagination rules if it should not end a page
   (`trelby/screenplay.py:1622-1698`); `findError` rules if it has sequencing
