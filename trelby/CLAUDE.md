@@ -248,6 +248,9 @@ Data and folders
   branch (load `sample.trelby`) is reachable (`trelby/trelbyctrl.py:1339-1344`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
 - **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:992-993`
   → `OnSave`); other modified tabs are discarded. Bug: [bugs/editor/2](../initiatives/bugs/epics/editor/tasks/2-exit-saves-current-tab.md).
+- **Help → Commands → Save** uses `wx.OVERWRITE_PROMPT`
+  (`trelby/commandsdlg.py:94`), which wxPython 4 calls
+  `wx.FD_OVERWRITE_PROMPT` → `AttributeError`. Bug: [bugs/editor/18](../initiatives/bugs/epics/editor/tasks/18-commands-save-overwrite-prompt.md).
 - The MRU list is saved under the **translated** key `_("Files")`
   (`trelby/globaldata.py:70`), so switching `$LANG` loses the recent-files
   list. Bug: [bugs/config-i18n/4](../initiatives/bugs/epics/config-i18n/tasks/4-mru-translated-key.md).
