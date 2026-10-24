@@ -1,0 +1,9 @@
+# Direct dependencies of Trelby (see ../requirements.txt upstream).
+# wxPython comes as a prebuilt GTK3 wheel for Ubuntu 24.04 (--find-links in the lock command).
+wxPython==4.2.5
+lxml
+reportlab
+pytest
+# PDF text with positions, for pdf-import (MIT; pdfminer.six MIT, pypdfium2
+# Apache-2.0/BSD-3). Not PyMuPDF (AGPL).
+pdfplumber

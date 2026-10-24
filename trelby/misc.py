@@ -154,8 +154,13 @@ class MyFSButton(wx.Window):
 
 # custom status control
 class MyStatus(wx.Window):
-    WIDTH = 280
     X_ELEDIVIDER = 100
+
+    # zoom section at the right end: "-  100 %  +"
+    X_ZOOMDIVIDER = 280
+    ZOOM_WIDTH = 96
+
+    WIDTH = X_ZOOMDIVIDER + ZOOM_WIDTH
 
     def __init__(self, parent, id, getCfgGui):
         wx.Window.__init__(
@@ -174,6 +179,11 @@ class MyStatus(wx.Window):
         self.tabNext = ""
         self.enterNext = ""
 
+        self.zoom = 100
+
+        # functions called by clicks on the zoom section: (out, reset, in)
+        self.zoomFuncs = None
+
         self.elementFont = util.createPixelFont(
             TAB_BAR_HEIGHT // 2 + 6, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.NORMAL
         )
@@ -182,7 +192,26 @@ class MyStatus(wx.Window):
             TAB_BAR_HEIGHT // 2 + 2, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.NORMAL
         )
 
+        self.SetToolTip(
+            _("Zoom: click - or +, or the percentage to reset; also Ctrl + mouse wheel")
+        )
+
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
+
+    def setZoomFuncs(self, zoomOut, zoomReset, zoomIn):
+        self.zoomFuncs = (zoomOut, zoomReset, zoomIn)
+
+    def setZoom(self, zoom):
+        self.zoom = zoom
+        self.Refresh(False)
+
+    def OnLeftDown(self, event):
+        x = event.GetPosition().x - MyStatus.X_ZOOMDIVIDER
+
+        if self.zoomFuncs and (x >= 0):
+            part = min(2, x * 3 // MyStatus.ZOOM_WIDTH)
+            self.zoomFuncs[part]()
 
     def OnPaint(self, event):
         cfgGui = self.getCfgGui()
@@ -206,11 +235,21 @@ class MyStatus(wx.Window):
         util.drawText(
             dc,
             pageText,
-            MyStatus.WIDTH - xoff,
+            MyStatus.X_ZOOMDIVIDER - xoff,
             cy,
             util.ALIGN_RIGHT,
             util.VALIGN_CENTER,
         )
+
+        zx = MyStatus.X_ZOOMDIVIDER
+        third = MyStatus.ZOOM_WIDTH // 3
+
+        for s, x in (
+            ("-", zx + third // 2),
+            ("%d %%" % self.zoom, zx + MyStatus.ZOOM_WIDTH // 2),
+            ("+", zx + MyStatus.ZOOM_WIDTH - third // 2),
+        ):
+            util.drawText(dc, s, x, cy, util.ALIGN_CENTER, util.VALIGN_CENTER)
 
         s1 = "%s [Enter]" % self.enterNext
         s2 = "%s [Tab]" % self.tabNext
@@ -227,7 +266,7 @@ class MyStatus(wx.Window):
         dc.SetPen(cfgGui.tabBorderPen)
         dc.DrawLine(0, h - 1, w, h - 1)
 
-        for x in (MyStatus.X_ELEDIVIDER, 0):
+        for x in (MyStatus.X_ELEDIVIDER, MyStatus.X_ZOOMDIVIDER, 0):
             dc.DrawLine(x, 0, x, h - 1)
 
     def SetValues(self, page, pageCnt, elemType, tabNext, enterNext):
@@ -872,7 +911,7 @@ class TextDlg(wx.Dialog):
             self,
             -1,
             size=wx.Size(400, 200),
-            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_LINEWRAP,
+            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_WORDWRAP,
         )
         tc.SetValue(text)
         vsizer.Add(tc, 1, wx.EXPAND)
