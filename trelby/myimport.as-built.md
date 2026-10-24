@@ -1,6 +1,6 @@
 # myimport.py — as built
 
-`trelby/myimport.py` (940 lines) turns foreign script files into a list of
+`trelby/myimport.py` (1002 lines) turns foreign script files into a list of
 `Line` objects. It has one function per format and no shared importer
 interface. The caller, `MyCtrl.importFile` (`trelby/trelbyctrl.py:167`),
 picks the function by the file name's ending and replaces the tab's script
@@ -15,7 +15,7 @@ with the result.
   type, the last line is `LB_LAST`
   (`screenplay.as-built.md`, Data-structure invariants). Lines need not be
   wrapped: the caller runs `reformatAll()` and `paginate()`
-  (`trelby/trelbyctrl.py:189-193`).
+  (`trelby/trelbyctrl.py:191-195`).
 - Most importers emit each source line as `LB_FORCED` and the element's
   last line as `LB_LAST` (e.g. `trelby/myimport.py:63-72`), so line breaks
   inside an element survive as forced breaks.
@@ -67,35 +67,44 @@ with the result.
      stripped from character names when markup is removed;
   5. second pass merges consecutive same-type lines into elements and turns
      blank lines into element ends (`trelby/myimport.py:744-758`).
-- `importTextFile(fileName, frame)` (`trelby/myimport.py:765`) — indented
+- `importTextFile(fileName, frame)` (`trelby/myimport.py:804`) — indented
   plain text (the format of Trelby's own text export):
   1. per indentation width, an `Indent` counts lines, `INT.`/`EXT.`
      starts, `CUT TO:`/`DISSOLVE TO:` and `(…)` lines
-     (`trelby/myimport.py:785-813`);
+     (`trelby/myimport.py:824-852`);
   2. `setType` assigns types greedily: most scene starts → Scene/Action
      mix, most lines → Dialogue, next → Character, most transitions →
      Transition, most parens → Parenthetical, then the indent one deeper
      than Parenthetical also Parenthetical; the rest Action
-     (`trelby/myimport.py:820-854`, `setType` `trelby/myimport.py:914`);
+     (`trelby/myimport.py:859-893`, `setType` `trelby/myimport.py:953`);
   3. `ImportDlg` lets the user change the type of each indent or ignore it
-     (`trelby/myimport.py:856`);
+     (`trelby/myimport.py:895`);
   4. lines become `LB_SPACE` lines (so they re-wrap), a blank line ends an
      element, `(CONT'D)` is cut from characters and `(continuing)`
-     parentheticals dropped (`trelby/myimport.py:867-907`).
+     parentheticals dropped (`trelby/myimport.py:906-946`).
+- `importPdf(fileName, frame)` (`trelby/myimport.py:769`) — screenplay
+  PDF, the GUI side of `trelby/pdfimport.py` (`pdfimport.as-built.md`):
+  1. asks nothing: `pdfimport.importPdf` with the layout detected from the
+     PDF, issues as `IMPORT:` notes in the script; an `OSError` or
+     `PdfImportError` (unreadable file, no text) is shown in a message box
+     → `None` (`trelby/myimport.py:783`);
+  2. the import report (`pdfimport.report`: layout found, every issue) in a
+     `misc.TextDlg` (`trelby/myimport.py:794`);
+  3. **instrumented:** if `$MOCAP_WRITER_PDF_TRACE` names a directory,
+     the trace is written there as `<name>.trace.tsv` and its path added to
+     the report (`trelby/myimport.py:774-790`).
 - Module constants `SCENE_ACTION` = −2 and `IGNORE` = −3 are extra
   pseudo-types used only by the text importer and `ImportDlg`
   (`trelby/myimport.py:21-25`).
 
 ## Extension points
 
-- **A new format** (e.g. PDF): a new `import<Format>(fileName, frame) ->
+- **A new format**: a new `import<Format>(fileName, frame) ->
   list[Line] | None` here that meets the contract above, an `elif` on the
-  file-name ending in `MyCtrl.importFile` (`trelby/trelbyctrl.py:169-182`),
+  file-name ending in `MyCtrl.importFile` (`trelby/trelbyctrl.py:169-184`),
   and an entry in the import dialog's wildcard
-  (`trelby/trelbyframe.py:614-639`). Text extracted from a PDF that keeps
-  indentation could go through the `importTextFile` path (indent
-  statistics + `ImportDlg`), which already handles Trelby's own text export
-  layout.
+  (`trelby/trelbyframe.py:617-645`). PDF followed this path, with the
+  wx-free work in its own module (`pdfimport.py`).
 - **Fountain import** is self-contained in `importFountain`; its helper
   predicates (`isScene`, `isTransition`, `isNote`, …,
   `trelby/myimport.py:589-642`) are nested functions, not reusable from
@@ -128,7 +137,7 @@ with the result.
   text `===`).
 - Celtx, Fade In, FDX, Astx: formatting (bold, italic) is dropped; FDX
   title pages are not imported.
-- `importTextFile` uses `screenplay.Line` (`trelby/myimport.py:897`), which
+- `importTextFile` uses `screenplay.Line` (`trelby/myimport.py:936`), which
   only works because `screenplay.py` re-exports `Line` from `line.py`.
 
 ## Tests
@@ -137,5 +146,8 @@ with the result.
   and `importTextFile` against `tests/fixtures/test.txt`, each compared with
   `tests/fixtures/test.trelby` after reformatting; `wx` is replaced by a
   `Mock` whose dialogs return OK.
+- `tests/test_pdfimport.py`: `importPdf` with `wx` and `misc.TextDlg`
+  patched on the module (no question asked, report shown, error box, trace
+  file).
 - Not covered: `importFountain`, `importFDX`, `importAstx`, `importFadein`,
   title-page import.

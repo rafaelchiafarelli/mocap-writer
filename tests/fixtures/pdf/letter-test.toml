@@ -1,0 +1,65 @@
+# Profile for the PDFs that tests/test_pdfimport.py draws with ReportLab:
+# US Letter, Courier 12, a Final Draft-like layout (right-aligned
+# transitions, margin scene numbers, dual dialogue in two columns).
+
+name = "letter-test"
+tolerance = 3.0
+segment_gap = 28.0
+paragraph_gap = 18.0
+skip_pages = 0
+scene_prefixes = ["INT.", "EXT.", "INT./EXT."]
+
+# cut from the end of character names
+character_suffix = ["\\s*\\(CONT'D\\)$"]
+
+[[indent]]
+x = 108.0
+element = "scene_action"
+
+[[indent]]
+x = 180.0
+element = "dialogue"
+
+[[indent]]
+x = 216.0
+element = "parenthetical"
+
+[[indent]]
+x = 252.0
+element = "character"
+
+[[indent]]
+x1 = 540.0
+element = "transition"
+
+[scene_numbers]
+left = 72.0
+right = 552.0
+
+[dual]
+left = [
+  { x = 144.0, element = "character" },
+  { x = 126.0, element = "parenthetical" },
+  { x = 108.0, element = "dialogue" },
+]
+right = [
+  { x = 396.0, element = "character" },
+  { x = 378.0, element = "parenthetical" },
+  { x = 360.0, element = "dialogue" },
+]
+
+[[drop]]
+pattern = '^\d+\.$'
+top_max = 50.0
+
+[[drop]]
+pattern = '^\(MORE\)$'
+
+[[drop]]
+pattern = '^\(CONTINUED\)$'
+top_min = 700.0
+
+[[drop]]
+pattern = '^CONTINUED:'
+top_max = 75.0
+

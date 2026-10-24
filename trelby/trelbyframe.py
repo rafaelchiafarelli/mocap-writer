@@ -259,6 +259,9 @@ class MyFrame(wx.Frame):
         hsizer.Add(self.tabCtrl, 1, wx.EXPAND)
 
         self.statusCtrl = misc.MyStatus(self, -1, self.getCfgGui)
+        self.statusCtrl.setZoom(gd.cfgGl.zoom)
+        self.statusCtrl.setZoomFuncs(self.OnZoomOut, self.OnZoomReset, self.OnZoomIn)
+        self.statusCtrl.Bind(wx.EVT_SET_FOCUS, self.OnStatusFocus)
         hsizer.Add(self.statusCtrl)
 
         vsizer.Add(hsizer, 0, wx.EXPAND)
@@ -614,8 +617,8 @@ class MyFrame(wx.Frame):
             wildcard=_("Importable")
             + " "
             + _("files")
-            + "(*.txt;*.fdx;*.celtx;*.astx;*.fountain;*.fadein)|"
-            + "*.fdx;*.txt;*.celtx;*.astx;*.fountain;*.fadein|"
+            + "(*.txt;*.fdx;*.celtx;*.astx;*.fountain;*.fadein;*.pdf)|"
+            + "*.fdx;*.txt;*.celtx;*.astx;*.fountain;*.fadein;*.pdf|"
             + _("Formatted")
             + " "
             + _("text")
@@ -635,6 +638,9 @@ class MyFrame(wx.Frame):
             + "Fadein "
             + _("files")
             + " (*.fadein)|*.fadein|"
+            + "PDF "
+            + _("files")
+            + " (*.pdf)|*.pdf|"
             + _("All files")
             + "|*",
             style=wx.FD_OPEN,
@@ -817,6 +823,20 @@ class MyFrame(wx.Frame):
         c = self.panel.ctrl
         c.makeLineVisible(c.sp.line)
         c.updateScreen()
+
+    # clicking the status area (its zoom control) gives it the keyboard
+    # focus; we never want that, pass it on to the current script
+    def OnStatusFocus(self, event):
+        self.panel.ctrl.SetFocus()
+
+    def OnZoomIn(self, event=None):
+        self.panel.ctrl.OnZoomIn()
+
+    def OnZoomOut(self, event=None):
+        self.panel.ctrl.OnZoomOut()
+
+    def OnZoomReset(self, event=None):
+        self.panel.ctrl.OnZoomReset()
 
     def ToggleFullscreen(self, event=None):
         self.noFSBtn.Show(not self.IsFullScreen())

@@ -41,7 +41,8 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:69-82`):
 
 - **Draft** (`trelby/viewmode.py:204-255`): starts at `y = 15` px and the
   script's top line; each line adds `getSpacingBefore(i) / 10 * fontYdelta`
-  then `fontYdelta` (`cfgGl.fontYdelta`, default 18 px). `x = centering
+  then `fontYdelta` (`cfgGui.fontYdelta`: `cfgGl.fontYdelta`, default
+  18 px, at the current zoom, `trelby/viewmode.py:215`). `x = centering
   offset + marginLeft * mm2p + (indent + paren extra) * fi.fx`, where `fi`
   is the screen font for the type's screen style (`cfgGui.tt2fi`). Text is
   upper-cased if the type's screen style says caps.
@@ -79,21 +80,26 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:69-82`):
 
 - **Screen fonts / zoom**: every pixel size here comes from three inputs —
   the four screen fonts (`cfgGui.fonts`, from `ConfigGlobal.font*`), the
-  draft line height `fontYdelta`, and `ctrl.mm2p` (from `getPageWidth`). A
-  zoom factor would scale these; nothing here stores a zoom of its own.
+  draft line height `cfgGui.fontYdelta`, and `ctrl.mm2p` (from
+  `getPageWidth`). The zoom scales the first two in `ConfigGui`; `mm2p`
+  follows from the font width. Nothing here stores a zoom of its own.
 - **Colors** are not used here; `MyCtrl.OnPaint` colors what `getScreen`
   returns.
 - **A new view mode**: subclass `ViewMode`, implement the seven methods,
   add a `VIEWMODE_*` constant and instance in `GlobalData`
   (`trelby/globaldata.py:25-29`, `trelby/globaldata.py:79-83`), a menu item
   and handler in `MyFrame` (`trelby/trelbyframe.py:109-121`,
-  `trelby/trelbyframe.py:783-819`), and widen the `ViewMode` range in
+  `trelby/trelbyframe.py:789-825`), and widen the `ViewMode` range in
   `GlobalData` (`trelby/globaldata.py:62-68`).
 
 ## Gotchas
 
 - Draft mode gives the "page" a width but no top or bottom; page breaks are
   drawn by `MyCtrl.OnPaint` as lines, not here.
+- There is no horizontal scrolling: a page wider than the widget (a high
+  zoom or a narrow window) is left-aligned and its right part is not shown,
+  cursor included (`cox` clamped at 0, `trelby/viewmode.py:214`,
+  `trelby/viewmode.py:298`). Bug: [bugs/editor/12](../initiatives/bugs/epics/editor/tasks/12-no-horizontal-scroll.md).
 - `getScreen` is called several times per keystroke (`isLineVisible`,
   `makeLineVisible`, `OnPaint`), and in layout modes each call rebuilds PML
   pages; `PageCache` is only used for page-up scanning

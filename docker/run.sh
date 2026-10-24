@@ -29,6 +29,20 @@ if [ -d /mnt/wslg ]; then
                    -e PULSE_SERVER=/mnt/wslg/PulseServer)
 fi
 
+# Menus, toolbar and dialogs follow GTK's dark variant when the Dark theme is
+# chosen in Settings → Colors (Theme:1 in Trelby's config; read at start).
+theme_args=()
+if grep -qx 'Theme:1' "$config/trelby/default.conf" 2>/dev/null; then
+    theme_args=(-e GTK_THEME=Adwaita:dark)
+fi
+
+# Instrumented PDF import: MOCAP_WRITER_PDF_TRACE=<dir> (its WSL path; the
+# drives and the work dir are mounted at their own paths) writes a .trace.tsv per imported PDF there.
+trace_args=()
+if [ -n "${MOCAP_WRITER_PDF_TRACE:-}" ]; then
+    trace_args=(-e MOCAP_WRITER_PDF_TRACE="$MOCAP_WRITER_PDF_TRACE")
+fi
+
 # the Windows drives WSL mounts as /mnt/<letter>, each at the same path
 drive_args=()
 for d in /mnt/[a-z]; do
@@ -38,6 +52,8 @@ done
 exec docker run --rm \
     --user "$(id -u):$(id -g)" -e HOME=/tmp \
     "${display_args[@]}" \
+    "${theme_args[@]}" \
+    "${trace_args[@]}" \
     -v "$repo":/app:ro \
     "${drive_args[@]}" \
     -v "$work":"$work" -w "$work" -e MOCAP_WRITER_WORK_DIR="$work" \

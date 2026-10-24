@@ -7,6 +7,8 @@ image; the scripts mount the repository read-only at `/app`.
 **Entry points:**
 - `docker/run.sh [work-dir]` — start the editor on the host display.
 - `docker/test.sh [pytest args]` — run the test suite (no display needed).
+- `docker/pdfimport.sh probe|import ...` — the PDF importer's command line
+  (`python -m trelby.pdfimport`) on files in the current directory.
 **Inputs → Outputs:** `Dockerfile` + `requirements.lock` → image
 `mocap-writer:dev`; repository + work dir → a running Trelby window, or a
 pytest result.
@@ -33,9 +35,18 @@ pytest result.
 - `run.sh` — builds the image if it does not exist, then runs it as the host
   user with the repo at `/app:ro`, `~/.config/mocap-writer` at `/config`,
   X11 or WSLg display sockets, every Windows drive `/mnt/<letter>` and the
-  work dir **at their own paths** (`docker/run.sh:32-45`), so the file
+  work dir **at their own paths** (`docker/run.sh:46-61`), so the file
   dialogs show the same paths as WSL; `MOCAP_WRITER_WORK_DIR` = the work
-  dir makes the dialogs start there (`trelby/trelby.py:102-108`).
+  dir makes the dialogs start there (`trelby/trelby.py:102-108`). When the
+  config holds `Theme:1` (Dark) it adds `GTK_THEME=Adwaita:dark` so menus,
+  toolbar and dialogs are dark (`docker/run.sh:32-37`); a host
+  `MOCAP_WRITER_PDF_TRACE` (a WSL path) is passed through
+  (`docker/run.sh:39-44`) for the instrumented PDF import.
+- `pdfimport.sh` — rebuilds the image quietly, then runs
+  `python -m trelby.pdfimport "$@"` with the current directory mounted at
+  its own path (also the working directory) and the repo at `/app:ro`
+  (`docker/pdfimport.sh:9-15`); starter profiles are at
+  `/app/trelby/pdfprofiles/`.
 - `test.sh` — rebuilds the image quietly (cached), then
   `python -m pytest -p no:cacheprovider` in `/app` (`docker/test.sh:6-12`).
 

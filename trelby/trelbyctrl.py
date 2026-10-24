@@ -178,6 +178,8 @@ class MyCtrl(wx.Control):
             )
         elif fileName.endswith("fadein"):
             lines = myimport.importFadein(fileName, self.gd.mainFrame)
+        elif fileName.lower().endswith(".pdf"):
+            lines = myimport.importPdf(fileName, self.gd.mainFrame)
         else:
             lines = myimport.importTextFile(fileName, self.gd.mainFrame)
 
@@ -381,7 +383,7 @@ class MyCtrl(wx.Control):
 
         # in case tab colors have been changed
         self.gd.mainFrame.tabCtrl.Refresh(False)
-        self.gd.mainFrame.statusCtrl.Refresh(False)
+        self.gd.mainFrame.statusCtrl.setZoom(self.gd.cfgGl.zoom)
         self.gd.mainFrame.noFSBtn.Refresh(False)
         self.gd.mainFrame.toolBar.SetBackgroundColour(self.gd.cfgGui.tabBarBgColor)
 
@@ -391,6 +393,33 @@ class MyCtrl(wx.Control):
             )
 
         self.gd.mainFrame.checkFonts()
+
+    # redraw every tab at the zoom now in cfgGl and save it in the global
+    # settings. only the screen fonts change, so nothing is re-paginated.
+    def applyZoom(self):
+        self.refreshGuiConfig()
+
+        for c in self.gd.mainFrame.getCtrls():
+            c.refreshCache()
+            c.makeLineVisible(c.sp.line)
+            c.adjustScrollBar()
+
+        self.updateScreen()
+        self.gd.mainFrame.statusCtrl.setZoom(self.gd.cfgGl.zoom)
+
+        util.writeToFile(self.gd.confFilename, self.gd.cfgGl.save(), self.gd.mainFrame)
+
+    def OnZoomIn(self):
+        if self.gd.cfgGl.zoomIn():
+            self.applyZoom()
+
+    def OnZoomOut(self):
+        if self.gd.cfgGl.zoomOut():
+            self.applyZoom()
+
+    def OnZoomReset(self):
+        if self.gd.cfgGl.zoomReset():
+            self.applyZoom()
 
     def applyHeaders(self, newHeaders):
         self.sp.headers = newHeaders
@@ -499,6 +528,14 @@ class MyCtrl(wx.Control):
         self.PopupMenu(m)
 
     def OnMouseWheel(self, event):
+        if event.ControlDown():
+            if event.GetWheelRotation() > 0:
+                self.OnZoomIn()
+            elif event.GetWheelRotation() < 0:
+                self.OnZoomOut()
+
+            return
+
         if event.GetWheelRotation() > 0:
             delta = -self.gd.cfgGl.mouseWheelLines
         else:
