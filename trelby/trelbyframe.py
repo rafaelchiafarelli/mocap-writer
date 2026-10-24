@@ -617,8 +617,8 @@ class MyFrame(wx.Frame):
             wildcard=_("Importable")
             + " "
             + _("files")
-            + "(*.txt;*.fdx;*.celtx;*.astx;*.fountain;*.fadein)|"
-            + "*.fdx;*.txt;*.celtx;*.astx;*.fountain;*.fadein|"
+            + "(*.txt;*.fdx;*.celtx;*.astx;*.fountain;*.fadein;*.pdf)|"
+            + "*.fdx;*.txt;*.celtx;*.astx;*.fountain;*.fadein;*.pdf|"
             + _("Formatted")
             + " "
             + _("text")
@@ -638,6 +638,9 @@ class MyFrame(wx.Frame):
             + "Fadein "
             + _("files")
             + " (*.fadein)|*.fadein|"
+            + "PDF "
+            + _("files")
+            + " (*.pdf)|*.pdf|"
             + _("All files")
             + "|*",
             style=wx.FD_OPEN,

@@ -1,0 +1,51 @@
+# Trelby's own PDF export with the default script settings: A4, Courier 12,
+# "(MORE)" / "(CONTINUED)" / "CONTINUED:" and page numbers top right.
+# Built with `python -m trelby.pdfimport probe` on an export of
+# tests/fixtures/test.trelby. Positions in points from the top left.
+
+name = "trelby-a4"
+tolerance = 3.0
+segment_gap = 28.0
+paragraph_gap = 18.0
+skip_pages = 0
+scene_prefixes = ["INT.", "EXT.", "INT./EXT.", "INT/EXT", "I/E", "EST."]
+
+# cut from the end of character names
+character_suffix = ["\\s*\\(CONT'D\\)$"]
+
+[[indent]]
+x = 108.0
+element = "scene_action"
+
+[[indent]]
+x = 180.0
+element = "dialogue"
+
+[[indent]]
+x = 223.2
+element = "parenthetical"
+
+[[indent]]
+x = 266.4
+element = "character"
+
+[[indent]]
+x = 432.0
+element = "transition"
+
+# page furniture, matched against the whole line before classification
+[[drop]]
+pattern = '^\d+\.$'
+top_max = 50.0
+
+[[drop]]
+pattern = '^CONTINUED:$'
+top_max = 75.0
+
+[[drop]]
+pattern = '^\(CONTINUED\)$'
+top_min = 700.0
+
+[[drop]]
+pattern = '^\(MORE\)$'
+
