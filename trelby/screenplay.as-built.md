@@ -169,7 +169,7 @@ Export
   `Config.__init__` (`trelby/config.py:391-458`); an Enter/Tab row in
   `ConfigGlobal.__init__` (`trelby/config.py:627-689`); a `ChangeTo<Type>`
   command in the alphabetical command list (`trelby/config.py:692`), a
-  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1152-1180`) and a
+  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1156-1184`) and a
   `to<Type>Cmd` here (`trelby/screenplay.py:3252-3277`); a menu id in
   `trelby/ids.py:71-91` and the right-click menu
   (`trelby/trelbyframe.py:287-295`); entries in the export maps `htmlMap`
