@@ -2,8 +2,8 @@
 
 Trelby is a wxPython screenplay editor. It keeps a script as a flat list of
 wrapped lines, lays those lines out in pages with the same arithmetic the PDF
-uses, and saves them in its own text format (`.trelby`). It imports six
-foreign formats and exports six.
+uses, and saves them in its own text format (`.trelby`). It imports seven
+foreign formats (PDF through a layout profile) and exports six.
 
 This file is the **stage-by-stage spec** of what the program does, in the
 order a session runs. Per-module detail is in each folder's `CLAUDE.md` (and
@@ -37,15 +37,15 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 
 ## Stage 0 — startup
 
-- `trelby.py:6` calls `trelby.trelby.main()` (`trelby/trelby.py:142`).
+- `trelby.py:6` calls `trelby.trelby.main()` (`trelby/trelby.py:148`).
 - Importing `trelby/trelby.py` already loads the translation catalog
   (`trelby/trelby.py:34` → `translations.trelby_translations_load()`,
   `trelby/translations.py:10`). It picks the language from `$LANG`, falls back
   to the base language and then to `en`, and calls `gettext.install()`, which
   puts `_` into builtins. Every other module uses that builtin `_` without
   importing it.
-- `main()` runs `opts.init()` (`trelby/trelby.py:143`), builds `MyApp` and
-  enters the wx main loop (`trelby/trelby.py:145-147`).
+- `main()` runs `opts.init()` (`trelby/trelby.py:149`), builds `MyApp` and
+  enters the wx main loop (`trelby/trelby.py:151-153`).
 - `MyApp.OnInit` (`trelby/trelby.py:39`), in order:
   1. refuses wxPython other than 4.x (`trelby/trelby.py:41`);
   2. `misc.init()` (`trelby/trelby.py:53`) sets the platform flags,
@@ -62,17 +62,19 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
      (`trelby/trelby.py:90`), otherwise the defaults are written out
      (`trelby/trelby.py:94`). `ConfigGui(cfgGl)` turns colors and font names
      into wx pens, brushes and fonts (`trelby/trelby.py:97`,
-     `trelby/config.py:1565`);
-  6. window state and view mode (`trelby/trelby.py:108-110`) and the global
-     spell-checker dictionary (`trelby/trelby.py:116`);
+     `trelby/config.py:1565`). The file dialogs start in the config's
+     `scriptDir`, or in `$MOCAP_WRITER_WORK_DIR` when that is a directory
+     (set by `docker/run.sh`, `trelby/trelby.py:102-108`);
+  6. window state and view mode (`trelby/trelby.py:114-116`) and the global
+     spell-checker dictionary (`trelby/trelby.py:122`);
   7. `MyFrame` is created and `init()` adds the first, empty tab
-     (`trelby/trelby.py:118-120`); each command-line script is opened with
-     `openScript` (`trelby/trelby.py:123`);
+     (`trelby/trelby.py:124-126`); each command-line script is opened with
+     `openScript` (`trelby/trelby.py:129`);
   8. `checkFonts()` warns if a screen font is not fixed-width
-     (`trelby/trelby.py:132`, `trelby/trelbyframe.py:521`);
+     (`trelby/trelby.py:138`, `trelby/trelbyframe.py:521`);
   9. **splash**: if `splashTime > 0` (default 3 s, `trelby/config.py:1216`) a
      `SplashWindow` is shown and closes itself on a one-shot timer
-     (`trelby/trelby.py:135`, `trelby/splash.py:61-64`, `trelby/splash.py:106`).
+     (`trelby/trelby.py:141`, `trelby/splash.py:61-64`, `trelby/splash.py:106`).
 
 ## Stage 1 — main window and editor
 
@@ -91,10 +93,10 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 - Menu commands go to `MyFrame.On<Name>`, which mostly forwards to the
   current tab's `MyCtrl.On<Name>` (e.g. `trelby/trelbyframe.py:606-610`).
 - Status area: page `x / y`, current element type, and what Tab and Enter
-  will produce next (`MyCtrl.updateCommon`, `trelby/trelbyctrl.py:324`), and
+  will produce next (`MyCtrl.updateCommon`, `trelby/trelbyctrl.py:326`), and
   the zoom control `- 100 % +` (`trelby/misc.py:209-214`). The status area
   passes the keyboard focus back to the script when a click gives it focus
-  (`MyFrame.OnStatusFocus`, `trelby/trelbyframe.py:826`).
+  (`MyFrame.OnStatusFocus`, `trelby/trelbyframe.py:829`).
 
 ## Stage 2 — the screenplay model
 
@@ -139,7 +141,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 
 ## Stage 3 — editing and keyboard
 
-- `MyCtrl.OnKeyChar` (`trelby/trelbyctrl.py:1313`) receives every key, with the
+- `MyCtrl.OnKeyChar` (`trelby/trelbyctrl.py:1315`) receives every key, with the
     key code from `util.eventKeyCode` (`trelby/util.py:209`): the Unicode
     character, or the `WXK_` code for arrows, Home, End and other keys that
     have none. A key that matches no command is skipped, and GTK then uses an
@@ -147,17 +149,17 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   - A printable character without Ctrl/Alt (`util.isValidInputChar`:
     code 32–255 minus 0x7F–0x9F and 0xAD, `trelby/util.py:219`) replaces the
     selection if `overwriteSelectionOnInsert` and is inserted with
-    `Screenplay.addCharCmd` (`trelby/trelbyctrl.py:1320-1344`).
+    `Screenplay.addCharCmd` (`trelby/trelbyctrl.py:1322-1346`).
   - Anything else is looked up in `MyFrame.kbdCommands`
     (`trelby/trelbyframe.py:491-509`, built from `cfgGl.commands`,
     `trelby/config.py:751`). Menu commands call `MyFrame.On<Name>`; the rest
-    call `MyCtrl.cmd<Name>` (`trelby/trelbyctrl.py:1351-1357`), which mostly
+    call `MyCtrl.cmd<Name>` (`trelby/trelbyctrl.py:1353-1359`), which mostly
     forward to `Screenplay.<name>Cmd`.
   - After every command: `cmdPost` fixes the column and refreshes
     auto-completion (`trelby/screenplay.py:2783`); the script is re-paginated
     if `paginateInterval` seconds (default 1) have passed
-    (`trelby/trelbyctrl.py:1364-1370`); the cursor line is scrolled into view
-    and the screen is redrawn (`trelby/trelbyctrl.py:1372-1375`).
+    (`trelby/trelbyctrl.py:1366-1372`); the cursor line is scrolled into view
+    and the screen is redrawn (`trelby/trelbyctrl.py:1374-1377`).
 - **Enter** (`NewElement`, `trelby/config.py:1007`) →
   `Screenplay.splitElementCmd` (`trelby/screenplay.py:3114`): splits the
   element at the cursor and gives the new element the current type's
@@ -205,11 +207,11 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   (`getMatchingText`, `trelby/screenplay.py:2078`).
 - **Clipboard**: the internal clipboard keeps typed lines (`ClipData`,
   `trelby/screenplay.py:3442`); pasting from the system clipboard turns each
-  non-empty text line into an Action element (`trelby/trelbyctrl.py:832`).
+  non-empty text line into an Action element (`trelby/trelbyctrl.py:834`).
 
 ## Stage 4 — screen rendering (`viewmode`)
 
-- `MyCtrl.OnPaint` (`trelby/trelbyctrl.py:1377`) asks the active view mode
+- `MyCtrl.OnPaint` (`trelby/trelbyctrl.py:1379`) asks the active view mode
   (`gd.vm`, `trelby/globaldata.py:106`) for `getScreen(ctrl, True, True)` →
   `(texts, dpages)`: positioned `TextString`s and, outside draft mode, page
   rectangles (`trelby/viewmode.py:82`). It then paints the workspace, pages,
@@ -231,7 +233,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   `Type.screen` (`trelby/config.py:183`). **Zoom** (50–300 % in steps of
   10, Ctrl `+` / `-` / `0`, Ctrl + wheel, the status control) scales those
   fonts and the draft row height only; it is a global setting and never
-  touches the PDF (`trelby/config.py:1670-1682`, `trelby/trelbyctrl.py:397`). Colors are the global `*Color`
+  touches the PDF (`trelby/config.py:1670-1682`, `trelby/trelbyctrl.py:399`). Colors are the global `*Color`
   settings (`trelby/config.py:1275-1322`) of the chosen theme, Light or Dark
   (Settings → Colors); each theme keeps its own colors
   (`trelby/config.py:1384-1413`). Under Docker, Dark also starts GTK's dark
@@ -255,9 +257,9 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   lines are skipped with a warning. After loading: restore the saved cursor
   if `honorSavedPos`, `reformatAll`, `paginate`, refresh locations
   (`trelby/screenplay.py:368-376`).
-- **Revert** reloads from disk (`trelby/trelbyctrl.py:741`). **Close** asks
-  before discarding changes (`trelby/trelbyctrl.py:702`). **Exit** writes the
-  window state and removes temporary files (`trelby/trelbyframe.py:978`).
+- **Revert** reloads from disk (`trelby/trelbyctrl.py:743`). **Close** asks
+  before discarding changes (`trelby/trelbyctrl.py:704`). **Exit** writes the
+  window state and removes temporary files (`trelby/trelbyframe.py:981`).
 
 ## Stage 6 — import (`myimport`)
 
@@ -276,18 +278,29 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
     lines of the same type into elements; it can fill the title page;
   - `fadein` → `importFadein` (`trelby/myimport.py:99`): `document.xml` in the
     zip (Open Screenplay Format);
-  - anything else → `importTextFile` (`trelby/myimport.py:765`): plain text;
+  - `.pdf` (any case) → `importPdf` (`trelby/myimport.py:769`): asks
+    nothing; `pdfimport.importPdf` detects the layout from the PDF (scene
+    headings, cues, dialogue, page numbers, title page) and classifies each
+    text line by its position. It never stops on a doubtful line: each
+    issue becomes an `IMPORT:` note before the text it is about, and a
+    report window lists the layout found and the issues. With
+    `$MOCAP_WRITER_PDF_TRACE` set, a `.trace.tsv` of every decision is
+    written there. Detail: `trelby/pdfimport.as-built.md`;
+  - anything else → `importTextFile` (`trelby/myimport.py:804`): plain text;
     groups lines by indentation, guesses a type per indent level, lets the
     user correct it in `ImportDlg` (`trelby/importdlg.py:8`).
 - Every importer returns a list of `Line`s, or `None` on failure. The result
   replaces the tab's script, then `reformatAll` + `paginate`, and the script
-  is marked modified with no file name (`trelby/trelbyctrl.py:187-194`).
-- **There is no PDF import.**
+  is marked modified with no file name (`trelby/trelbyctrl.py:189-196`).
+- **PDF without the GUI:** `python -m trelby.pdfimport import <pdf>...
+  --out <dir> [--profile <toml>] [--strict] [--trace]` writes one
+  `.fountain` per PDF, issues as `[[IMPORT: …]]` notes; `probe <pdf>` lists
+  the indents found and the layout detected (`trelby/pdfimport.py:1061`).
 
 ## Stage 7 — export
 
-- `MyCtrl.OnExportScript` (`trelby/trelbyctrl.py:1080`) first calls
-  `getExportable` (`trelby/trelbyctrl.py:431`): optionally runs `findError`
+- `MyCtrl.OnExportScript` (`trelby/trelbyctrl.py:1082`) first calls
+  `getExportable` (`trelby/trelbyctrl.py:433`): optionally runs `findError`
   and asks whether to continue, drops Note elements on a copy when
   `pdfRemoveNotes`, re-paginates. The format is the file dialog's filter
   index:
@@ -307,18 +320,18 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   - **formatted text** → `generateText` (`trelby/screenplay.py:451`), page
     markers optional.
 - **Print** writes the same PDF to a temporary file and opens the configured
-  PDF viewer (`trelby/trelbyctrl.py:1128`, `trelby/gutil.py:82`).
+  PDF viewer (`trelby/trelbyctrl.py:1130`, `trelby/gutil.py:82`).
 - **Watermark** writes one PDF per line of the watermark list, with that
   text and an optional common mark printed in light gray at 45° behind each
   page (`trelby/watermarkdlg.py:11`).
 - **Compare scripts** diffs two open scripts' formatted text and shows the
-  diff as a colored PDF (`trelby/trelbyctrl.py:639`,
+  diff as a colored PDF (`trelby/trelbyctrl.py:641`,
   `trelby/screenplay.py:2553`).
 
 ## Stage 8 — reports
 
 - Each report re-paginates and builds a PDF that is opened in the viewer
-  (`trelby/trelbyctrl.py:619-637`, `trelby/reports.py`):
+  (`trelby/trelbyctrl.py:621-639`, `trelby/reports.py`):
   - **script report** — line counts per type, interior/exterior share,
     longest/average scene and action length, speaking characters
     (`trelby/scriptreport.py:10`);

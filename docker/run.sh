@@ -4,8 +4,10 @@
 #
 #   docker/run.sh [work-dir]
 #
-# work-dir (default: current directory) is mounted at /work: open and save
-# scripts there. Settings persist in ~/.config/mocap-writer on the host.
+# work-dir (default: current directory) is mounted at its own path, and the
+# file dialogs start there. The Windows drives (/mnt/c, /mnt/g, ...) are
+# mounted at their own paths too, so every dialog shows the same paths as
+# WSL and any folder visible from Windows can be opened. Settings persist in ~/.config/mocap-writer on the host.
 # Display: WSLg on Windows 11 (/mnt/wslg), or X11 on a Linux desktop.
 set -euo pipefail
 
@@ -34,11 +36,26 @@ if grep -qx 'Theme:1' "$config/trelby/default.conf" 2>/dev/null; then
     theme_args=(-e GTK_THEME=Adwaita:dark)
 fi
 
+# Instrumented PDF import: MOCAP_WRITER_PDF_TRACE=<dir> (its WSL path; the
+# drives and the work dir are mounted at their own paths) writes a .trace.tsv per imported PDF there.
+trace_args=()
+if [ -n "${MOCAP_WRITER_PDF_TRACE:-}" ]; then
+    trace_args=(-e MOCAP_WRITER_PDF_TRACE="$MOCAP_WRITER_PDF_TRACE")
+fi
+
+# the Windows drives WSL mounts as /mnt/<letter>, each at the same path
+drive_args=()
+for d in /mnt/[a-z]; do
+    [ -d "$d" ] && drive_args+=(-v "$d":"$d")
+done
+
 exec docker run --rm \
     --user "$(id -u):$(id -g)" -e HOME=/tmp \
     "${display_args[@]}" \
     "${theme_args[@]}" \
+    "${trace_args[@]}" \
     -v "$repo":/app:ro \
-    -v "$work":/work \
+    "${drive_args[@]}" \
+    -v "$work":"$work" -w "$work" -e MOCAP_WRITER_WORK_DIR="$work" \
     -v "$config":/config \
     "$image"
