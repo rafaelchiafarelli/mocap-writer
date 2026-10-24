@@ -2,7 +2,7 @@
 
 `trelby/myimport.py` (1002 lines) turns foreign script files into a list of
 `Line` objects. It has one function per format and no shared importer
-interface. The caller, `MyCtrl.importFile` (`trelby/trelbyctrl.py:167`),
+interface. The caller, `MyCtrl.importFile` (`trelby/trelbyctrl.py:168`),
 picks the function by the file name's ending and replaces the tab's script
 with the result.
 
@@ -15,7 +15,7 @@ with the result.
   type, the last line is `LB_LAST`
   (`screenplay.as-built.md`, Data-structure invariants). Lines need not be
   wrapped: the caller runs `reformatAll()` and `paginate()`
-  (`trelby/trelbyctrl.py:191-195`).
+  (`trelby/trelbyctrl.py:192-196`).
 - Most importers emit each source line as `LB_FORCED` and the element's
   last line as `LB_LAST` (e.g. `trelby/myimport.py:63-72`), so line breaks
   inside an element survive as forced breaks.
@@ -101,9 +101,9 @@ with the result.
 
 - **A new format**: a new `import<Format>(fileName, frame) ->
   list[Line] | None` here that meets the contract above, an `elif` on the
-  file-name ending in `MyCtrl.importFile` (`trelby/trelbyctrl.py:169-184`),
+  file-name ending in `MyCtrl.importFile` (`trelby/trelbyctrl.py:170-185`),
   and an entry in the import dialog's wildcard
-  (`trelby/trelbyframe.py:617-645`). PDF followed this path, with the
+  (`trelby/trelbyframe.py:620-648`). PDF followed this path, with the
   wx-free work in its own module (`pdfimport.py`).
 - **Fountain import** is self-contained in `importFountain`; its helper
   predicates (`isScene`, `isTransition`, `isNote`, …,
@@ -116,7 +116,7 @@ with the result.
 
 - **`importFountain` returns a bare `None`** on a read error or empty file
   (`trelby/myimport.py:442-447`), but the caller unpacks two values
-  (`trelby/trelbyctrl.py:176-178`) → `TypeError`. A cancelled options
+  (`trelby/trelbyctrl.py:177-179`) → `TypeError`. A cancelled options
   dialog returns `(None, titlePages)` correctly (`trelby/myimport.py:459-461`). Bug: [bugs/import-export/1](../initiatives/bugs/epics/import-export/tasks/1-fountain-import-none.md).
 - `importFountain` reads `frame.panel.ctrl.sp.cfg` for the Action width
   (`trelby/myimport.py:718`), so it needs the real frame, not just any wx
