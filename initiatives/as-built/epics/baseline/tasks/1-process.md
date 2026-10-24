@@ -1,5 +1,7 @@
 ## 1. trelby.process.md
 
+- **Status:** Done (2026-10-24) — `trelby.process.md`, 146 `file:line`
+  references checked
 - **Type:** documentation (no code)
 - **Depends on:** —
 - **Contract:**
