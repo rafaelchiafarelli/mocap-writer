@@ -1,15 +1,14 @@
 ## 1. PDF importer
 
-- **Status:** Implemented, in live test (2026-10-24) — not done.
-  Delivered: `trelby/pdfimport.py` (layout detection, classification,
-  `IMPORT:` notes, report, `probe`, CLI, trace, optional profiles), File →
-  Import `.pdf` with no question and an import report
-  (`myimport.importPdf`), `docker/pdfimport.sh`, instrumented trace
-  (`--trace`; `MOCAP_WRITER_PDF_TRACE` in the GUI),
-  `tests/test_pdfimport.py`. On Rafael's four PDFs (two Letter / Courier
-  Prime, two A4 landscape printed from Word or Docs) the detected layout
-  gives the same script as hand-written profiles. **Open:** Rafael's test
-  of File → Import in the editor; the task is done when he accepts it.
+- **Status:** Done (2026-10-24) — accepted by Rafael after the live test
+  of File → Import in the editor on his PDFs. Delivered:
+  `trelby/pdfimport.py` (layout detection, classification, `IMPORT:` notes,
+  report, `probe`, CLI, trace, optional profiles), File → Import `.pdf`
+  with no question and an import report (`myimport.importPdf`),
+  `docker/pdfimport.sh`, instrumented trace (`--trace`;
+  `MOCAP_WRITER_PDF_TRACE` in the GUI), `tests/test_pdfimport.py`. Fixes
+  found on the way: `fixes/000068/run-host-paths` (real paths in the
+  editor's dialogs), `fixes/000069/textdlg-linewrap` (text dialogs crashed).
 - **Decision (Rafael, 2026-10-24): no profile choice.** "I want to click the
   import button and the program would import", with the problems reported
   in a warning page or as notes in the file saying what is wrong and how to

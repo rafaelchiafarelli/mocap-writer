@@ -1,7 +1,9 @@
 # pdf-import — mocap-writer
 
-**Status:** In progress — importer/1 implemented, in live test with
-Rafael's PDFs (2026-10-24). **First initiative** (Rafael, 2026-10-24):
+**Status:** Done (2026-10-24) — importer epic done, merged to `main` at
+Rafael's request. Open from the initiative gate: one real script imported
+on its film root with every `IMPORT:` note resolved — a film session's job,
+not more project work. **First initiative** (Rafael, 2026-10-24):
 his existing scripts become the known starting point for everything else.
 
 **Goal:** Rafael's existing screenplays (master-scene PDFs with selectable
