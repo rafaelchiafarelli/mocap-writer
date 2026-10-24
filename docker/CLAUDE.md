@@ -19,9 +19,17 @@ pytest result.
   `XDG_CONFIG_HOME=/config`, `GSETTINGS_BACKEND=memory`, user `ubuntu`,
   default command `python /app/trelby.py` (`docker/Dockerfile:5-25`).
 - `requirements.in` — direct dependencies: `wxPython==4.2.5`, `lxml`,
-  `reportlab`, `pytest`.
-- `requirements.lock` — hashed lock of 10 packages (wxPython 4.2.5, lxml
-  6.1.3, reportlab 5.1.0, pillow 13.0.0, pytest 9.1.1, …).
+  `reportlab`, `pytest`, `pdfplumber` (for pdf-import; MIT, its
+  `pdfminer.six` MIT and `pypdfium2` Apache-2.0/BSD-3).
+- `requirements.lock` — hashed lock of 16 packages (wxPython 4.2.5, lxml
+  6.1.3, reportlab 5.1.0, pillow 13.0.0, pytest 9.1.1, pdfplumber 0.11.10,
+  pdfminer.six 20260107, pypdfium2 5.14.0, …). Regenerated with uv run
+  from its image (no uv on the host): `docker run --rm --user "$(id -u):$(id -g)"
+  -e HOME=/tmp -v "$PWD":/w -w /w ghcr.io/astral-sh/uv:0.8.22-python3.12-bookworm-slim`
+  followed by the command in the lock's header plus `--find-links
+  https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-24.04/`
+  (the header omits it because of `--no-emit-find-links`); existing pins
+  are kept.
 - `run.sh` — builds the image if it does not exist, then runs it as the host
   user with the repo at `/app:ro`, the work dir at `/work`,
   `~/.config/mocap-writer` at `/config`, and X11 or WSLg display sockets

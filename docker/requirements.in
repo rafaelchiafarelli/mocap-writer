@@ -4,3 +4,6 @@ wxPython==4.2.5
 lxml
 reportlab
 pytest
+# PDF text with positions, for pdf-import (MIT; pdfminer.six MIT, pypdfium2
+# Apache-2.0/BSD-3). Not PyMuPDF (AGPL).
+pdfplumber
