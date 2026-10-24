@@ -233,7 +233,7 @@ Data and folders
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
   branch (load `sample.trelby`) is reachable (`trelby/trelbyctrl.py:1333-1338`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
-- **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:983-984`
+- **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:989-990`
   → `OnSave`); other modified tabs are discarded. Bug: [bugs/editor/2](../initiatives/bugs/epics/editor/tasks/2-exit-saves-current-tab.md).
 - The MRU list is saved under the **translated** key `_("Files")`
   (`trelby/globaldata.py:70`), so switching `$LANG` loses the recent-files
@@ -243,7 +243,7 @@ Data and folders
   `trelby/resources/...` (`trelby/splash.py:39`).
 - `trelby/manual.html`, `dict_en.dat.gz`, `names.txt.gz` and `trelby.1.gz`
   are build products of `../Makefile`, not in git; Help → Manual opens
-  `trelby/manual.html` (`trelby/trelbyframe.py:963`), which does not exist
+  `trelby/manual.html` (`trelby/trelbyframe.py:969`), which does not exist
   in a plain checkout. Bug: [bugs/editor/11](../initiatives/bugs/epics/editor/tasks/11-help-manual-missing.md).
 - Two invalid escape sequences in `titles.py`, `" \qc"` / `" \qr"`
   (`trelby/titles.py:158-160`): `SyntaxWarning` in every test run, output

@@ -92,7 +92,7 @@ with the result.
   list[Line] | None` here that meets the contract above, an `elif` on the
   file-name ending in `MyCtrl.importFile` (`trelby/trelbyctrl.py:169-182`),
   and an entry in the import dialog's wildcard
-  (`trelby/trelbyframe.py:616-641`). Text extracted from a PDF that keeps
+  (`trelby/trelbyframe.py:617-642`). Text extracted from a PDF that keeps
   indentation could go through the `importTextFile` path (indent
   statistics + `ImportDlg`), which already handles Trelby's own text export
   layout.
