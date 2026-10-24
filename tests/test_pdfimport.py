@@ -377,3 +377,35 @@ def testGuiImportTrace(tmp_path, monkeypatch):
     assert lines is not None
     assert (tmp_path / "gui.trace.tsv").exists()
     assert "1  scene" in wxMock.MessageBox.call_args[0][0]
+
+
+def testInlineSceneNumbers(tmp_path):
+    profile = pdfimport.loadProfile(PROFILE)
+    profile.sceneNumberInline = re.compile(r"^(\d+[A-Z]*)\.\s+")
+    path = makePdf(
+        tmp_path / "t.pdf",
+        [page((A, "7A. INT. CASA - NOITE"), None, (A, "2. Ela conta até dois."))],
+    )
+    lines = pdfimport.importPdf(path, profile)
+
+    # a number before a scene prefix is a scene number; before anything
+    # else it is action text
+    assert [(ln.lt, ln.text) for ln in lines] == [
+        (screenplay.SCENE, "INT. CASA - NOITE #7A#"),
+        (screenplay.ACTION, "2. Ela conta até dois."),
+    ]
+
+
+def testCharacterWithoutSpeechWarns(tmp_path):
+    warnings = []
+    trace = []
+    lines = importPages(
+        tmp_path,
+        [page((A, "INT. CASA - NOITE"), None, (C, "ANA"), (A, "Fala digitada como ação."))],
+        trace=trace,
+        warnings=warnings,
+    )
+
+    assert lines is not None
+    assert warnings == [(1, 2, "character 'ANA' is followed by action, not a speech")]
+    assert trace[-1]["decision"] == "WARNING"

@@ -4,7 +4,7 @@
 that `trelby/pdfimport.py` uses to classify each line of a screenplay PDF by
 its position. A profile is always chosen explicitly (File → Import asks for
 it, the CLI takes `--profile`); the importer never guesses one.
-**Entry points:** `pdfimport.loadProfile(path)` (`trelby/pdfimport.py:114`);
+**Entry points:** `pdfimport.loadProfile(path)` (`trelby/pdfimport.py:115`);
 the File → Import profile dialog opens in this folder
 (`trelby/myimport.py:768`).
 **Inputs → Outputs:** `python -m trelby.pdfimport probe <pdf>` output →
@@ -21,7 +21,7 @@ a hand-written profile → `.fountain` / editor lines.
 
 Positions are PDF points (1/72 in) from the **top left** of the page, as
 `probe` prints them. Keys (any other key is an error,
-`trelby/pdfimport.py:126-140`):
+`trelby/pdfimport.py:127-141`):
 
 | key | default | meaning |
 |---|---|---|
@@ -35,18 +35,20 @@ Positions are PDF points (1/72 in) from the **top left** of the page, as
 | `character_suffix` | `[]` | regexes cut from the end of character names, e.g. `(CONT'D)` |
 | `[[indent]]` | required | `element` + exactly one of `x` (left edge), `x1` (right edge, for right-aligned transitions), `xc` (center); optional own `tolerance`. First match wins |
 | `[[drop]]` | — | page furniture: `pattern` (regex on the whole line), optional `top_min` / `top_max` |
-| `[scene_numbers]` | — | `left` / `right` x of margin scene numbers, `pattern` (default `^\d+[A-Z]*\.?$`), `tolerance` |
+| `[scene_numbers]` | — | `left` / `right` x of margin scene numbers, `pattern` (default `^\d+[A-Z]*\.?$`), `tolerance`; `inline`: regex for a number written at the start of the heading, group 1 = the number (e.g. `'^(\d+[A-Z]*)\.\s+'` for `12. INT. …`) |
 | `[dual]` | — | `left` / `right`: lists of rules (as `[[indent]]`) for the two dual-dialogue columns |
 
 Elements: `scene`, `action`, `character`, `parenthetical`, `dialogue`,
 `transition`, and `scene_action` (scene if the line starts with a
-`scene_prefixes` entry, action otherwise).
+`scene_prefixes` entry, or with an `inline` scene number followed by one;
+action otherwise). Prefixes are compared upper-cased and literally, so
+`"INT "` (with the space) catches headings typed without the dot.
 
 ## Key facts / gotchas
 - **TOML table scoping:** a top-level key written after a `[[indent]]`,
   `[[drop]]` or `[dual]` header belongs to that table. Put the top-level
   keys first; the parser rejects the misplaced key with its table's name
-  (`trelby/pdfimport.py:137-140`).
+  (`trelby/pdfimport.py:138-141`).
 - Regexes in basic strings (`"..."`) need doubled backslashes; literal
   strings (`'...'`) do not.
 - Starter profiles for Final Draft, Celtx, Word and Google Docs are not here

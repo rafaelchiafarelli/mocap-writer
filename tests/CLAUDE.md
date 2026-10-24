@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 105 tests.
+objects directly and never create the wx GUI. 107 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -36,7 +36,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   with ReportLab at test time (`makePdf`, US Letter, Courier 12; no PDF
   committed) and imports them with `fixtures/pdf/letter-test.toml`:
   expected Fountain with accented names, page furniture dropped, dialogue
-  joined across a page break, margin scene numbers → `#n#`, dual dialogue →
+  joined across a page break, margin and inline scene numbers → `#n#`, a
+  character with no speech after it → warning, dual dialogue →
   `^`, unknown indent and stray two-column lines stop with page and line,
   `skip_pages`, profile errors (unknown keys), every starter profile in
   `trelby/pdfprofiles/` parses, `probe` output, the CLI with `--trace`;

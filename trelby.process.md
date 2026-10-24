@@ -291,7 +291,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 - **PDF without the GUI:** `python -m trelby.pdfimport import <pdf>...
   --profile <toml> --out <dir> [--trace]` writes one `.fountain` per PDF;
   `probe <pdf>` lists the indents found, for writing a profile
-  (`trelby/pdfimport.py:621`).
+  (`trelby/pdfimport.py:680`).
 
 ## Stage 7 — export
 

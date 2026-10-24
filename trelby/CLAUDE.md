@@ -14,7 +14,7 @@ drawn by `viewmode`), the page language and PDF writer (`pml`, `pdf`), import
   without any GUI (what the tests use, `tests/u.py`).
 - `myimport.import*(fileName, frame)` — one function per import format.
 - `python -m trelby.pdfimport import|probe ...` — PDF → `.fountain` from
-  the command line (`trelby/pdfimport.py:621`).
+  the command line (`trelby/pdfimport.py:680`).
 - `Screenplay.generate{PDF,RTF,FDX,Html,Fountain,Text}` — exports.
 
 **Inputs → Outputs:** `.trelby` scripts, imported `.fdx` / `.celtx` /
