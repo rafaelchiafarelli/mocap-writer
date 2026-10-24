@@ -452,6 +452,10 @@ class MyCtrl(wx.Control):
         self.makeLineVisible(self.sp.line)
 
     def OnLeftDown(self, event, mark=False):
+        # wxGTK does not focus this control on a click, so a click in the
+        # script is how the writer gets the keyboard back
+        self.SetFocus()
+
         if not self.mouseSelectActive:
             self.sp.clearMark()
             self.updateScreen()
@@ -1272,7 +1276,7 @@ class MyCtrl(wx.Control):
         pass
 
     def OnKeyChar(self, ev):
-        kc = ev.GetUnicodeKey()
+        kc = util.eventKeyCode(ev)
 
         cs = screenplay.CommandState()
         cs.mark = bool(ev.ShiftDown())

@@ -45,7 +45,7 @@ watermarks, the dialogue chart and script comparison all build PML and call
   TTF with ReportLab once and returns its name; otherwise the core font.
   The underline bit is masked with `& 15`.
 - Screen layout and PDF use the same text widths: `fontinfo` gives core-font
-  metrics in mm (`trelby/util.py:515-516`), and script text is always
+  metrics in mm (`trelby/util.py:528-529`), and script text is always
   Courier, 0.6 × size per character.
 
 ## Extension points
