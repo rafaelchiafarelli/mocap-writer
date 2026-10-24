@@ -37,15 +37,15 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 
 ## Stage 0 — startup
 
-- `trelby.py:6` calls `trelby.trelby.main()` (`trelby/trelby.py:142`).
+- `trelby.py:6` calls `trelby.trelby.main()` (`trelby/trelby.py:148`).
 - Importing `trelby/trelby.py` already loads the translation catalog
   (`trelby/trelby.py:34` → `translations.trelby_translations_load()`,
   `trelby/translations.py:10`). It picks the language from `$LANG`, falls back
   to the base language and then to `en`, and calls `gettext.install()`, which
   puts `_` into builtins. Every other module uses that builtin `_` without
   importing it.
-- `main()` runs `opts.init()` (`trelby/trelby.py:143`), builds `MyApp` and
-  enters the wx main loop (`trelby/trelby.py:145-147`).
+- `main()` runs `opts.init()` (`trelby/trelby.py:149`), builds `MyApp` and
+  enters the wx main loop (`trelby/trelby.py:151-153`).
 - `MyApp.OnInit` (`trelby/trelby.py:39`), in order:
   1. refuses wxPython other than 4.x (`trelby/trelby.py:41`);
   2. `misc.init()` (`trelby/trelby.py:53`) sets the platform flags,
@@ -62,17 +62,19 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
      (`trelby/trelby.py:90`), otherwise the defaults are written out
      (`trelby/trelby.py:94`). `ConfigGui(cfgGl)` turns colors and font names
      into wx pens, brushes and fonts (`trelby/trelby.py:97`,
-     `trelby/config.py:1386`);
-  6. window state and view mode (`trelby/trelby.py:108-110`) and the global
-     spell-checker dictionary (`trelby/trelby.py:116`);
+     `trelby/config.py:1386`). The file dialogs start in the config's
+     `scriptDir`, or in `$MOCAP_WRITER_WORK_DIR` when that is a directory
+     (set by `docker/run.sh`, `trelby/trelby.py:102-108`);
+  6. window state and view mode (`trelby/trelby.py:114-116`) and the global
+     spell-checker dictionary (`trelby/trelby.py:122`);
   7. `MyFrame` is created and `init()` adds the first, empty tab
-     (`trelby/trelby.py:118-120`); each command-line script is opened with
-     `openScript` (`trelby/trelby.py:123`);
+     (`trelby/trelby.py:124-126`); each command-line script is opened with
+     `openScript` (`trelby/trelby.py:129`);
   8. `checkFonts()` warns if a screen font is not fixed-width
-     (`trelby/trelby.py:132`, `trelby/trelbyframe.py:518`);
+     (`trelby/trelby.py:138`, `trelby/trelbyframe.py:518`);
   9. **splash**: if `splashTime > 0` (default 3 s, `trelby/config.py:1130`) a
      `SplashWindow` is shown and closes itself on a one-shot timer
-     (`trelby/trelby.py:135`, `trelby/splash.py:61-64`, `trelby/splash.py:106`).
+     (`trelby/trelby.py:141`, `trelby/splash.py:61-64`, `trelby/splash.py:106`).
 
 ## Stage 1 — main window and editor
 
