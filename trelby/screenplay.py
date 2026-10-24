@@ -62,6 +62,10 @@ class Screenplay:
         self.cfgGl = cfgGl
         self.cfg = config.Config()
 
+        # fountain.Source of the .fountain file this script was opened from
+        # or last saved to, None otherwise (trelby/fountain.py)
+        self.fountainSource = None
+
         # cursor position: line and column
         self.line = 0
         self.column = 0
@@ -158,6 +162,7 @@ class Screenplay:
         sp.locations = copy.deepcopy(self.locations)
         sp.titles = copy.deepcopy(self.titles)
         sp.scDict = copy.deepcopy(self.scDict)
+        sp.fountainSource = self.fountainSource
 
         sp.lines = [Line(ln.lb, ln.lt, ln.text) for ln in self.lines]
 

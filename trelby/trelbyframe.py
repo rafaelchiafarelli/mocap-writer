@@ -592,7 +592,10 @@ class MyFrame(wx.Frame):
             self,
             _("File to open"),
             misc.scriptDir,
-            wildcard="Trelby "
+            wildcard=_("Scripts")
+            + " (*.fountain, *.trelby)|*.fountain;*.trelby|"
+            + "Fountain (*.fountain)|*.fountain|"
+            + "Trelby "
             + _("files")
             + " (*.trelby)|*.trelby|"
             + _("All files")

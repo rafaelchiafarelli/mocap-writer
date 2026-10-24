@@ -2,7 +2,7 @@
 
 - **Status:** Open
 - **Symptom:** On exit with unsaved changes, answering Save saves the current tab only; other modified tabs are lost.
-- **Where:** `MyFrame.OnCloseWindow` calls `self.OnSave()` once (`trelby/trelbyframe.py:1004-1005`)
+- **Where:** `MyFrame.OnCloseWindow` calls `self.OnSave()` once (`trelby/trelbyframe.py:1007-1008`)
 - **Reproduce:** edit two tabs, exit, choose Save.
 - **Impact:** data loss in every tab but the current one.
 - **Likely fix:** save (or ask for) each modified tab.
