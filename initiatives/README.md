@@ -4,7 +4,7 @@ Source: Rafael's review of unmodified Trelby (2026-10-23). Bugs found there
 go as fix branches, not initiatives (splash that never closes, tooltips that
 start off-screen).
 
-0. **as-built** — documentation of Trelby as forked, in its folders (harpia's model)
+0. **as-built** — documentation of Trelby as forked, in its folders (harpia's model) — done
 1. **pdf-import** — Rafael's existing PDF scripts open in the writer and come out as Fountain
 2. **editor-ux** — zoom, dark theme, Tab order, capitalized words in Action
 3. **fountain-native** — open/save Fountain as the native format; scene ids and numbering; notes on text spans
