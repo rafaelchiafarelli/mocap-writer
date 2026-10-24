@@ -1,5 +1,10 @@
 ## 1. Zoom
 
+- **Status:** Done (2026-10-24) — `ConfigGlobal.zoom` + `ConfigGui`
+  scaling, commands, Ctrl + wheel, status control; `tests/test_zoom.py`;
+  checked on screen (WSLg) in draft and layout. Open question for Rafael:
+  no horizontal scrolling, so a page wider than the window is cut on the
+  right at high zoom
 - **Type:** code
 - **Depends on:** —
 - **Contract:**
