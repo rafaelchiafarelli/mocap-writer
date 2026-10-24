@@ -1,14 +1,13 @@
 # pdfprofiles — layout profiles for the PDF importer
 
-**Role:** One TOML file per PDF layout (source program + paper + settings)
-that `trelby/pdfimport.py` uses to classify each line of a screenplay PDF by
-its position. A profile is always chosen explicitly (File → Import asks for
-it, the CLI takes `--profile`); the importer never guesses one.
-**Entry points:** `pdfimport.loadProfile(path)` (`trelby/pdfimport.py:115`);
-the File → Import profile dialog opens in this folder
-(`trelby/myimport.py:768`).
-**Inputs → Outputs:** `python -m trelby.pdfimport probe <pdf>` output →
-a hand-written profile → `.fountain` / editor lines.
+**Role:** Optional TOML layout profiles: one file per PDF layout that
+`trelby/pdfimport.py` uses instead of detecting the layout from the PDF.
+Since 2026-10-24 (Rafael) File → Import detects the layout and asks nothing;
+a profile is only for the command line (`--profile`), for a PDF the
+detection reads wrongly, and for tests.
+**Entry points:** `pdfimport.loadProfile(path)` (`trelby/pdfimport.py:166`).
+**Inputs → Outputs:** `python -m trelby.pdfimport probe <pdf>` output (the
+indents and the detected layout) → a hand-written profile → `.fountain`.
 
 ## Files
 - `trelby-a4.toml` — Trelby's own PDF export with the default script
@@ -21,7 +20,7 @@ a hand-written profile → `.fountain` / editor lines.
 
 Positions are PDF points (1/72 in) from the **top left** of the page, as
 `probe` prints them. Keys (any other key is an error,
-`trelby/pdfimport.py:127-141`):
+`trelby/pdfimport.py:178-192`):
 
 | key | default | meaning |
 |---|---|---|
@@ -48,14 +47,14 @@ action otherwise). Prefixes are compared upper-cased and literally, so
 - **TOML table scoping:** a top-level key written after a `[[indent]]`,
   `[[drop]]` or `[dual]` header belongs to that table. Put the top-level
   keys first; the parser rejects the misplaced key with its table's name
-  (`trelby/pdfimport.py:138-141`).
+  (`trelby/pdfimport.py:189-192`).
 - Regexes in basic strings (`"..."`) need doubled backslashes; literal
   strings (`'...'`) do not.
-- Starter profiles for Final Draft, Celtx, Word and Google Docs are not here
-  yet: they are built from real PDFs (see the task file
+- No per-program profiles: the planned Final Draft / Celtx / Word / Google
+  Docs profiles were dropped when the layout became detected (task file
   `initiatives/pdf-import/epics/importer/tasks/1-pdf-importer.md`).
 
 ## Touchpoints
-- Read by: `trelby/pdfimport.py`, `trelby/myimport.py` (`importPdf`),
+- Read by: `trelby/pdfimport.py` (CLI `--profile`),
   `tests/test_pdfimport.py` (every profile here must parse).
 - Packaged through `setup.cfg` (`pdfprofiles/*`).

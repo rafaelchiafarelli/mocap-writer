@@ -14,7 +14,7 @@ drawn by `viewmode`), the page language and PDF writer (`pml`, `pdf`), import
   without any GUI (what the tests use, `tests/u.py`).
 - `myimport.import*(fileName, frame)` — one function per import format.
 - `python -m trelby.pdfimport import|probe ...` — PDF → `.fountain` from
-  the command line (`trelby/pdfimport.py:680`).
+  the command line (`trelby/pdfimport.py:1061`).
 - `Screenplay.generate{PDF,RTF,FDX,Html,Fountain,Text}` — exports.
 
 **Inputs → Outputs:** `.trelby` scripts, imported `.fdx` / `.celtx` /
@@ -129,11 +129,12 @@ Page language and PDF
 Import
 - `myimport.py` — importers for Adobe Story, Fade In, Celtx, Final Draft,
   Fountain, indented plain text, and the GUI side of PDF import
-  (`importPdf`: profile dialog, error box, trace). Detail:
+  (`importPdf`: import report window, error box, trace). Detail:
   [myimport.as-built.md](myimport.as-built.md).
 - `pdfimport.py` — PDF import without wx: pdfplumber text lines →
-  elements by position, as a layout profile declares; `probe`, trace, and
-  the `python -m trelby.pdfimport` CLI. Detail:
+  elements by position, the layout detected from the PDF (or a profile);
+  doubtful spots become `IMPORT:` notes; `probe`, report, trace, and the
+  `python -m trelby.pdfimport` CLI. Detail:
   [pdfimport.as-built.md](pdfimport.as-built.md).
 - `importdlg.py` — `ImportDlg`: lets the user set the element type of each
   indentation level found in a text file (`trelby/importdlg.py:8`).
@@ -190,8 +191,8 @@ Data and folders
 - `names.txt` — name database: `N<type>` lines start a group, `M<name>` /
   `F<name>` lines add names (204 761 lines).
 - `__init__.py` — empty.
-- `pdfprofiles/` — TOML layout profiles for the PDF importer and the
-  profile format (its own `CLAUDE.md`).
+- `pdfprofiles/` — optional TOML layout profiles for the PDF importer's
+  command line, and the profile format (its own `CLAUDE.md`).
 - `configpages/` — the settings-dialog pages (its own `CLAUDE.md`; two of
   them break when the GUI language is not English).
 - `resources/` — icons, toolbar SVGs, splash logo, quotes (its own

@@ -759,64 +759,41 @@ def importFountain(fileName, frame, titlePages):
     return ret, titlePages
 
 
-# import a screenplay PDF (trelby/pdfimport.py): ask for the layout profile,
-# then classify each line by its indent. Returns a list of Lines, or None
-# after telling the user why (no profile chosen, or a line the profile does
-# not cover, with its page and line). If $MOCAP_WRITER_PDF_TRACE names a
-# directory, the decision for every piece of text is written there as
-# <name>.trace.tsv and a summary is shown.
+# import a screenplay PDF (trelby/pdfimport.py): the layout is detected from
+# the PDF itself, nothing is asked. Every doubtful spot is imported as well
+# as possible and becomes an "IMPORT:" note in the script; a report window
+# lists the layout found and the issues. Returns a list of Lines, or None
+# after telling the user why (unreadable file, no text). If
+# $MOCAP_WRITER_PDF_TRACE names a directory, the decision for every piece of
+# text is also written there as <name>.trace.tsv.
 def importPdf(fileName: str, frame: wx.Frame) -> Optional[List[Line]]:
     import os
 
     import trelby.pdfimport as pdfimport
 
-    dlg = wx.FileDialog(
-        frame,
-        _("PDF layout profile"),
-        os.path.join(misc.progPath, "trelby", "pdfprofiles"),
-        wildcard=_("Layout profiles") + " (*.toml)|*.toml|" + _("All files") + "|*",
-        style=wx.FD_OPEN,
-    )
-
-    if dlg.ShowModal() != wx.ID_OK:
-        dlg.Destroy()
-
-        return None
-
-    profilePath = dlg.GetPath()
-    dlg.Destroy()
-
     traceDir = os.environ.get("MOCAP_WRITER_PDF_TRACE")
     trace = [] if traceDir else None
+    issues = []
+    layout = []
     lines = None
-    err = None
 
     try:
-        profile = pdfimport.loadProfile(profilePath)
-        lines = pdfimport.importPdf(fileName, profile, trace)
+        lines = pdfimport.importPdf(fileName, None, trace, None, issues, True, False, layout)
     except (OSError, pdfimport.PdfImportError) as e:
-        err = str(e)
+        wx.MessageBox(str(e), _("Error"), wx.OK, frame)
+
+    text = pdfimport.report(fileName, layout, issues)
 
     if trace is not None:
         base = os.path.splitext(os.path.basename(fileName))[0]
         tracePath = os.path.join(traceDir, base + ".trace.tsv")
         pdfimport.writeTrace(trace, tracePath)
+        text += "\n\n" + _("Trace written to:") + " " + tracePath
 
-        counts = {}
-        for r in trace:
-            counts[r["decision"]] = counts.get(r["decision"], 0) + 1
-        summary = "\n".join("%5d  %s" % (n, k) for k, n in sorted(counts.items()))
-        wx.MessageBox(
-            "%s\n\n%s\n\n%s" % (_("Trace written to:"), tracePath, summary),
-            _("PDF import trace"),
-            wx.OK,
-            frame,
-        )
-
-    if err is not None:
-        wx.MessageBox(err, _("Error"), wx.OK, frame)
-
-        return None
+    if lines is not None:
+        dlg = misc.TextDlg(frame, text, _("PDF import report"))
+        dlg.ShowModal()
+        dlg.Destroy()
 
     return lines
 

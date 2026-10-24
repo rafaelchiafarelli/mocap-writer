@@ -67,33 +67,32 @@ with the result.
      stripped from character names when markup is removed;
   5. second pass merges consecutive same-type lines into elements and turns
      blank lines into element ends (`trelby/myimport.py:744-758`).
-- `importTextFile(fileName, frame)` (`trelby/myimport.py:827`) — indented
+- `importTextFile(fileName, frame)` (`trelby/myimport.py:804`) — indented
   plain text (the format of Trelby's own text export):
   1. per indentation width, an `Indent` counts lines, `INT.`/`EXT.`
      starts, `CUT TO:`/`DISSOLVE TO:` and `(…)` lines
-     (`trelby/myimport.py:847-875`);
+     (`trelby/myimport.py:824-852`);
   2. `setType` assigns types greedily: most scene starts → Scene/Action
      mix, most lines → Dialogue, next → Character, most transitions →
      Transition, most parens → Parenthetical, then the indent one deeper
      than Parenthetical also Parenthetical; the rest Action
-     (`trelby/myimport.py:882-916`, `setType` `trelby/myimport.py:976`);
+     (`trelby/myimport.py:859-893`, `setType` `trelby/myimport.py:953`);
   3. `ImportDlg` lets the user change the type of each indent or ignore it
-     (`trelby/myimport.py:918`);
+     (`trelby/myimport.py:895`);
   4. lines become `LB_SPACE` lines (so they re-wrap), a blank line ends an
      element, `(CONT'D)` is cut from characters and `(continuing)`
-     parentheticals dropped (`trelby/myimport.py:929-969`).
-- `importPdf(fileName, frame)` (`trelby/myimport.py:768`) — screenplay
+     parentheticals dropped (`trelby/myimport.py:906-946`).
+- `importPdf(fileName, frame)` (`trelby/myimport.py:769`) — screenplay
   PDF, the GUI side of `trelby/pdfimport.py` (`pdfimport.as-built.md`):
-  1. a file dialog for the layout profile, opening in
-     `<progPath>/trelby/pdfprofiles`; Cancel → `None`;
-  2. `pdfimport.loadProfile` + `pdfimport.importPdf`; an `OSError` or
-     `PdfImportError` (bad profile, a line no rule covers with its page and
-     line) is shown in a message box → `None`
-     (`trelby/myimport.py:817`);
+  1. asks nothing: `pdfimport.importPdf` with the layout detected from the
+     PDF, issues as `IMPORT:` notes in the script; an `OSError` or
+     `PdfImportError` (unreadable file, no text) is shown in a message box
+     → `None` (`trelby/myimport.py:783`);
+  2. the import report (`pdfimport.report`: layout found, every issue) in a
+     `misc.TextDlg` (`trelby/myimport.py:794`);
   3. **instrumented:** if `$MOCAP_WRITER_PDF_TRACE` names a directory,
-     the trace is written there as `<name>.trace.tsv`
-     (`trelby/myimport.py:789-803`), also when the import stops, and a box
-     shows its path and a count per decision.
+     the trace is written there as `<name>.trace.tsv` and its path added to
+     the report (`trelby/myimport.py:774-790`).
 - Module constants `SCENE_ACTION` = −2 and `IGNORE` = −3 are extra
   pseudo-types used only by the text importer and `ImportDlg`
   (`trelby/myimport.py:21-25`).
@@ -138,7 +137,7 @@ with the result.
   text `===`).
 - Celtx, Fade In, FDX, Astx: formatting (bold, italic) is dropped; FDX
   title pages are not imported.
-- `importTextFile` uses `screenplay.Line` (`trelby/myimport.py:959`), which
+- `importTextFile` uses `screenplay.Line` (`trelby/myimport.py:936`), which
   only works because `screenplay.py` re-exports `Line` from `line.py`.
 
 ## Tests
@@ -147,7 +146,8 @@ with the result.
   and `importTextFile` against `tests/fixtures/test.txt`, each compared with
   `tests/fixtures/test.trelby` after reformatting; `wx` is replaced by a
   `Mock` whose dialogs return OK.
-- `tests/test_pdfimport.py`: `importPdf` with `wx` patched on the module
-  (OK, error box with page and line, trace file and summary).
+- `tests/test_pdfimport.py`: `importPdf` with `wx` and `misc.TextDlg`
+  patched on the module (no question asked, report shown, error box, trace
+  file).
 - Not covered: `importFountain`, `importFDX`, `importAstx`, `importFadein`,
   title-page import.

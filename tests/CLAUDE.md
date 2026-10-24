@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 107 tests.
+objects directly and never create the wx GUI. 114 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -34,16 +34,19 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `myimport` (`tests/test_myimport.py:10-16`).
 - `test_pdfimport.py` — PDF import (`trelby/pdfimport.py`): draws its PDFs
   with ReportLab at test time (`makePdf`, US Letter, Courier 12; no PDF
-  committed) and imports them with `fixtures/pdf/letter-test.toml`:
-  expected Fountain with accented names, page furniture dropped, dialogue
-  joined across a page break, margin and inline scene numbers → `#n#`, a
-  character with no speech after it → warning, dual dialogue →
-  `^`, unknown indent and stray two-column lines stop with page and line,
-  `skip_pages`, profile errors (unknown keys), every starter profile in
-  `trelby/pdfprofiles/` parses, `probe` output, the CLI with `--trace`;
-  round trip of Trelby's own PDF export of `test.trelby` through
-  `trelby-a4.toml`; and `myimport.importPdf` with `wx` patched on the
-  module. Loads the translations itself.
+  committed). With the profile `fixtures/pdf/letter-test.toml`: expected
+  Fountain with accented names, page furniture dropped, dialogue joined
+  across a page break, margin and typed scene numbers → `#n#`, dual
+  dialogue → `^`, `strict` stops with page and line, lenient reading
+  (nearest indent, columns as one line) with `IMPORT:` notes, a character
+  with no speech → issue and note, profile errors, every profile in
+  `trelby/pdfprofiles/` parses, the CLI with `--trace`. With the layout
+  **detected**: the same script as with the profile, title page, page
+  numbers, margin scene numbers, numbered heading without INT./EXT.,
+  Trelby's own PDF export of `test.trelby` (detected = `trelby-a4.toml`),
+  `probe`, `report`. `myimport.importPdf` with `wx` and `misc.TextDlg`
+  patched (asks nothing, report, error box, trace). Loads the translations
+  itself.
 - `test_scriptreport.py`, `test_scenereport.py`, `test_locationreport.py`,
   `test_characterreport.py` — each report's `generate()` returns a PDF.
 - `test_locations.py` — `Locations.refresh`.
@@ -78,8 +81,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - `execute_random_tests.py` still imports `u` and `screenplay` as top-level
   modules via `sys.path` (`tests/execute_random_tests.py:16-20`), the
   pre-package layout. Bug: [bugs/tooling/4](../initiatives/bugs/epics/tooling/tasks/4-random-tests-stale.md).
-- PDFs are generated, not committed: the hand-made PDFs from Final Draft,
-  Celtx, Word and Google Docs planned as fixtures do not exist (see
+- PDFs are generated, not committed: Rafael's real PDFs hold film text and
+  stay out of the repo (see
   `initiatives/pdf-import/epics/importer/tasks/1-pdf-importer.md`).
 - Not covered by any test: the wx GUI (`trelbyframe`, `trelbyctrl`,
   `viewmode`, dialogs), `.trelby` save round-trip, Fountain/FDX/HTML/RTF/text

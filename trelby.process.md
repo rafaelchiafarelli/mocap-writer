@@ -278,22 +278,24 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
     lines of the same type into elements; it can fill the title page;
   - `fadein` → `importFadein` (`trelby/myimport.py:99`): `document.xml` in the
     zip (Open Screenplay Format);
-  - `.pdf` (any case) → `importPdf` (`trelby/myimport.py:768`): asks for a
-    layout profile (`trelby/pdfprofiles/`), then `pdfimport.importPdf`
-    classifies each PDF text line by its position as the profile declares;
-    a line no rule covers stops the import with its page and line. With
+  - `.pdf` (any case) → `importPdf` (`trelby/myimport.py:769`): asks
+    nothing; `pdfimport.importPdf` detects the layout from the PDF (scene
+    headings, cues, dialogue, page numbers, title page) and classifies each
+    text line by its position. It never stops on a doubtful line: each
+    issue becomes an `IMPORT:` note before the text it is about, and a
+    report window lists the layout found and the issues. With
     `$MOCAP_WRITER_PDF_TRACE` set, a `.trace.tsv` of every decision is
     written there. Detail: `trelby/pdfimport.as-built.md`;
-  - anything else → `importTextFile` (`trelby/myimport.py:827`): plain text;
+  - anything else → `importTextFile` (`trelby/myimport.py:804`): plain text;
     groups lines by indentation, guesses a type per indent level, lets the
     user correct it in `ImportDlg` (`trelby/importdlg.py:8`).
 - Every importer returns a list of `Line`s, or `None` on failure. The result
   replaces the tab's script, then `reformatAll` + `paginate`, and the script
   is marked modified with no file name (`trelby/trelbyctrl.py:189-196`).
 - **PDF without the GUI:** `python -m trelby.pdfimport import <pdf>...
-  --profile <toml> --out <dir> [--trace]` writes one `.fountain` per PDF;
-  `probe <pdf>` lists the indents found, for writing a profile
-  (`trelby/pdfimport.py:680`).
+  --out <dir> [--profile <toml>] [--strict] [--trace]` writes one
+  `.fountain` per PDF, issues as `[[IMPORT: …]]` notes; `probe <pdf>` lists
+  the indents found and the layout detected (`trelby/pdfimport.py:1061`).
 
 ## Stage 7 — export
 

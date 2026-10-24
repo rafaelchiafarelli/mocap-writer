@@ -1,15 +1,21 @@
 # PDF import: a master-scene screenplay PDF with selectable text becomes a
-# list of Lines, each line classified by its left indent (or right edge, or
-# center) as declared in a layout profile. Deterministic, no guessing: a line
-# that matches no rule of the profile stops the import with its page and line.
+# list of Lines, each line classified by its position on the page. The
+# layout (where scene headings, action, character cues, parentheticals,
+# dialogue and transitions sit) is detected from the PDF itself
+# (detectLayout), deterministically and without an LLM; a TOML layout
+# profile can be given instead (trelby/pdfprofiles/CLAUDE.md).
+#
+# Nothing stops the import: anything doubtful is read as well as possible and
+# reported as an issue, which also becomes an "IMPORT:" Note element just
+# before the text it is about, saying what is wrong and how to fix it. With
+# strict=True (CLI --strict) the first unreadable line stops the import.
 #
 # Command line (writes one .fountain per PDF):
-#   python -m trelby.pdfimport import <pdf>... --profile <file> --out <dir>
+#   python -m trelby.pdfimport import <pdf>... --out <dir> [--profile <toml>]
 #   python -m trelby.pdfimport probe <pdf>
-#
-# The profile format is described in trelby/pdfprofiles/CLAUDE.md.
 
 import argparse
+import collections
 import os
 import re
 import sys
@@ -29,12 +35,37 @@ ELEMENTS = {
     "transition": screenplay.TRANSITION,
 }
 
-# pseudo-element: scene heading if the line starts with one of the profile's
-# scene_prefixes, action otherwise (master-scene scripts share that indent)
+# pseudo-element: scene heading if the line starts like one (the profile's
+# scene_prefixes, or SCENE_RE for a detected layout), action otherwise
+# (master-scene scripts share that indent)
 SCENE_ACTION = "scene_action"
 
 # names used in traces and messages
 TYPE_NAMES = {v: k for k, v in ELEMENTS.items()}
+
+# how a scene heading starts, after an optional typed scene number:
+# INT. / EXT. / INT./EXT. / I/E / EST., also without the dot ("INT NAVE")
+SCENE_RE = re.compile(
+    r"^(?:(\d+[A-Z]*)\.?\s+)?"
+    r"(INT\.?\s*/\s*EXT|EXT\.?\s*/\s*INT|INT|EXT|EST|I\s*/\s*E)"
+    r"(\.|\s|-|/|$)"
+)
+
+NUMBER_RE = re.compile(r"^\d+[A-Z]*\.?$")
+
+# page furniture every screenplay program writes; dropped in every layout
+STANDARD_DROPS = [
+    r"(?i)^\((MORE|MAIS|CONTINUA)\)$",
+    r"(?i)^\(?CONTINUED\)?:?$",
+    r"(?i)^\(?CONTINUA(ÇÃO|CAO|NDO)?\)?:?$",
+]
+
+# cut from the end of character names
+STANDARD_SUFFIXES = [
+    r"(?i)\s*\((CONT['’]D|CONT\.?|CONTINUED|CONTINUANDO|CONTINUA|CONT\.\s*D)\)$",
+]
+
+NOTE_PREFIX = "IMPORT: "
 
 
 class PdfImportError(Exception):
@@ -42,6 +73,16 @@ class PdfImportError(Exception):
         Exception.__init__(self, msg)
         self.page = page
         self.lineNo = lineNo
+
+
+@dataclass
+class Issue:
+    page: int
+    lineNo: int
+    message: str
+
+    def __str__(self):
+        return "page %d, line %d: %s" % (self.page, self.lineNo, self.message)
 
 
 @dataclass
@@ -54,6 +95,9 @@ class Rule:
 
     def matches(self, seg):
         return abs(seg.edgePos(self.edge) - self.pos) <= self.tolerance
+
+    def distance(self, seg):
+        return abs(seg.edgePos(self.edge) - self.pos)
 
     def describe(self):
         return "%s=%g" % (self.edge, self.pos)
@@ -87,9 +131,16 @@ class Profile:
     furniture: List[Furniture]
     characterSuffixes: List[re.Pattern]
     sceneNumberPattern: Optional[re.Pattern]
-    sceneNumberInline: Optional[re.Pattern]
     sceneNumberLeft: Optional[Rule]
     sceneNumberRight: Optional[Rule]
+    sceneNumberInline: Optional[re.Pattern]
+    # detected layouts: scene headings recognized by SCENE_RE instead of
+    # scenePrefixes, and an upper-case line with a typed scene number but no
+    # INT./EXT. is a scene heading (reported as an issue)
+    sceneRe: Optional[re.Pattern] = None
+    numberedUpperIsScene: bool = False
+    # what detectLayout found, for the report and probe
+    summary: List[str] = field(default_factory=list)
 
 
 def _rules(items, tolerance, where):
@@ -173,9 +224,9 @@ def parseProfile(d, defaultName="profile"):
         ],
         characterSuffixes=[re.compile(p) for p in d.get("character_suffix", [])],
         sceneNumberPattern=re.compile(sn.get("pattern", r"^\d+[A-Z]*\.?$")) if sn else None,
-        sceneNumberInline=re.compile(sn["inline"]) if "inline" in sn else None,
         sceneNumberLeft=snRule("left"),
         sceneNumberRight=snRule("right"),
+        sceneNumberInline=re.compile(sn["inline"]) if "inline" in sn else None,
     )
 
 
@@ -267,6 +318,252 @@ def _split(words, gap):
     return segs
 
 
+def _isUpper(text):
+    return any(c.isalpha() for c in text) and text == text.upper()
+
+
+# the most common value of xs after merging values within tol of each
+# other; (value, count) or (None, 0)
+def _mode(xs, tol=2.0):
+    if not xs:
+        return None, 0
+    counts = collections.Counter(round(x, 1) for x in xs)
+    best, bestN = None, 0
+    for x in counts:
+        n = sum(c for y, c in counts.items() if abs(y - x) <= tol)
+        if n > bestN or (n == bestN and counts[x] > counts.get(best, 0)):
+            best, bestN = x, n
+    return best, bestN
+
+
+# a layout Profile worked out from the PDF itself, plus the issues found
+# while doing it. Deterministic: the same PDF always gives the same layout.
+def detectLayout(pages, name="detected"):
+    issues = []
+    summary = []
+    tol = 3.0
+    segmentGap = 28.0
+
+    # 1. title page: a first page with no scene heading and few lines
+    skip = 0
+    if len(pages) > 1:
+        pn, h, lines = pages[0]
+        if len(lines) <= 20 and not any(SCENE_RE.match(ln.text.upper()) for ln in lines):
+            skip = 1
+            issues.append(Issue(1, 1, "page 1 looks like a title page and was not "
+                                "imported; put the title in Script > Title pages"))
+            summary.append("title page: page 1 (skipped)")
+
+    body = [(pn, h, lines) for pn, h, lines in pages if pn > skip]
+
+    # 2. page numbers: a lone number as the first or last line of a page
+    firstTops, lastTops = [], []
+    for pn, h, lines in body:
+        if lines and NUMBER_RE.match(lines[0].text):
+            firstTops.append(lines[0].top)
+        if len(lines) > 1 and NUMBER_RE.match(lines[-1].text):
+            lastTops.append(lines[-1].top)
+
+    furniture = [Furniture(re.compile(p), None, None) for p in STANDARD_DROPS]
+    if firstTops:
+        furniture.append(Furniture(NUMBER_RE, None, max(firstTops) + 1.0))
+        summary.append("page numbers: top of page (top <= %.1f)" % max(firstTops))
+    if lastTops:
+        furniture.append(Furniture(NUMBER_RE, min(lastTops) - 1.0, None))
+        summary.append("page numbers: bottom of page (top >= %.1f)" % min(lastTops))
+
+    def isFurniture(ln):
+        return any(f.matches(ln.text.strip(), ln.top) for f in furniture)
+
+    # 3. margin scene numbers ("12   INT. ..." / "INT. ...   12") and the
+    # single-column lines everything else is measured on
+    snLeft, snRight = [], []
+    single = []  # (page, index in page, PdfLine, Segment)
+    for pn, h, lines in body:
+        for i, ln in enumerate(lines):
+            if isFurniture(ln):
+                continue
+            ws = ln.words
+            if len(ws) >= 3 and NUMBER_RE.match(ws[0].text) and ws[1].x0 - ws[0].x1 > 10.0 \
+                    and SCENE_RE.match(" ".join(w.text for w in ws[1:]).upper()):
+                snLeft.append(ws[0].x0)
+                ws = ws[1:]
+            if len(ws) >= 3 and NUMBER_RE.match(ws[-1].text) and ws[-1].x0 - ws[-2].x1 > 10.0 \
+                    and SCENE_RE.match(" ".join(w.text for w in ws[:-1]).upper()):
+                snRight.append(ws[-1].x0)
+                ws = ws[:-1]
+            segs = _split(ws, segmentGap)
+            if len(segs) == 1:
+                single.append((pn, i, ln, segs[0]))
+
+    # 4. scene headings and the action indent
+    sceneXs = [seg.x0 for pn, i, ln, seg in single if SCENE_RE.match(seg.text.upper())]
+    actionX, nScenes = _mode(sceneXs)
+    if actionX is None:
+        # no scene headings: the leftmost indent holding a tenth of the text
+        xs = sorted(collections.Counter(round(seg.x0) for _p, _i, _l, seg in single).items())
+        total = sum(n for _x, n in xs) or 1
+        actionX = next((float(x) for x, n in xs if n >= total / 10.0), xs[0][0] if xs else 72.0)
+        issues.append(Issue(skip + 1, 1, "no scene heading (INT./EXT.) found; "
+                            "every line at the left margin is read as action"))
+    summary.append("scene headings / action: x = %.1f (%d headings)" % (actionX, nScenes))
+
+    inlineNumbered = sum(
+        1 for _p, _i, _l, seg in single
+        if (m := SCENE_RE.match(seg.text.upper())) and m.group(1)
+    )
+
+    # 5. character cues: short upper-case lines right of the action indent,
+    # followed at once (no blank line) by more text
+    steps = []
+    byPage = collections.defaultdict(list)
+    for pn, i, ln, seg in single:
+        byPage[pn].append((ln, seg))
+    for pn in byPage:
+        rows = byPage[pn]
+        for a, b in zip(rows, rows[1:]):
+            d = b[0].top - a[0].top
+            if d > 0:
+                steps.append(d)
+    # the line step is the smallest common step (a tenth of all steps or
+    # more), not the most common one: where most speeches are one line long,
+    # blank-line steps outnumber line steps
+    stepCounts = collections.Counter(round(d * 2) / 2 for d in steps)
+    common = [d for d, n in stepCounts.items() if n >= 0.1 * len(steps)]
+    lineStep = min(common) if common else 12.0
+
+    cues = []  # (page, rows, index)
+    for pn, rows in byPage.items():
+        for k, (ln, seg) in enumerate(rows):
+            t = seg.text
+            if seg.x0 > actionX + 15 and _isUpper(t) and len(t) <= 50 \
+                    and not t.endswith(":") and not t.startswith("(") \
+                    and not SCENE_RE.match(t.upper()) \
+                    and k + 1 < len(rows) and rows[k + 1][0].top - ln.top <= lineStep * 1.5:
+                cues.append((pn, rows, k))
+
+    rules = [Rule(SCENE_ACTION, "x", actionX, tol)]
+    charX, nChar = _mode([rows[k][1].x0 for pn, rows, k in cues])
+    charRule = None
+    if charX is not None:
+        if nChar >= 0.6 * len(cues):
+            charRule = Rule("character", "x", charX, tol)
+        else:
+            # names centered, not aligned: match their centers
+            cx, _n = _mode([rows[k][1].edgePos("xc") for pn, rows, k in cues], 4.0)
+            charRule = Rule("character", "xc", cx, 4.0)
+        cues = [(pn, rows, k) for pn, rows, k in cues if charRule.matches(rows[k][1])]
+        summary.append("character cues: %s (%d)" % (charRule.describe(), len(cues)))
+
+    # 6. dialogue and parentheticals: what follows a cue
+    diaXs, parXs = [], []
+    for pn, rows, k in cues:
+        prevTop = rows[k][0].top
+        for ln, seg in rows[k + 1:]:
+            if ln.top - prevTop > lineStep * 1.5 or charRule.matches(seg) and _isUpper(seg.text):
+                break
+            prevTop = ln.top
+            (parXs if seg.text.startswith("(") else diaXs).append(seg.x0)
+
+    diaX, _n = _mode(diaXs)
+    parX, nPar = _mode(parXs)
+    if diaX is not None and abs(diaX - actionX) > tol:
+        rules.append(Rule("dialogue", "x", diaX, tol))
+        summary.append("dialogue: x = %.1f" % diaX)
+    elif cues:
+        issues.append(Issue(skip + 1, 1, "speeches are at the action indent; they "
+                            "are read as action — mark them as Dialogue"))
+    if parX is not None and nPar >= 1 and all(abs(parX - r.pos) > tol for r in rules):
+        rules.append(Rule("parenthetical", "x", parX, tol))
+        summary.append("parentheticals: x = %.1f" % parX)
+    if charRule is not None:
+        rules.append(charRule)
+    elif not cues:
+        issues.append(Issue(skip + 1, 1, "no character cues found; check that the "
+                            "PDF is a screenplay"))
+
+    # 7. transitions: upper-case lines ending in ":" (or FADE OUT.) right of
+    # the action indent, at no other indent
+    trans = [
+        seg for _p, _i, _l, seg in single
+        if seg.x0 > actionX + 15 and _isUpper(seg.text)
+        and (seg.text.endswith(":") or re.match(r"(?i)^FADE (OUT|TO BLACK)", seg.text))
+        and not any(r.matches(seg) for r in rules)
+    ]
+    if trans:
+        tx, n = _mode([s.x0 for s in trans])
+        if n >= 0.7 * len(trans):
+            rules.append(Rule("transition", "x", tx, tol))
+        else:
+            tx1, _n = _mode([s.x1 for s in trans])
+            rules.append(Rule("transition", "x1", tx1, tol))
+        summary.append("transitions: %s" % rules[-1].describe())
+
+    # 8. dual dialogue: two short upper-case columns on one line
+    dualLeft, dualRight = [], []
+    leftC, rightC, leftD, rightD, leftP, rightP = [], [], [], [], [], []
+    for pn, h, lines in body:
+        k = 0
+        while k < len(lines):
+            segs = _split(lines[k].words, segmentGap)
+            if len(segs) == 2 and all(_isUpper(s.text) and len(s.text) <= 40 for s in segs) \
+                    and not isFurniture(lines[k]):
+                leftC.append(segs[0].x0)
+                rightC.append(segs[1].x0)
+                mid = (segs[0].x1 + segs[1].x0) / 2.0
+                prevTop = lines[k].top
+                k += 1
+                while k < len(lines) and lines[k].top - prevTop <= lineStep * 1.5:
+                    for s in _split(lines[k].words, segmentGap):
+                        left = s.x0 < mid
+                        if s.text.startswith("("):
+                            (leftP if left else rightP).append(s.x0)
+                        else:
+                            (leftD if left else rightD).append(s.x0)
+                    prevTop = lines[k].top
+                    k += 1
+                continue
+            k += 1
+    if leftC:
+        for out, xs, el in ((dualLeft, leftC, "character"), (dualLeft, leftP, "parenthetical"),
+                            (dualLeft, leftD, "dialogue"), (dualRight, rightC, "character"),
+                            (dualRight, rightP, "parenthetical"), (dualRight, rightD, "dialogue")):
+            x, _n = _mode(xs)
+            if x is not None:
+                out.append(Rule(el, "x", x, tol))
+        summary.append("dual dialogue: %d blocks" % len(leftC))
+
+    snL = _mode(snLeft)[0]
+    snR = _mode(snRight)[0]
+    if snL is not None or snR is not None:
+        summary.append("margin scene numbers: %s" % ", ".join(
+            "%s x = %.1f" % (side, x) for side, x in (("left", snL), ("right", snR)) if x is not None))
+    if inlineNumbered:
+        summary.append("scene numbers typed in the heading: %d" % inlineNumbered)
+
+    profile = Profile(
+        name=name,
+        tolerance=tol,
+        segmentGap=segmentGap,
+        paragraphGap=lineStep * 1.5,
+        skipPages=skip,
+        scenePrefixes=[],
+        rules=rules,
+        dualLeft=dualLeft,
+        dualRight=dualRight,
+        furniture=furniture,
+        characterSuffixes=[re.compile(p) for p in STANDARD_SUFFIXES],
+        sceneNumberPattern=NUMBER_RE if (snL is not None or snR is not None) else None,
+        sceneNumberLeft=Rule("scene", "x", snL, tol) if snL is not None else None,
+        sceneNumberRight=Rule("scene", "x", snR, tol) if snR is not None else None,
+        sceneNumberInline=re.compile(r"^(\d+[A-Z]*)\.?\s+"),
+        sceneRe=SCENE_RE,
+        numberedUpperIsScene=inlineNumbered >= 3,
+        summary=summary,
+    )
+    return profile, issues
+
+
 class _Trace:
     def __init__(self, out):
         self.out = out
@@ -302,6 +599,14 @@ class _Item:
     column: Optional[str] = None
     dualBlock: int = -1
     lineNo: int = 0
+    issues: List[Issue] = field(default_factory=list)
+
+
+def _hasScenePrefix(text, profile):
+    up = text.upper()
+    if profile.sceneRe is not None:
+        return bool(profile.sceneRe.match(up))
+    return any(up.startswith(p) for p in profile.scenePrefixes)
 
 
 # a scene number written at the start of a heading ("12. INT. ..."), by the
@@ -320,13 +625,8 @@ def _inlineNumber(text, profile, requirePrefix):
     return m.group(1), rest
 
 
-def _hasScenePrefix(text, profile):
-    up = text.upper()
-    return any(up.startswith(p) for p in profile.scenePrefixes)
-
-
-# (line type, rule, text, inline scene number) of a segment, or
-# (None, None, text, None) if no rule matches.
+# (line type, rule, text, inline scene number, issue message or None) of a
+# segment, or (None, None, text, None, None) if no rule matches.
 def _classify(seg, rules, profile):
     text = seg.text
     for r in rules:
@@ -334,22 +634,36 @@ def _classify(seg, rules, profile):
             el = r.element
             if el == SCENE_ACTION:
                 num, rest = _inlineNumber(text, profile, True)
-                if num is not None or _hasScenePrefix(text, profile):
-                    return screenplay.SCENE, r, rest, num
-                return screenplay.ACTION, r, text, None
+                if num is not None:
+                    return screenplay.SCENE, r, rest, num, None
+                if _hasScenePrefix(text, profile):
+                    return screenplay.SCENE, r, text, None, None
+                num, rest = _inlineNumber(text, profile, False)
+                if num is not None and profile.numberedUpperIsScene and _isUpper(rest):
+                    return (screenplay.SCENE, r, rest, num,
+                            "scene heading %s has no INT./EXT.; add it" % num)
+                return screenplay.ACTION, r, text, None, None
             if el == "scene":
                 num, rest = _inlineNumber(text, profile, False)
-                return screenplay.SCENE, r, rest, num
-            return ELEMENTS[el], r, text, None
-    return None, None, text, None
+                return screenplay.SCENE, r, rest, num, None
+            return ELEMENTS[el], r, text, None, None
+    return None, None, text, None, None
+
+
+# the nearest rule to a segment no rule matches (lenient reading)
+def _nearest(seg, rules):
+    return min(rules, key=lambda r: r.distance(seg)) if rules else None
 
 
 # classify every line of the PDF; returns a list of _Item.
-def _items(pages, profile, trace, skipPages):
+def _items(pages, profile, trace, skipPages, strict):
     items = []
     dualBlocks = 0
     inDual = False
     prevTop = None
+
+    def fail(ln, msg):
+        raise PdfImportError("page %d, line %d: %s" % (ln.page, ln.lineNo, msg), ln.page, ln.lineNo)
 
     for pageNo, height, lines in pages:
         if pageNo <= skipPages:
@@ -392,69 +706,82 @@ def _items(pages, profile, trace, skipPages):
             segs = _split(words, profile.segmentGap)
             gap = None if prevTop is None else ln.top - prevTop
             prevTop = ln.top
+            lineIssues = []
 
             if inDual and gap is not None and gap > profile.paragraphGap:
                 inDual = False
 
-            if len(segs) >= 2 or inDual:
-                if len(segs) > 2:
-                    raise PdfImportError(
-                        "page %d, line %d: %d text columns: %r"
-                        % (ln.page, ln.lineNo, len(segs), ln.text),
-                        ln.page,
-                        ln.lineNo,
-                    )
-
-                if len(segs) == 2 and not inDual:
-                    # a dual-dialogue block starts with two character names
-                    lt0 = _classify(segs[0], profile.dualLeft, profile)[0]
-                    lt1 = _classify(segs[1], profile.dualRight, profile)[0]
-                    if lt0 != screenplay.CHARACTER or lt1 != screenplay.CHARACTER:
-                        raise PdfImportError(
-                            "page %d, line %d: two text columns that are not a "
-                            "dual-dialogue start (x0 %.1f and %.1f): %r"
-                            % (ln.page, ln.lineNo, segs[0].x0, segs[1].x0, ln.text),
-                            ln.page,
-                            ln.lineNo,
-                        )
+            if len(segs) == 2 and not inDual:
+                # a dual-dialogue block starts with two character names
+                lt0 = _classify(segs[0], profile.dualLeft, profile)[0]
+                lt1 = _classify(segs[1], profile.dualRight, profile)[0]
+                if lt0 == screenplay.CHARACTER and lt1 == screenplay.CHARACTER:
                     inDual = True
                     dualBlocks += 1
+
+            if len(segs) >= 2 and not inDual:
+                msg = "text in %d columns (x0 %s) read as one line" % (
+                    len(segs), ", ".join("%.1f" % s.x0 for s in segs))
+                if strict:
+                    fail(ln, "%s: %r" % (msg, ln.text))
+                lineIssues.append(Issue(ln.page, ln.lineNo, msg + "; check its type"))
+                segs = [Segment(words)]
+
+            if inDual:
+                if len(segs) > 2:
+                    if strict:
+                        fail(ln, "%d text columns in dual dialogue: %r" % (len(segs), ln.text))
+                    segs = [segs[0], Segment([w for s in segs[1:] for w in s.words])]
 
                 for seg in segs:
                     lt, r, col = None, None, None
                     for col, rules in (("left", profile.dualLeft), ("right", profile.dualRight)):
-                        lt, r, _text, _num = _classify(seg, rules, profile)
+                        lt, r, _text, _num, _msg = _classify(seg, rules, profile)
                         if lt is not None:
                             break
+                    segIssues = list(lineIssues)
                     if lt is None:
-                        raise PdfImportError(
-                            "page %d, line %d: x0 %.1f matches no dual-dialogue "
-                            "column rule: %r" % (ln.page, ln.lineNo, seg.x0, seg.text),
-                            ln.page,
-                            ln.lineNo,
-                        )
+                        if strict:
+                            fail(ln, "x0 %.1f matches no dual-dialogue column rule: %r"
+                                 % (seg.x0, seg.text))
+                        r = _nearest(seg, profile.dualLeft + profile.dualRight)
+                        col = "left" if r in profile.dualLeft else "right"
+                        lt = ELEMENTS[r.element]
+                        segIssues.append(Issue(ln.page, ln.lineNo,
+                            "dual dialogue text at an unusual position (x0 %.1f) read "
+                            "as %s; check it" % (seg.x0, TYPE_NAMES[lt])))
                     trace.add(ln, seg, "dual %s %s" % (col, TYPE_NAMES[lt]), r.describe())
-                    items.append(_Item(lt, seg.text, ln.page, ln.top, col, dualBlocks, ln.lineNo))
+                    items.append(_Item(lt, seg.text, ln.page, ln.top, col, dualBlocks,
+                                       ln.lineNo, segIssues))
                 continue
 
             seg = segs[0]
-            lt, r, text, num = _classify(seg, profile.rules, profile)
+            lt, r, text, num, msg = _classify(seg, profile.rules, profile)
             if lt is None:
-                trace.add(ln, seg, "UNKNOWN INDENT")
-                raise PdfImportError(
-                    "page %d, line %d: indent x0 %.1f (right edge %.1f) matches "
-                    "no rule of profile %r: %r"
-                    % (ln.page, ln.lineNo, seg.x0, seg.x1, profile.name, seg.text),
-                    ln.page,
-                    ln.lineNo,
-                )
+                if strict:
+                    trace.add(ln, seg, "UNKNOWN INDENT")
+                    fail(ln, "indent x0 %.1f (right edge %.1f) matches no rule of "
+                         "profile %r: %r" % (seg.x0, seg.x1, profile.name, seg.text))
+                r = _nearest(seg, profile.rules)
+                el = r.element
+                if el == SCENE_ACTION:
+                    el = "scene" if _hasScenePrefix(text, profile) else "action"
+                lt = ELEMENTS[el]
+                lineIssues.append(Issue(ln.page, ln.lineNo,
+                    "unusual indent (x0 %.1f) read as %s; if that is wrong, change "
+                    "the element type" % (seg.x0, el)))
+                trace.add(ln, seg, "%s (nearest)" % el, r.describe())
+            else:
+                trace.add(ln, seg, TYPE_NAMES[lt], r.describe())
+
+            if msg:
+                lineIssues.append(Issue(ln.page, ln.lineNo, msg))
 
             num = ln.sceneNumber or num
             if lt == screenplay.SCENE and num:
                 text += " #%s#" % num
 
-            trace.add(ln, seg, TYPE_NAMES[lt], r.describe())
-            items.append(_Item(lt, text, ln.page, ln.top, lineNo=ln.lineNo))
+            items.append(_Item(lt, text, ln.page, ln.top, lineNo=ln.lineNo, issues=lineIssues))
 
     return items
 
@@ -471,7 +798,7 @@ def _stripSuffixes(name, profile):
     return name
 
 
-# group items into elements: [lt, [texts]].
+# group items into elements: [lt, [texts], first item, [items]].
 def _elements(items, profile):
     elems = []
     prev = None
@@ -521,13 +848,13 @@ def _elements(items, profile):
             before = prevByColumn.get((it.dualBlock, it.column))
 
         if startsNew(it, before):
-            elems.append([it.lt, [it.text], it])
+            elems.append([it.lt, [it.text], it, [it]])
             if it.column is not None:
                 prevByColumn[(it.dualBlock, it.column, "elem")] = elems[-1]
-        elif it.column is None:
-            elems[-1][1].append(it.text)
         else:
-            prevByColumn[(it.dualBlock, it.column, "elem")][1].append(it.text)
+            e = elems[-1] if it.column is None else prevByColumn[(it.dualBlock, it.column, "elem")]
+            e[1].append(it.text)
+            e[3].append(it)
 
         if it.column is not None:
             prevByColumn[(it.dualBlock, it.column)] = it
@@ -559,61 +886,90 @@ def _elements(items, profile):
         out.extend(e for e in group if e[2].column == "right")
         i = j
 
-    return [(lt, texts, it) for lt, texts, it in out]
+    return out
 
 
-# things the profile accepted that are probably mistakes in the PDF itself:
-# a character cue with no parenthetical or dialogue after it (usually a
-# speech typed at the action indent). Returns [(page, lineNo, message)].
-def _warnings(elems):
-    ret = []
-    for i, (lt, texts, it) in enumerate(elems):
+# likely mistakes in the PDF itself, added to the issues of the element
+# they are about: a character cue with no parenthetical or dialogue after it
+# (usually a speech typed at the action indent).
+def _checkElements(elems):
+    for i, (lt, texts, it, its) in enumerate(elems):
         if lt != screenplay.CHARACTER:
             continue
         nxt = elems[i + 1][0] if i + 1 < len(elems) else None
         if nxt not in (screenplay.PAREN, screenplay.DIALOGUE):
-            what = TYPE_NAMES.get(nxt, "end of script")
-            ret.append(
-                (it.page, it.lineNo, "character %r is followed by %s, not a speech" % (texts[0], what))
-            )
-    return ret
+            what = TYPE_NAMES.get(nxt, "the end of the script")
+            it.issues.append(Issue(it.page, it.lineNo,
+                "character %s is followed by %s, not a speech; if the next "
+                "paragraph is the speech, change it to Dialogue" % (texts[0], what)))
+
+
+def _noteText(issue):
+    return "%s%s (PDF page %d, line %d)" % (NOTE_PREFIX, issue.message, issue.page, issue.lineNo)
 
 
 # import a PDF; returns a list of Lines that meets the importer contract
-# (trelby/myimport.as-built.md). trace, if a list, receives one dict per
-# piece of text with the decision taken for it; warnings, if a list,
-# receives (page, lineNo, message) for each likely mistake in the PDF (also
-# added to the trace as WARNING rows).
-def importPdf(path, profile, trace=None, skipPages=None, warnings=None):
+# (trelby/myimport.as-built.md).
+# - profile: a Profile, or None to detect the layout from the PDF
+# - trace: if a list, receives one dict per piece of text with the decision
+#   taken for it, and an ISSUE row per issue
+# - issues: if a list, receives every Issue, in script order
+# - notes: put each issue in the script as an "IMPORT:" Note element before
+#   the element it is about
+# - strict: stop at the first line no rule covers (PdfImportError)
+# - layout: if a list, receives the detected layout's summary lines
+def importPdf(path, profile=None, trace=None, skipPages=None, issues=None,
+              notes=True, strict=False, layout=None):
+    pages = extractPages(path)
+
+    found = []
+    if profile is None:
+        profile, found = detectLayout(pages, os.path.splitext(os.path.basename(path))[0])
+        if layout is not None:
+            layout.extend(profile.summary)
+
     if skipPages is None:
         skipPages = profile.skipPages
 
-    pages = extractPages(path)
-    items = _items(pages, profile, _Trace(trace), skipPages)
+    items = _items(pages, profile, _Trace(trace), skipPages, strict)
     elems = _elements(items, profile)
+    _checkElements(elems)
 
-    for w in _warnings(elems):
-        if warnings is not None:
-            warnings.append(w)
-        if trace is not None:
-            trace.append(
-                {"page": w[0], "line": w[1], "top": "", "x0": "", "x1": "",
-                 "decision": "WARNING", "rule": "", "text": w[2]}
-            )
-
+    allIssues = list(found)
     ret = []
-    for lt, texts, _it in elems:
+
+    def addNote(iss):
+        ret.append(Line(screenplay.LB_LAST, screenplay.NOTE, _noteText(iss)))
+
+    if notes:
+        for iss in found:
+            addNote(iss)
+
+    for lt, texts, _it, its in elems:
+        here = [iss for it in its for iss in it.issues]
+        allIssues.extend(here)
+        if notes:
+            for iss in here:
+                addNote(iss)
         for t in texts:
             ret.append(Line(screenplay.LB_SPACE, lt, t))
         ret[-1].lb = screenplay.LB_LAST
 
-    if not ret:
+    if not any(ln.lt != screenplay.NOTE for ln in ret):
         raise PdfImportError("%s: no text found (a scanned PDF?)" % path)
+
+    if issues is not None:
+        issues.extend(allIssues)
+    if trace is not None:
+        for iss in allIssues:
+            trace.append({"page": iss.page, "line": iss.lineNo, "top": "", "x0": "",
+                          "x1": "", "decision": "ISSUE", "rule": "", "text": iss.message})
 
     return ret
 
 
-# the indents found in a PDF, for writing a profile. Returns text.
+# the indents found in a PDF and the layout detectLayout makes of them, for
+# checking a detection or writing a profile. Returns text.
 def probe(path, skipPages=0, segmentGap=28.0):
     pages = extractPages(path)
     stats = {}
@@ -647,6 +1003,12 @@ def probe(path, skipPages=0, segmentGap=28.0):
                 " | ".join(st["samples"]),
             )
         )
+
+    profile, issues = detectLayout(pages)
+    out.append("")
+    out.append("detected layout:")
+    out.extend("  " + s for s in profile.summary)
+    out.extend("  issue: %s" % i for i in issues)
     return "\n".join(out)
 
 
@@ -656,6 +1018,25 @@ def writeTrace(trace, path):
         f.write("\t".join(cols) + "\n")
         for r in trace:
             f.write("\t".join(str(r[c]).replace("\t", " ") for c in cols) + "\n")
+
+
+# the import report shown after File > Import: the layout found and every
+# issue, each also in the script as an IMPORT: note.
+def report(path, layout, issues):
+    out = [os.path.basename(path), ""]
+    if layout:
+        out.append("Layout found in the PDF:")
+        out.extend("  " + s for s in layout)
+        out.append("")
+    if issues:
+        out.append("%d issue(s), each also written in the script as a note "
+                   "starting with \"%s\" just before the text it is about. Fix "
+                   "the text, then delete the note." % (len(issues), NOTE_PREFIX.strip()))
+        out.append("")
+        out.extend("- %s" % i for i in issues)
+    else:
+        out.append("No issues.")
+    return "\n".join(out)
 
 
 # a Screenplay holding the given lines, reformatted and paginated, with no
@@ -687,14 +1068,18 @@ def main(argv=None):
 
     imp = sub.add_parser("import", help="PDF -> .fountain")
     imp.add_argument("pdf", nargs="+")
-    imp.add_argument("--profile", required=True)
     imp.add_argument("--out", required=True, help="output directory")
+    imp.add_argument("--profile", help="layout profile (default: detect the layout)")
     imp.add_argument("--skip-pages", type=int, default=None,
-                     help="leading pages to skip (default: the profile's skip_pages)")
+                     help="leading pages to skip (default: detected, or the profile's skip_pages)")
+    imp.add_argument("--strict", action="store_true",
+                     help="stop at the first line no rule covers")
+    imp.add_argument("--no-notes", action="store_true",
+                     help="do not write IMPORT: notes into the script")
     imp.add_argument("--trace", action="store_true",
                      help="also write <name>.trace.tsv: every piece of text and its decision")
 
-    pr = sub.add_parser("probe", help="list the indents found in a PDF")
+    pr = sub.add_parser("probe", help="the indents in a PDF and the layout detected")
     pr.add_argument("pdf")
     pr.add_argument("--skip-pages", type=int, default=0)
     pr.add_argument("--segment-gap", type=float, default=28.0)
@@ -709,11 +1094,13 @@ def main(argv=None):
             return 1
         return 0
 
-    try:
-        profile = loadProfile(args.profile)
-    except (OSError, PdfImportError) as e:
-        print("error: %s" % e, file=sys.stderr)
-        return 1
+    profile = None
+    if args.profile:
+        try:
+            profile = loadProfile(args.profile)
+        except (OSError, PdfImportError) as e:
+            print("error: %s" % e, file=sys.stderr)
+            return 1
 
     os.makedirs(args.out, exist_ok=True)
     status = 0
@@ -721,9 +1108,11 @@ def main(argv=None):
     for path in args.pdf:
         base = os.path.splitext(os.path.basename(path))[0]
         trace = [] if args.trace else None
-        warnings = []
+        issues = []
+        layout = []
         try:
-            lines = importPdf(path, profile, trace, args.skip_pages, warnings)
+            lines = importPdf(path, profile, trace, args.skip_pages, issues,
+                              not args.no_notes, args.strict, layout)
         except PdfImportError as e:
             print("error: %s: %s" % (path, e), file=sys.stderr)
             status = 1
@@ -734,8 +1123,10 @@ def main(argv=None):
             writeTrace(trace, tp)
             print("trace: %s" % tp)
 
-        for page, lineNo, msg in warnings:
-            print("warning: %s: page %d, line %d: %s" % (path, page, lineNo, msg), file=sys.stderr)
+        for s in layout:
+            print("  layout: %s" % s)
+        for iss in issues:
+            print("issue: %s: %s" % (path, iss), file=sys.stderr)
 
         if lines is None:
             continue
@@ -747,10 +1138,10 @@ def main(argv=None):
 
         counts = {}
         for ln in lines:
-            if ln.lb == screenplay.LB_LAST:
+            if ln.lb == screenplay.LB_LAST and ln.lt != screenplay.NOTE:
                 counts[TYPE_NAMES[ln.lt]] = counts.get(TYPE_NAMES[ln.lt], 0) + 1
-        print("%s -> %s (%s)" % (path, out, ", ".join(
-            "%d %s" % (n, k) for k, n in sorted(counts.items()))))
+        print("%s -> %s (%s; %d issues)" % (path, out, ", ".join(
+            "%d %s" % (n, k) for k, n in sorted(counts.items())), len(issues)))
 
     return status
 

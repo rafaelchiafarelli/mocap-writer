@@ -61,9 +61,17 @@ def fountainOf(lines):
     return pdfimport.toScreenplay(lines).generateFountain()
 
 
+# import with the test profile; no IMPORT: notes unless asked
 def importPages(tmp_path, pages, **kw):
     path = makePdf(tmp_path / "t.pdf", pages)
+    kw.setdefault("notes", False)
     return pdfimport.importPdf(path, pdfimport.loadProfile(PROFILE), **kw)
+
+
+# import with the layout detected from the PDF (what File > Import does)
+def detectPages(tmp_path, pages, **kw):
+    path = makePdf(tmp_path / "t.pdf", pages)
+    return pdfimport.importPdf(path, None, **kw)
 
 
 def testBasicFountain(tmp_path):
@@ -120,7 +128,7 @@ def testUnknownIndentStopsWithPageAndLine(tmp_path):
         page((A, "Escuro."), None, (300.0, "PERDIDO")),
     ]
     with pytest.raises(pdfimport.PdfImportError) as ei:
-        importPages(tmp_path, pages)
+        importPages(tmp_path, pages, strict=True)
 
     assert ei.value.page == 2
     assert ei.value.lineNo == 2
@@ -221,7 +229,7 @@ def testDualDialogue(tmp_path):
 def testTwoColumnsThatAreNotDualDialogueStop(tmp_path):
     pages = [[(A, 72.0, "Ação"), (400.0, 72.0, "solta")]]
     with pytest.raises(pdfimport.PdfImportError) as ei:
-        importPages(tmp_path, pages)
+        importPages(tmp_path, pages, strict=True)
 
     assert ei.value.page == 1 and ei.value.lineNo == 1
 
@@ -232,9 +240,9 @@ def testSkipPages(tmp_path):
         page((A, "INT. CASA - NOITE")),
     ]
     with pytest.raises(pdfimport.PdfImportError):
-        importPages(tmp_path, pages)
+        importPages(tmp_path, pages, strict=True)
 
-    lines = importPages(tmp_path, pages, skipPages=1)
+    lines = importPages(tmp_path, pages, skipPages=1, strict=True)
     assert [ln.text for ln in lines] == ["INT. CASA - NOITE"]
 
 
@@ -276,11 +284,15 @@ def testProbe(tmp_path):
     out = pdfimport.probe(path)
     rows = {}
     for ln in out.splitlines()[3:]:
+        if not ln:
+            break
         f = ln.split()
         rows[float(f[0])] = int(f[1])
 
     assert rows == {108.0: 1, 180.0: 2, 252.0: 1}
     assert "p1 l3: Oi." in out
+    assert "detected layout:" in out
+    assert "  character cues: x=252 (1)" in out
 
 
 def testTrelbyExportRoundTrip(tmp_path):
@@ -330,7 +342,9 @@ def testCli(tmp_path):
 def testCliReportsUnknownIndent(tmp_path, capsys):
     pdf = makePdf(tmp_path / "x.pdf", [page((300.0, "PERDIDO"))])
 
-    assert pdfimport.main(["import", pdf, "--profile", PROFILE, "--out", str(tmp_path), "--trace"]) == 1
+    assert pdfimport.main(
+        ["import", pdf, "--profile", PROFILE, "--out", str(tmp_path), "--trace", "--strict"]
+    ) == 1
 
     assert "page 1, line 1" in capsys.readouterr().err
     assert "UNKNOWN INDENT" in (tmp_path / "x.trace.tsv").read_text(encoding="utf-8")
@@ -341,10 +355,9 @@ def _guiImport(tmp_path, monkeypatch, pages, traceDir=None):
     import trelby.myimport as myimport
 
     wxMock = mock.Mock()
-    wxMock.ID_OK = 1
-    wxMock.FileDialog.return_value.ShowModal.return_value = 1
-    wxMock.FileDialog.return_value.GetPath.return_value = PROFILE
+    textDlg = mock.Mock()
     monkeypatch.setattr(myimport, "wx", wxMock)
+    monkeypatch.setattr(myimport.misc, "TextDlg", textDlg)
     if traceDir:
         monkeypatch.setenv("MOCAP_WRITER_PDF_TRACE", str(traceDir))
     else:
@@ -352,31 +365,50 @@ def _guiImport(tmp_path, monkeypatch, pages, traceDir=None):
 
     u.init()
     pdf = makePdf(tmp_path / "gui.pdf", pages)
-    return myimport.importPdf(pdf, mock.Mock()), wxMock
+    return myimport.importPdf(pdf, mock.Mock()), wxMock, textDlg
 
 
-def testGuiImport(tmp_path, monkeypatch):
-    lines, wxMock = _guiImport(tmp_path, monkeypatch, [page((A, "INT. CASA - NOITE"))])
+SCRIPT = [
+    page(
+        (A, "INT. CASA - NOITE"),
+        None,
+        (A, "Escuro."),
+        None,
+        (C, "ANA"),
+        (D, "Oi."),
+        None,
+        (C, "BETO"),
+        (P, "(baixo)"),
+        (D, "Tudo bem?"),
+    )
+]
 
-    assert [ln.text for ln in lines] == ["INT. CASA - NOITE"]
+
+def testGuiImportAsksNothingAndShowsReport(tmp_path, monkeypatch):
+    lines, wxMock, textDlg = _guiImport(tmp_path, monkeypatch, SCRIPT)
+
+    assert [ln.text for ln in lines][:2] == ["INT. CASA - NOITE", "Escuro."]
+    wxMock.FileDialog.assert_not_called()
     wxMock.MessageBox.assert_not_called()
+    report = textDlg.call_args[0][1]
+    assert "Layout found in the PDF:" in report
+    assert "No issues." in report
 
 
-def testGuiImportShowsPageAndLine(tmp_path, monkeypatch):
-    lines, wxMock = _guiImport(tmp_path, monkeypatch, [page((300.0, "PERDIDO"))])
+def testGuiImportErrorBox(tmp_path, monkeypatch):
+    lines, wxMock, textDlg = _guiImport(tmp_path, monkeypatch, [[]])
 
     assert lines is None
-    assert "page 1, line 1" in wxMock.MessageBox.call_args[0][0]
+    assert "no text" in wxMock.MessageBox.call_args[0][0]
+    textDlg.assert_not_called()
 
 
 def testGuiImportTrace(tmp_path, monkeypatch):
-    lines, wxMock = _guiImport(
-        tmp_path, monkeypatch, [page((A, "INT. CASA - NOITE"))], traceDir=tmp_path
-    )
+    lines, wxMock, textDlg = _guiImport(tmp_path, monkeypatch, SCRIPT, traceDir=tmp_path)
 
     assert lines is not None
     assert (tmp_path / "gui.trace.tsv").exists()
-    assert "1  scene" in wxMock.MessageBox.call_args[0][0]
+    assert "gui.trace.tsv" in textDlg.call_args[0][1]
 
 
 def testInlineSceneNumbers(tmp_path):
@@ -396,16 +428,141 @@ def testInlineSceneNumbers(tmp_path):
     ]
 
 
-def testCharacterWithoutSpeechWarns(tmp_path):
-    warnings = []
+def testCharacterWithoutSpeechIsAnIssueAndANote(tmp_path):
+    issues = []
     trace = []
     lines = importPages(
         tmp_path,
         [page((A, "INT. CASA - NOITE"), None, (C, "ANA"), (A, "Fala digitada como ação."))],
         trace=trace,
-        warnings=warnings,
+        issues=issues,
+        notes=True,
     )
 
-    assert lines is not None
-    assert warnings == [(1, 2, "character 'ANA' is followed by action, not a speech")]
-    assert trace[-1]["decision"] == "WARNING"
+    assert [(i.page, i.lineNo) for i in issues] == [(1, 2)]
+    assert "character ANA is followed by action" in issues[0].message
+    assert trace[-1]["decision"] == "ISSUE"
+    # the note goes just before the character cue
+    assert [ln.lt for ln in lines] == [
+        screenplay.SCENE, screenplay.NOTE, screenplay.CHARACTER, screenplay.ACTION
+    ]
+    assert lines[1].text.startswith("IMPORT: character ANA")
+    assert lines[1].text.endswith("(PDF page 1, line 2)")
+
+
+def testUnknownIndentIsReadAndNoted(tmp_path):
+    issues = []
+    lines = importPages(
+        tmp_path, [page((A, "INT. CASA - NOITE"), None, (186.0, "Fala torta."))],
+        issues=issues, notes=True,
+    )
+
+    # 186 is nearest to the dialogue indent (180)
+    assert [(ln.lt, ln.text[:20]) for ln in lines] == [
+        (screenplay.SCENE, "INT. CASA - NOITE"),
+        (screenplay.NOTE, "IMPORT: unusual inde"),
+        (screenplay.DIALOGUE, "Fala torta."),
+    ]
+    assert "(x0 186.0) read as dialogue" in issues[0].message
+
+
+def testColumnsAreReadAsOneLineAndNoted(tmp_path):
+    issues = []
+    lines = importPages(tmp_path, [[(A, 72.0, "Ação"), (400.0, 72.0, "solta")]], issues=issues)
+
+    assert [ln.text for ln in lines] == ["Ação solta"]
+    assert "2 columns" in issues[0].message
+
+
+# --- layout detected from the PDF ---
+
+
+def testDetectedLayoutGivesTheSameScript(tmp_path):
+    pages = [
+        page(
+            (A, "EXT. PRAÇA - DIA"),
+            None,
+            (A, "Uma praça vazia."),
+            None,
+            (C, "JOÃO"),
+            (P, "(baixo)"),
+            (D, "Ninguém veio."),
+            None,
+            (C, "CONCEIÇÃO"),
+            (D, "Ainda é cedo."),
+            None,
+            (540.0, "CORTA PARA:>"),
+        )
+    ]
+    layout = []
+    issues = []
+    lines = detectPages(tmp_path, pages, layout=layout, issues=issues)
+
+    assert issues == []
+    assert fountainOf(lines) == fountainOf(importPages(tmp_path, pages))
+    assert "character cues: x=252 (2)" in layout
+    assert "dialogue: x = 180.0" in layout
+    assert "parentheticals: x = 216.0" in layout
+
+
+def testDetectedTitlePagePageNumbersAndMarginSceneNumbers(tmp_path):
+    pages = [
+        [(250.0, 300.0, "TÍTULO"), (280.0, 330.0, "de Alguém")],
+        [
+            (72.0, 72.0, "12"), (A, 72.0, "INT. CASA - NOITE"), (552.0, 72.0, "12"),
+            (C, 96.0, "ANA"), (D, 108.0, "Eu queria dizer que"), (C, 120.0, "(MORE)"),
+        ],
+        [(510.0, 36.0, "2."), (C, 72.0, "ANA (CONT'D)"), (D, 84.0, "nada mudou."),
+         (A, 108.0, "Ela sai.")],
+    ]
+    issues = []
+    layout = []
+    lines = detectPages(tmp_path, pages, issues=issues, layout=layout)
+
+    assert fountainOf([ln for ln in lines if ln.lt != screenplay.NOTE]) == (
+        "INT. CASA - NOITE #12#\n"
+        "\n"
+        "ANA\n"
+        "Eu queria dizer que nada mudou.\n"
+        "\n"
+        "Ela sai."
+    )
+    assert issues[0].message.startswith("page 1 looks like a title page")
+    assert "title page: page 1 (skipped)" in layout
+    assert "margin scene numbers: left x = 72.0, right x = 552.0" in layout
+
+
+def testDetectedNumberedHeadingWithoutIntExt(tmp_path):
+    rows = []
+    for n in (1, 2, 3):
+        rows += [(A, "%d. INT. CASA - NOITE" % n), None, (A, "Algo."), None]
+    rows += [(A, "4. - NOITE - RUA"), None, (A, "4. Fim, disse ela.")]
+    issues = []
+    lines = detectPages(tmp_path, [page(*rows)], issues=issues, notes=False)
+
+    assert [(ln.lt, ln.text) for ln in lines][-2:] == [
+        (screenplay.SCENE, "- NOITE - RUA #4#"),
+        (screenplay.ACTION, "4. Fim, disse ela."),
+    ]
+    assert "scene heading 4 has no INT./EXT.; add it" in [i.message for i in issues]
+
+
+def testDetectedTrelbyExport(tmp_path):
+    sp = u.load()
+    path = tmp_path / "test.pdf"
+    path.write_bytes(sp.generatePDF(False))
+    issues = []
+    lines = pdfimport.importPdf(str(path), None, issues=issues, notes=False)
+
+    profiled = pdfimport.importPdf(str(path), pdfimport.loadProfile(TRELBY_PROFILE), skipPages=1)
+    assert [(ln.lt, ln.text) for ln in lines] == [(ln.lt, ln.text) for ln in profiled]
+    assert [i.message[:30] for i in issues] == ["page 1 looks like a title page"]
+
+
+def testReport():
+    text = pdfimport.report(
+        "/x/a.pdf", ["dialogue: x = 180.0"], [pdfimport.Issue(2, 3, "something odd")]
+    )
+    assert text.splitlines()[0] == "a.pdf"
+    assert "  dialogue: x = 180.0" in text
+    assert "- page 2, line 3: something odd" in text
