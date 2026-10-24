@@ -25,7 +25,9 @@ pytest result.
 - `run.sh` — builds the image if it does not exist, then runs it as the host
   user with the repo at `/app:ro`, the work dir at `/work`,
   `~/.config/mocap-writer` at `/config`, and X11 or WSLg display sockets
-  (`docker/run.sh:12-36`).
+  (`docker/run.sh:12-44`); when the config holds `Theme:1` (Dark) it adds
+  `GTK_THEME=Adwaita:dark` so menus, toolbar and dialogs are dark
+  (`docker/run.sh:30-35`).
 - `test.sh` — rebuilds the image quietly (cached), then
   `python -m pytest -p no:cacheprovider` in `/app` (`docker/test.sh:6-12`).
 
