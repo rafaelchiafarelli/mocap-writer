@@ -3118,8 +3118,8 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
     def setMarkCmd(self, cs):
         self.setMark(self.line, self.column)
 
-    # either creates a new element or converts the current one to
-    # nextTypeTab, depending on circumstances.
+    # either creates a new element or converts the current one to the
+    # next element of cfgGl.tabOrder, depending on circumstances.
     def tabCmd(self, cs):
         if self.mark:
             self.clearMark()
@@ -3131,17 +3131,17 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
         if self.tabMakesNew():
             self.splitElement(tcfg.newTypeTab)
         else:
-            self.convertTypeTo(tcfg.nextTypeTab, True)
+            self.convertTypeTo(self.cfgGl.nextTypeTab(tcfg.lt), True)
 
-    # switch current element to prevTypeTab.
+    # switch current element to the previous element of cfgGl.tabOrder.
     def toPrevTypeTabCmd(self, cs):
         if self.mark:
             self.clearMark()
 
             return
 
-        tcfg = self.cfgGl.getType(self.lines[self.line].lt)
-        self.convertTypeTo(tcfg.prevTypeTab, True)
+        lt = self.lines[self.line].lt
+        self.convertTypeTo(self.cfgGl.prevTypeTab(lt), True)
 
     # add character cs.char if it's a valid one.
     def addCharCmd(self, cs):
