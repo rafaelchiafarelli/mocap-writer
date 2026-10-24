@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 86 tests.
+objects directly and never create the wx GUI. 105 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -32,6 +32,17 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - `test_myimport.py` — `importCeltx` and `importTextFile` against
   `test.trelby`; replaces `wx` in `sys.modules` by a `Mock` before importing
   `myimport` (`tests/test_myimport.py:10-16`).
+- `test_pdfimport.py` — PDF import (`trelby/pdfimport.py`): draws its PDFs
+  with ReportLab at test time (`makePdf`, US Letter, Courier 12; no PDF
+  committed) and imports them with `fixtures/pdf/letter-test.toml`:
+  expected Fountain with accented names, page furniture dropped, dialogue
+  joined across a page break, margin scene numbers → `#n#`, dual dialogue →
+  `^`, unknown indent and stray two-column lines stop with page and line,
+  `skip_pages`, profile errors (unknown keys), every starter profile in
+  `trelby/pdfprofiles/` parses, `probe` output, the CLI with `--trace`;
+  round trip of Trelby's own PDF export of `test.trelby` through
+  `trelby-a4.toml`; and `myimport.importPdf` with `wx` patched on the
+  module. Loads the translations itself.
 - `test_scriptreport.py`, `test_scenereport.py`, `test_locationreport.py`,
   `test_characterreport.py` — each report's `generate()` returns a PDF.
 - `test_locations.py` — `Locations.refresh`.
@@ -66,13 +77,17 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - `execute_random_tests.py` still imports `u` and `screenplay` as top-level
   modules via `sys.path` (`tests/execute_random_tests.py:16-20`), the
   pre-package layout. Bug: [bugs/tooling/4](../initiatives/bugs/epics/tooling/tasks/4-random-tests-stale.md).
+- PDFs are generated, not committed: the hand-made PDFs from Final Draft,
+  Celtx, Word and Google Docs planned as fixtures do not exist (see
+  `initiatives/pdf-import/epics/importer/tasks/1-pdf-importer.md`).
 - Not covered by any test: the wx GUI (`trelbyframe`, `trelbyctrl`,
   `viewmode`, dialogs), `.trelby` save round-trip, Fountain/FDX/HTML/RTF/text
   export, Fountain/FDX/Astx/Fade In import, pagination results, undo/redo.
 - Two `SyntaxWarning`s from `trelby/titles.py` appear in every run. Bug: [bugs/tooling/5](../initiatives/bugs/epics/tooling/tasks/5-titles-escapes.md).
 
 ## Touchpoints
-- Tests: `trelby/screenplay.py`, `trelby/config.py`, `trelby/myimport.py`, `trelby/pdf.py`,
+- Tests: `trelby/screenplay.py`, `trelby/config.py`, `trelby/myimport.py`,
+  `trelby/pdfimport.py`, `trelby/pdf.py`,
   the report modules, `trelby/locations.py`, `trelby/pagelist.py`,
   `trelby/util.py`.
 - Run by: `docker/test.sh`, `.github/workflows/main.yml`.

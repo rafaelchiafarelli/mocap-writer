@@ -1,6 +1,7 @@
 # pdf-import — mocap-writer
 
-**Status:** Planned — not started. **First initiative** (Rafael, 2026-10-24):
+**Status:** In progress — importer/1 implemented, in live test with
+Rafael's PDFs (2026-10-24). **First initiative** (Rafael, 2026-10-24):
 his existing scripts become the known starting point for everything else.
 
 **Goal:** Rafael's existing screenplays (master-scene PDFs with selectable

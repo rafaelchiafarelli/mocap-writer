@@ -759,6 +759,68 @@ def importFountain(fileName, frame, titlePages):
     return ret, titlePages
 
 
+# import a screenplay PDF (trelby/pdfimport.py): ask for the layout profile,
+# then classify each line by its indent. Returns a list of Lines, or None
+# after telling the user why (no profile chosen, or a line the profile does
+# not cover, with its page and line). If $MOCAP_WRITER_PDF_TRACE names a
+# directory, the decision for every piece of text is written there as
+# <name>.trace.tsv and a summary is shown.
+def importPdf(fileName: str, frame: wx.Frame) -> Optional[List[Line]]:
+    import os
+
+    import trelby.pdfimport as pdfimport
+
+    dlg = wx.FileDialog(
+        frame,
+        _("PDF layout profile"),
+        os.path.join(misc.progPath, "trelby", "pdfprofiles"),
+        wildcard=_("Layout profiles") + " (*.toml)|*.toml|" + _("All files") + "|*",
+        style=wx.FD_OPEN,
+    )
+
+    if dlg.ShowModal() != wx.ID_OK:
+        dlg.Destroy()
+
+        return None
+
+    profilePath = dlg.GetPath()
+    dlg.Destroy()
+
+    traceDir = os.environ.get("MOCAP_WRITER_PDF_TRACE")
+    trace = [] if traceDir else None
+    lines = None
+    err = None
+
+    try:
+        profile = pdfimport.loadProfile(profilePath)
+        lines = pdfimport.importPdf(fileName, profile, trace)
+    except (OSError, pdfimport.PdfImportError) as e:
+        err = str(e)
+
+    if trace is not None:
+        base = os.path.splitext(os.path.basename(fileName))[0]
+        tracePath = os.path.join(traceDir, base + ".trace.tsv")
+        pdfimport.writeTrace(trace, tracePath)
+
+        counts = {}
+        for r in trace:
+            counts[r["decision"]] = counts.get(r["decision"], 0) + 1
+        summary = "\n".join("%5d  %s" % (n, k) for k, n in sorted(counts.items()))
+        wx.MessageBox(
+            "%s\n\n%s\n\n%s" % (_("Trace written to:"), tracePath, summary),
+            _("PDF import trace"),
+            wx.OK,
+            frame,
+        )
+
+    if err is not None:
+        wx.MessageBox(err, _("Error"), wx.OK, frame)
+
+        return None
+
+    return lines
+
+
 # import text file from fileName, return list of Line objects for the
 # screenplay or None if something went wrong. returned list always
 # contains at least one line.

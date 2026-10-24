@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 55 modules: the
+**Role:** All of Trelby's code. One flat package of 56 modules: the
 screenplay model (`screenplay`, `line`, `undo`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
 drawn by `viewmode`), the page language and PDF writer (`pml`, `pdf`), import
@@ -13,10 +13,13 @@ drawn by `viewmode`), the page language and PDF writer (`pml`, `pdf`), import
 - `screenplay.Screenplay.load(s, cfgGl)` / `.save()` — the `.trelby` format
   without any GUI (what the tests use, `tests/u.py`).
 - `myimport.import*(fileName, frame)` — one function per import format.
+- `python -m trelby.pdfimport import|probe ...` — PDF → `.fountain` from
+  the command line (`trelby/pdfimport.py:621`).
 - `Screenplay.generate{PDF,RTF,FDX,Html,Fountain,Text}` — exports.
 
 **Inputs → Outputs:** `.trelby` scripts, imported `.fdx` / `.celtx` /
-`.astx` / `.fountain` / `.fadein` / text files, and the config files under
+`.astx` / `.fountain` / `.fadein` / text files, screenplay PDFs (with a
+layout profile), and the config files under
 `misc.confPath` → an edited script saved as `.trelby`, exports (PDF, RTF,
 FDX, HTML, Fountain, text), report PDFs, and the global config and state
 files.
@@ -52,7 +55,7 @@ Model and file format
 - `fileformat.txt` — the `.trelby` format description (sections, config
   keys, line codes).
 - `sample.trelby` — sample script, loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1337`).
+  (`trelby/trelbyctrl.py:1339`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -125,8 +128,13 @@ Page language and PDF
 
 Import
 - `myimport.py` — importers for Adobe Story, Fade In, Celtx, Final Draft,
-  Fountain and indented plain text. Detail:
+  Fountain, indented plain text, and the GUI side of PDF import
+  (`importPdf`: profile dialog, error box, trace). Detail:
   [myimport.as-built.md](myimport.as-built.md).
+- `pdfimport.py` — PDF import without wx: pdfplumber text lines →
+  elements by position, as a layout profile declares; `probe`, trace, and
+  the `python -m trelby.pdfimport` CLI. Detail:
+  [pdfimport.as-built.md](pdfimport.as-built.md).
 - `importdlg.py` — `ImportDlg`: lets the user set the element type of each
   indentation level found in a text file (`trelby/importdlg.py:8`).
 - `indent.py` — `Indent`: statistics for one indentation level of a text
@@ -182,6 +190,8 @@ Data and folders
 - `names.txt` — name database: `N<type>` lines start a group, `M<name>` /
   `F<name>` lines add names (204 761 lines).
 - `__init__.py` — empty.
+- `pdfprofiles/` — TOML layout profiles for the PDF importer and the
+  profile format (its own `CLAUDE.md`).
 - `configpages/` — the settings-dialog pages (its own `CLAUDE.md`; two of
   them break when the GUI language is not English).
 - `resources/` — icons, toolbar SVGs, splash logo, quotes (its own
@@ -214,9 +224,9 @@ Data and folders
 - **Character map → Insert, Name database → Insert and Edit → Insert
   non-breaking space are broken:** they call
   `MyCtrl.OnKeyChar(util.MyKeyEvent(...))` (`trelby/charmapdlg.py:27`,
-  `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:940`), but
+  `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:942`), but
   `OnKeyChar` → `util.eventKeyCode` calls `ev.GetUnicodeKey()`
-  (`trelby/trelbyctrl.py:1314`, `trelby/util.py:210`),
+  (`trelby/trelbyctrl.py:1316`, `trelby/util.py:210`),
   which `util.MyKeyEvent` does not have (`trelby/util.py:789-810`) →
   `AttributeError`. Bug: [bugs/editor/1](../initiatives/bugs/epics/editor/tasks/1-insert-char-crash.md).
 - **`opts.py --conf` crashes:** `str(sys.argv[i + 1], "UTF-8", "ignore")`
@@ -234,8 +244,8 @@ Data and folders
   `(a.x < a.y)` for `(a.x < b.x)` (`trelby/titles.py:58`). Bug: [bugs/editor/9](../initiatives/bugs/epics/editor/tasks/9-titles-sort-noop.md).
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
-  branch (load `sample.trelby`) is reachable (`trelby/trelbyctrl.py:1337-1342`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
-- **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:989-990`
+  branch (load `sample.trelby`) is reachable (`trelby/trelbyctrl.py:1339-1344`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
+- **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:992-993`
   → `OnSave`); other modified tabs are discarded. Bug: [bugs/editor/2](../initiatives/bugs/epics/editor/tasks/2-exit-saves-current-tab.md).
 - The MRU list is saved under the **translated** key `_("Files")`
   (`trelby/globaldata.py:70`), so switching `$LANG` loses the recent-files
@@ -245,7 +255,7 @@ Data and folders
   `trelby/resources/...` (`trelby/splash.py:39`).
 - `trelby/manual.html`, `dict_en.dat.gz`, `names.txt.gz` and `trelby.1.gz`
   are build products of `../Makefile`, not in git; Help → Manual opens
-  `trelby/manual.html` (`trelby/trelbyframe.py:969`), which does not exist
+  `trelby/manual.html` (`trelby/trelbyframe.py:972`), which does not exist
   in a plain checkout. Bug: [bugs/editor/11](../initiatives/bugs/epics/editor/tasks/11-help-manual-missing.md).
 - Two invalid escape sequences in `titles.py`, `" \qc"` / `" \qr"`
   (`trelby/titles.py:158-160`): `SyntaxWarning` in every test run, output
@@ -259,5 +269,6 @@ Data and folders
 ## Touchpoints
 - Called by: `../trelby.py`; `../tests/` (through `tests/u.py`).
 - Depends on: wxPython 4 (GUI), lxml (HTML/FDX export, XML imports),
-  ReportLab (PDF), stdlib `gettext`, `zipfile`, `zlib`, `difflib`.
+  ReportLab (PDF), pdfplumber (PDF import), stdlib `tomllib` (profiles,
+  Python ≥ 3.11), stdlib `gettext`, `zipfile`, `zlib`, `difflib`.
   Versions: `../docker/requirements.lock`.

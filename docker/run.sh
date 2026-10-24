@@ -34,10 +34,18 @@ if grep -qx 'Theme:1' "$config/trelby/default.conf" 2>/dev/null; then
     theme_args=(-e GTK_THEME=Adwaita:dark)
 fi
 
+# Instrumented PDF import: MOCAP_WRITER_PDF_TRACE=/work/<dir> (a path inside
+# the container) writes a .trace.tsv per imported PDF there.
+trace_args=()
+if [ -n "${MOCAP_WRITER_PDF_TRACE:-}" ]; then
+    trace_args=(-e MOCAP_WRITER_PDF_TRACE="$MOCAP_WRITER_PDF_TRACE")
+fi
+
 exec docker run --rm \
     --user "$(id -u):$(id -g)" -e HOME=/tmp \
     "${display_args[@]}" \
     "${theme_args[@]}" \
+    "${trace_args[@]}" \
     -v "$repo":/app:ro \
     -v "$work":/work \
     -v "$config":/config \
