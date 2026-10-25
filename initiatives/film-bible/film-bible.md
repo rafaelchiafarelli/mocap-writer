@@ -1,6 +1,8 @@
 # film-bible — mocap-writer
 
-**Status:** Planned — not started. Needs `fountain-native/scenes` (scene ids).
+**Status:** Planned — not started. Needs `fountain-native/scenes` (scene
+numbers) and the `file-format` study's decision, which may change where the
+maps live.
 
 **Goal:** the writer keeps the film's maps (sets, characters, props,
 wardrobe) next to the script, as a tree like Windows Explorer: every item is a
