@@ -12,7 +12,7 @@ another film, linked or not.
 
 **Decided (Rafael, 2026-10-23):** the maps are **folders in the film root**
 (`<film-root>/bible/`), with their format defined as a Harpia contract. The
-Fountain script never holds map data; the maps point to scene **ids**.
+Fountain script never holds map data; the maps point to scene **numbers** (permanent, the scene's identity).
 
 **Scope:** the field catalog, the contract, the tree panel, one editor per map,
 links (scene ↔ set, prop words → props, wardrobe ↔ character × scene), copy

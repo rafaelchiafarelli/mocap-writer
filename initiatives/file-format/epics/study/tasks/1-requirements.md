@@ -56,7 +56,7 @@ contract/1, "Scene annotations")
 **Links**
 - Scene ↔ set; prop runs in Action ↔ props (a run of capitalized words,
   film-bible links/2); wardrobe ↔ character × scene; notes ↔ text spans.
-- Everything outside the script points to the scene number (or id), never
+- Everything outside the script points to the scene number (the scene's identity, 2026-10-25), never
   to a position.
 
 **Pre-production link** (preprod-link)

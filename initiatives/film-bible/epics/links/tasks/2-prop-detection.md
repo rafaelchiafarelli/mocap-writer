@@ -16,7 +16,7 @@
     2026-10-25);
   - a run that is not a known character and not a known prop is
     offered as a new prop (state `script-stated`); a known prop links to the
-    scene id; nothing is created without the creator's confirmation; a word
+    scene number; nothing is created without the creator's confirmation; a word
     can be marked "not a prop" once for the whole film
   - Delivers: the suggestion list and the links
 - **Pre-work:** —

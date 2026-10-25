@@ -5,10 +5,10 @@
   message, done and tagged
 - **Contract:**
   - In: two scene indexes (last sync, now)
-  - Requires: scenes matched by scene id, never by heading or position; each
+  - Requires: scenes matched by scene number, never by heading or position; each
     change typed (scene added, removed, moved, heading changed, text changed,
     character entered/left, prop word added/removed, set link changed) with
-    the scene id and old/new values; the change set records the two index
+    the scene number and old/new values; the change set records the two index
     hashes it was made from
   - Delivers: the `change_set` message and a pure diff function
 - **Pre-work:** the `mocap-contracts` task above
