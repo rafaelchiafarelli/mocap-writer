@@ -57,7 +57,7 @@ pytest result.
   always builds) or `docker build` by hand, or `run.sh` keeps the old image.
 - The repository is mounted read-only, so the program cannot write next to
   its code; Trelby writes only to `$XDG_CONFIG_HOME/trelby` (`/config`),
-  the work dir, the Windows drives and temp files.
+  the work dir, the host home, the Windows drives and temp files.
 - A work dir inside a Windows drive or the home is mounted twice (the
   drive or home and the dir itself, same path); Docker allows the nested
   mount.
