@@ -13,6 +13,10 @@
   - Delivers: add/edit/remove span notes; notes readable by the mocap-previz
     parser
 - **Pre-work:** the format above approved
+- **Typed notes (Rafael, 2026-10-25):** the same marker is meant to carry
+  the scene annotations of film-bible contract/1 (a kind such as `fx`,
+  `char`, `prop`, `set`, `shot`), so the marker format waits for the
+  file-format study (where the annotation's fields live).
 - **Out of scope:** threads or authors on notes
 - **Tests:** a span inside one line, across lines, across elements; removing
   text that holds a marker; round trip
