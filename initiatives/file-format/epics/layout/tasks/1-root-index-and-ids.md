@@ -15,13 +15,19 @@
     or agent**, so records made apart never collide (ISOXML's negative ids
     for terminal-made records); ids are never reused; no record refers to
     another by path; a file that fails its Harpia message is refused with
-    the path of the problem
+    the path of the problem; **opening never breaks** (Rafael,
+    2026-10-25): a missing or invalid part or file is collected into a
+    list of problems (what, where it was expected, why) and the rest of
+    the film opens; only a missing or invalid `film.json` stops the open,
+    and then with a message, never a crash
   - Delivers: the library that opens a film root, validates `film.json`,
     tells a program which parts it owns, and hands out new ids
 - **Pre-work:** Rafael confirms the id form and the default part paths
   (to propose); the `mocap-contracts` task above
-- **Out of scope:** history (layout/2); the contents of each part (their
+- **Out of scope:** the warning and the search for missing files
+  (layout/3); history (layout/2); the contents of each part (their
   own tasks); moving to C (study/3: kept in mind, not built)
 - **Tests:** a new film root gets a valid `film.json`; two id spaces never
   collide; a part written by a program that does not own it is refused; an
-  invalid file names the broken field
+  invalid file names the broken field; a film with a part and a photo
+  deleted opens and lists both problems

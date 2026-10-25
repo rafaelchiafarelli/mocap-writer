@@ -10,6 +10,11 @@ mind**, a change log in SQLite, for scale and team sync later: A is built
 so that moving to C is a migration, not a redesign
 (`epics/study/tasks/3-options.md`).
 
+**Decided (Rafael, 2026-10-25): opening a film never breaks.** A file that
+is missing or moved is reported with a warning, the rest of the film
+opens, and the creator can search for the file; the location found tells
+the writer where the other missing files probably are (`layout/3`).
+
 **Goal:** choose the format the writer keeps a film in: one design that holds
 the script and everything around it, instead of a Fountain file plus loose
 sidecars.
