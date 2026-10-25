@@ -1,5 +1,7 @@
 ## 1. What the format must hold
 
+- **Status:** Done (2026-10-25) — confirmed through Rafael's answers below
+
 - **Type:** study (no code); Rafael confirms, cuts or extends the list
 - **Depends on:** —
 - **Contract:**
@@ -54,7 +56,7 @@ contract/1, "Scene annotations")
 **Links**
 - Scene ↔ set; prop runs in Action ↔ props (a run of capitalized words,
   film-bible links/2); wardrobe ↔ character × scene; notes ↔ text spans.
-- Everything outside the script points to the scene number (or id), never
+- Everything outside the script points to the scene number (the scene's identity, 2026-10-25), never
   to a position.
 
 **Pre-production link** (preprod-link)
@@ -95,3 +97,15 @@ contract/1, "Scene annotations")
   format needs it. It is an initial step. → Byte-identical Fountain is a
   strong preference, no longer a hard requirement; a Fountain export would
   be enough.
+- **ISOXML philosophy** (Rafael has worked with ISO 11783-10 and finds it
+  easy to debug, a good source of truth). → The design follows it: one root
+  index file with format version and origin; flat records with typed,
+  stable ids, linked by id only; records split into separate files, one
+  owner each; large binaries beside the records, referenced, never
+  embedded; strict validation on read that names the broken field. Not its
+  syntax: readable names, not 3-letter tags.
+- **Easily parseable and shareable via Harpia.** → Every structured file is
+  a Harpia message (`mocap-contracts`, JSON through `to_json`/`from_json`),
+  so any app reads it with the generated classes and a broken file fails
+  with the path of the problem. XML would need a second schema system next
+  to Harpia (weighed in task 2; Rafael chose option A in task 3).

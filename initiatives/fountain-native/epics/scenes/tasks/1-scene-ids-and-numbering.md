@@ -20,8 +20,13 @@
       `fountain-input/2` already uses the scene number as the identity;
     - numbers are unique in the script; on open, duplicates or missing
       numbers (edited in another tool) are reported, never fixed silently;
-    - **open:** with permanent numbers, is a hidden id still needed? (the
-      number already is a stable, unique identity; proposal: no hidden id);
+    - **the number is the scene's identity** (Rafael, 2026-10-25): there
+      is no hidden id; every record outside the script (bible links, scene
+      index, change sets, annotations, mocap-previz) refers to a scene by
+      its number. It is unique within the film; it means nothing in another
+      film, so copying a bible item to another film does not carry its
+      scene links (film-bible links/4); the writer refuses to save while
+      two scenes share a number;
     - **open:** a deleted scene leaves a gap, or an `OMITTED` heading as in
       production scripts;
     - **open:** copy → the copy gets a new number by its position; cut and
@@ -29,7 +34,9 @@
     - **open:** insert between `12` and `12A` (proposal: `12AA` is avoided by
       giving `12A` only to the first insert after 12; a later insert before
       it is reported);
-    - **open:** a "renumber all" command for early drafts, run only by Rafael.
+    - **open:** a "renumber all" command for early drafts, run only by
+      Rafael; since the number is the identity, it would have to rewrite
+      every record that names a scene, as one change.
   - Delivers: numbering, the warning, the rule for other repositories
 - **Pre-work:** the open points answered, recorded in this file
 - **Out of scope:** INT/EXT prefixes (later)
