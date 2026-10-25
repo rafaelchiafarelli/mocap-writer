@@ -1,33 +1,28 @@
 ## 2. Per-script settings with a Fountain script
 
-- **Status:** On hold (Rafael, 2026-10-25) — waits for the file-format
-  investigation (`initiatives/file-format/`), which may hold the settings
-  in the writer's own format instead of a sidecar.
+- **Status:** Planned — re-planned after the file-format decision
+  (option A, 2026-10-25): the settings are a record in the film root.
 
 - **Type:** code
-- **Depends on:** io/1
-- **Decision (Rafael, 2026-10-25):** a **sidecar file** next to the script,
-  for now; a richer format (Fountain extended with Mocap Studio's own
-  parts) may replace it later. Waiting on the same conversation: whether
-  the writer's own file, not the Fountain, becomes the source of truth;
-  if so this task changes.
+- **Depends on:** io/1; file-format/layout/1 (root index, part
+  ownership); a `mocap-contracts` task for a `script_settings` message,
+  done and tagged
+- **Decision (Rafael, 2026-10-25):** first a sidecar file next to the
+  script; **replaced** the same day by the file-format decision (option A):
+  the settings are a Harpia message, a part of the film root listed in
+  `film.json` and owned by the writer.
 - **Problem:** a `.trelby` file carries per-script settings: page setup and
   element styles (`Config`), auto-completion lists, locations, the script's
   spell-checker words, page headers. Fountain has no place for them, so
   after io/1 a `.fountain` opens with defaults and none of them is saved.
-- **Options (to decide):**
-  1. a sidecar file next to the script (`<name>.fountain.writer` or a
-     folder in the film root), in Trelby's `key:value` form;
-  2. a boneyard block at the end of the `.fountain`
-     (`/* mocap-writer settings ... */`): one file, other tools ignore it;
-  3. global settings only: the film's page setup lives in the global
-     config, lists are rebuilt from the script, headers stay default.
-- **Contract (after the decision):**
-  - In: a `.fountain` script and its settings in the chosen place
-  - Requires: open restores them, save writes them, the Fountain text
-    itself is still byte-identical after open → save
+- **Contract:**
+  - In: a `.fountain` script and its settings record in the film root
+  - Requires: open restores them, save writes them as a `script_settings`
+    message in the part `film.json` lists for them; the Fountain text
+    itself is still byte-identical after open → save; a script opened
+    outside a film root opens with defaults, as today
   - Delivers: settings that survive the round trip
-- **Pre-work:** the decision (recorded above); the sidecar's name and
-  form, to propose and confirm
+- **Pre-work:** the `mocap-contracts` task above; the record's fields
+  (the `Config` and lists named in Problem), to propose and confirm
 - **Tests:** settings changed → saved → reopened equal; the script text
   unchanged
