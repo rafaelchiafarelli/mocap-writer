@@ -34,14 +34,15 @@ pytest result.
   are kept.
 - `run.sh` — builds the image if it does not exist, then runs it as the host
   user with the repo at `/app:ro`, `~/.config/mocap-writer` at `/config`,
-  X11 or WSLg display sockets, every Windows drive `/mnt/<letter>` and the
-  work dir **at their own paths** (`docker/run.sh:46-61`), so the file
-  dialogs show the same paths as WSL; `MOCAP_WRITER_WORK_DIR` = the work
+  X11 or WSLg display sockets, every Windows drive `/mnt/<letter>`, the
+  host home `$HOME` and the work dir **at their own paths**
+  (`docker/run.sh:48-69`), so the file dialogs show the same paths as WSL
+  and every folder under the home can be written (bugs/tooling/8); `MOCAP_WRITER_WORK_DIR` = the work
   dir makes the dialogs start there (`trelby/trelby.py:102-108`). When the
   config holds `Theme:1` (Dark) it adds `GTK_THEME=Adwaita:dark` so menus,
-  toolbar and dialogs are dark (`docker/run.sh:32-37`); a host
+  toolbar and dialogs are dark (`docker/run.sh:34-39`); a host
   `MOCAP_WRITER_PDF_TRACE` (a WSL path) is passed through
-  (`docker/run.sh:39-44`) for the instrumented PDF import.
+  (`docker/run.sh:41-46`) for the instrumented PDF import.
 - `pdfimport.sh` — rebuilds the image quietly, then runs
   `python -m trelby.pdfimport "$@"` with the current directory mounted at
   its own path (also the working directory) and the repo at `/app:ro`
@@ -52,13 +53,20 @@ pytest result.
 
 ## Key facts / gotchas
 - `run.sh` builds only when the image is missing
-  (`docker/run.sh:18-20`): after a lockfile change, run `test.sh` once (it
+  (`docker/run.sh:22-24`): after a lockfile change, run `test.sh` once (it
   always builds) or `docker build` by hand, or `run.sh` keeps the old image.
 - The repository is mounted read-only, so the program cannot write next to
   its code; Trelby writes only to `$XDG_CONFIG_HOME/trelby` (`/config`),
-  the work dir, the Windows drives and temp files.
-- A work dir inside a Windows drive is mounted twice (the drive and the
-  dir itself, same path); Docker allows the nested mount.
+  the work dir, the host home, the Windows drives and temp files.
+- A work dir inside a Windows drive or the home is mounted twice (the
+  drive or home and the dir itself, same path); Docker allows the nested
+  mount.
+- Without the home mount, the folders above the work dir were empty
+  root-owned stand-ins Docker creates for a mount point: visible in the
+  dialogs, not writable, not the host's folders. Bug:
+  [bugs/tooling/8](../initiatives/bugs/epics/tooling/tasks/8-run-parent-folders.md).
+- The container sees the whole host home read-write (as the host user):
+  the editor can open and save anywhere under it, like a native program.
 - `-p no:cacheprovider` because `/app` is read-only.
 - The image has no DocBook toolchain, so `trelby/manual.html` is never
   built in it.
