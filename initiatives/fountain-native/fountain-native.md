@@ -1,7 +1,8 @@
 # fountain-native — mocap-writer
 
-**Status:** In progress — io/1 done (2026-10-24); io/2, scenes/1 and
-notes/1 wait for Rafael's decisions.
+**Status:** In progress — io/1 done (2026-10-24), io/3 and io/4 done
+(2026-10-25); io/2 waits for file-format/layout/1; scenes/1 and notes/1
+wait for Rafael's decisions (`../open-points.md`).
 
 **Goal:** Fountain is the writer's own format (mocap-previz D3/D6): it opens and
 saves `.fountain` without loss, scenes have a stable identity, and notes can
