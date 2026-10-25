@@ -78,10 +78,20 @@ contract/1, "Scene annotations")
   binaries stay out of git; nothing film-specific in a repository; a film
   lives in its **film root**.
 
-### Questions for Rafael
-- Is a film root a git repository (history for free, but big binaries need
-  LFS or stay outside)?
-- Can the writer and an agent write the same film at the same time?
-- One file you can e-mail, or a folder?
-- Must other screenplay programs (Final Draft, Fade In, Highland) open it,
-  or only read an export?
+### Answers (Rafael, 2026-10-25)
+- **A film root is not a git repository:** it is a folder, and everything
+  about the film is in it. → History and snapshots (Sync to spec diffs,
+  undoing a bad agent pass) must come from the format itself, not from git.
+- **The writer and an agent can write the same film at the same time, but
+  not the same file:** they work on separate parts of the pipeline. → The
+  format must split into parts that are written independently (no single
+  file everyone rewrites); a part needs one clear owner at a time.
+- **One file or a folder: not decided.** Online work will come: the film is
+  a team effort in the future, not one person's. → Prefer a design that can
+  later be shared or synced between people (small independent records,
+  stable ids, changes that merge), over one that only works on one disk.
+- **Other screenplay programs: don't care.** Fountain compatibility is kept
+  for its shareable nature while it is cheap; it may be dropped if the
+  format needs it. It is an initial step. → Byte-identical Fountain is a
+  strong preference, no longer a hard requirement; a Fountain export would
+  be enough.
