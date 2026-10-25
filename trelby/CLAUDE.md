@@ -13,10 +13,8 @@ drawn by `viewmode`), the page language and PDF writer (`pml`, `pdf`), import
   `../trelby.py`.
 - `fountain.load(text, cfgGl)` / `fountain.generate(sp)` — the native
   `.fountain` format without any GUI (`tests/test_fountain.py`).
-- `screenplay.Screenplay.load(s, cfgGl)` / `.save()` — the old `.trelby`
-  format, no longer reachable from the program; kept only because the tests
-  build their scripts from `tests/fixtures/test.trelby` (`tests/u.py`,
-  removal: fountain-native/io/4).
+- `screenplay.Screenplay(cfgGl)` and its commands — the model without any
+  GUI (what the tests use, through `tests/u.py`).
 - `myimport.import*(fileName, frame)` — one function per import format.
 - `python -m trelby.pdfimport import|probe ...` — PDF → `.fountain` from
   the command line (`trelby/pdfimport.py:1061`).
@@ -33,10 +31,10 @@ files.
 
 Model and file format
 - `screenplay.py` — `Screenplay`: the script as a flat list of `Line`s, the
-  cursor, selection, pagination, every editing command, undo chain, `.trelby`
-  load/save and all exports; also the `LB_*` and line-type constants;
+  cursor, selection, pagination, every editing command, undo chain and all
+  exports; also the `LB_*` and line-type constants;
   `fountainSource` holds the parsed `.fountain` the script came from
-  (`trelby/screenplay.py:67`). Detail:
+  (`trelby/screenplay.py:66`). Detail:
   [screenplay.as-built.md](screenplay.as-built.md).
 - `fountain.py` — Fountain 1.1 as the native format, no wx: `parse` keeps
   each element's exact source and the hidden source before it,
@@ -44,9 +42,10 @@ Model and file format
   their source and edited ones in canonical Fountain (byte-identical round
   trip), and reports what cannot read back the same. Detail:
   [fountain.as-built.md](fountain.as-built.md).
-- `line.py` — `Line(lb, lt, text)` (`trelby/line.py:10`); `str(line)` is the
-  saved form, line-break char + type char + text (`trelby/line.py:22`).
-  `fromStr` has no error checking and is for internal storage only (undo).
+- `line.py` — `Line(lb, lt, text)` (`trelby/line.py:10`); `str(line)` is
+  line-break char + type char + text (`trelby/line.py:22`), the form undo
+  stores lines in. `fromStr` has no error checking and is for internal
+  storage only (undo).
 - `undo.py` — undo objects: `FullCopy`, `SinglePara`, `ManyElems`,
   `AnyDifference` (`trelby/undo.py:167-264`); lines are stored as
   zlib-compressed strings when that is shorter (`trelby/undo.py:62`). The
@@ -69,8 +68,6 @@ Model and file format
   (`trelby/propwords.py:15`): runs of 2+ letters, accents included, that are
   fully upper case (`trelby/propwords.py:9`); the editor underlines them in
   Action lines, film-bible will reuse it for prop records. No wx.
-- `fileformat.txt` — the old `.trelby` format description (sections, config
-  keys, line codes); only the tests' fixture uses that format now.
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
   (`trelby/trelbyctrl.py:1387`).

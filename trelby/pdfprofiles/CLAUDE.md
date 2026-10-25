@@ -14,7 +14,7 @@ indents and the detected layout) → a hand-written profile → `.fountain`.
   settings (A4, Courier 12): scene/action 108, dialogue 180, parenthetical
   223.2, character 266.4, transition 432; drops page numbers, `CONTINUED:`,
   `(CONTINUED)`, `(MORE)`. Built with `probe` on an export of
-  `tests/fixtures/test.trelby`.
+  `tests/fixtures/test.trelby` (now `test.fountain`).
 
 ## Profile format
 
