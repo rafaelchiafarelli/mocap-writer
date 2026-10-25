@@ -30,8 +30,8 @@
   - Elements Fountain cannot hold as they are (dialogue with no character,
     two dialogue elements in a row, ...) are listed in a warning after the
     save.
-  - **To confirm (Rafael):** Shot is written as an upper-case line with two
-    trailing spaces, Trelby's own convention; Fountain has no shot, so
-    other tools (and mocap-previz) read it as Action.
+  - **Shot** is written as an upper-case line with two trailing spaces,
+    Trelby's own convention (confirmed by Rafael, 2026-10-25); Fountain has
+    no shot, so other tools (and mocap-previz) read it as Action.
   - **Not done here:** per-script settings are not saved in Fountain → io/2
     (waits for Rafael's decision).
