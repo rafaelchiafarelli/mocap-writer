@@ -28,6 +28,17 @@
    notes, revision marks, tagging/breakdown) and what they cannot.
 6. **Hybrid** — Fountain + folder of records (1) + a SQLite index that can
    always be rebuilt from them.
+7. **ISOXML-style bundle, Harpia JSON** (Rafael, 2026-10-25) — ISO 11783-10's
+   architecture on a folder: `film.json` root index (format version,
+   origin, the parts and who owns each); flat records with typed ids
+   (`CHR-…`, `SCN-…`, `ANN-…`) linked by id only, with a separate id space
+   per writer or agent so records created apart never collide (ISOXML's
+   negative ids for terminal-made records); one file per record or per
+   scene, so parts are written independently; photos and `.blend` files
+   beside the records, referenced like ISOXML's `.BIN` files; every file a
+   Harpia message, validated on read. The script stays `script.fountain`,
+   its notes pointing to records by id. History is not in ISOXML and needs
+   its own design (`history/`).
 
 ### Criteria
 - holds everything in task 1; the Fountain stays byte-identical;
@@ -37,5 +48,6 @@
 - large binaries (photos, `.blend`) without slowing down saves;
 - copy an item or a whole film; open from Windows;
 - history and snapshots (Sync to spec diffs);
-- fits a Harpia contract; Python stdlib or a commercial-use license;
+- every structured file is a Harpia message, easy to parse and share
+  between apps (Rafael, 2026-10-25); Python stdlib or a commercial-use license;
 - effort to build and to keep.
