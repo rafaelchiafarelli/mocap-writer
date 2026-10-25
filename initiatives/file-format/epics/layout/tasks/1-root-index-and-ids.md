@@ -11,9 +11,11 @@
     history...), each with its path and its **owner** (the writer, or a
     named agent), so no two programs write the same part; record ids are
     **typed and stable** (a prefix per kind: set, character, prop,
-    wardrobe, scene, annotation...) with a **separate id space per writer
+    wardrobe, annotation...) with a **separate id space per writer
     or agent**, so records made apart never collide (ISOXML's negative ids
-    for terminal-made records); ids are never reused; no record refers to
+    for terminal-made records); ids are never reused; a **scene has no
+    record id**: it is named by its permanent scene number (`12A`,
+    fountain-native/scenes/1, Rafael 2026-10-25); no record refers to
     another by path; a file that fails its Harpia message is refused with
     the path of the problem; **opening never breaks** (Rafael,
     2026-10-25): a missing or invalid part or file is collected into a

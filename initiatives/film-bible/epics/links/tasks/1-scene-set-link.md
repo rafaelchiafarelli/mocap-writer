@@ -5,7 +5,7 @@
 - **Contract:**
   - In: a scene heading's location (`INT. SALA DE JANTAR - NOITE` → `SALA DE JANTAR`)
   - Requires: a location not in the sets map offers to create the set (never
-    silently); a known location links the scene id to that set; a set with no
+    silently); a known location links the scene number to that set; a set with no
     scene is allowed (made ahead of time, placed later)
   - Delivers: the link, shown in both the scene and the set
 - **Pre-work:** —

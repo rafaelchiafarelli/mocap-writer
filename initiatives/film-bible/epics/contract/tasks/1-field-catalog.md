@@ -9,7 +9,7 @@
   - Requires: every field has a name, type (text, number+unit, choice, list,
     file, link), whether it repeats per scene, and who fills it; every value
     carries a **state** (`script-stated`, `creator-approved`, `proposal`,
-    `TBD`) and a source (scene id or decision), as the mocap-preprod registers
+    `TBD`) and a source (scene number or decision), as the mocap-preprod registers
     already do, so AI proposals never pass as approved
   - Delivers: the approved catalog below, edited by Rafael, with the date
 - **Pre-work:** —
@@ -19,7 +19,7 @@
 ### Proposal (to approve, cut or extend)
 
 Every item: `id`, `name`, `aliases`, `description`, `photos/`, `references/`,
-`notes`, `tags`, `children` (sub-items), `scenes` (ids, derived from links).
+`notes`, `tags`, `children` (sub-items), `scenes` (numbers, derived from links).
 
 **Set (cenário)**
 - Space: interior/exterior, type (house, office, street…), period/era, place
