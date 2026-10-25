@@ -248,7 +248,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   `trelby/trelbyframe.py:795-802`, `MyCtrl.OnDarkTheme`,
   `trelby/trelbyctrl.py:483-496`); each theme keeps its own colors
   (`trelby/config.py:1382-1411`). Under Docker, Dark also starts GTK's dark
-  variant (`docker/run.sh:30-35`).
+  variant (`docker/run.sh:34-39`).
 
 ## Stage 5 — save / open (`.fountain`, `.trelby`)
 
