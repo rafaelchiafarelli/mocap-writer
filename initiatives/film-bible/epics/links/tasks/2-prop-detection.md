@@ -10,9 +10,10 @@
     being typed is never offered half-written (Rafael, 2026-10-25). This
     changes `find_prop_words`, which today returns each word on its own
     (`trelby/propwords.py:15`), and the editor's underline with it.
-    To confirm with Rafael: whether punctuation (`XÍCARA.`) and the end of
-    the element also end a run; whether a one-letter capital word (`A`,
-    `O`, `E`) can sit inside a run (`CAIXA DE FÓSFORO` vs `CAIXA E VELA`);
+    Punctuation ends a run (`XÍCARA.`); a one-letter capital word sits
+    inside a run like any other: `CAIXA DE FÓSFORO` and `CAIXA E VELA` are
+    one prop each, `CAIXA de FÓSFORO` and `CAIXA e VELA` are two (Rafael,
+    2026-10-25);
   - a run that is not a known character and not a known prop is
     offered as a new prop (state `script-stated`); a known prop links to the
     scene id; nothing is created without the creator's confirmation; a word
@@ -20,6 +21,7 @@
   - Delivers: the suggestion list and the links
 - **Pre-work:** —
 - **Out of scope:** AI classification
-- **Tests:** a multi-word run is one prop; a run at the end of what is being
+- **Tests:** a multi-word run is one prop; punctuation ends it; one-letter
+  capitals inside a run, lower-case words split it; a run at the end of what is being
   typed is not offered yet; character names skipped; plural and accents;
   "not a prop" remembered
