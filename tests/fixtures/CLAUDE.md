@@ -1,6 +1,6 @@
 # fixtures — sample files the tests load
 
-**Role:** Small input files for `tests/`. All hold the same short upstream
+**Role:** Small input files for `tests/`. `test.*` hold the same short upstream
 sample script (a night scene at Stonehenge), so imports can be compared
 with the native file.
 **Entry points:** `tests.u.fixtureFilePath(name)` / `tests.u.load(name)`
@@ -8,11 +8,13 @@ with the native file.
 **Inputs → Outputs:** read-only test data.
 
 ## Files
-- `test.trelby` — the reference script, the only `.trelby` left (the
-  program no longer opens the format; moving the tests to Fountain is
-  fountain-native/io/4); `#Version 2` format (no
-  `#Start-Script` line; read with `startSeen = True`,
-  `trelby/screenplay.py:291`). Default for `u.load()`.
+- `test.fountain` — the reference script (upstream Trelby's sample,
+  converted from `test.trelby` 2026-10-25 with its text kept as stored,
+  lower case included; its last two dialogue elements, which `test.trelby`
+  split with two empty Actions, are one here: `tests/u.py:64` puts them
+  back where a test needs them). Default for `u.load()`.
+- `test.sconf` — its script settings (page setup, element styles), the form
+  Script → Settings → Save as writes; `u.load()` applies it.
 - `test.txt` — the same script as indented plain text (Trelby's text export
   layout), input of `importTextFile`.
 - `test.celtx` — the same script as a Celtx zip (`script-ujq.html` inside),
@@ -35,8 +37,6 @@ with the native file.
   test; `custom-font/LICENSE.md` — SIL Open Font License 1.1.
 
 ## Key facts / gotchas
-- `test.trelby` contains config keys this version no longer has (e.g.
-  `Element/Scene/AutoCompletion`), which `Config.load` drops silently.
 - The sample is upstream Trelby's, not film material.
 - Jost is under the SIL OFL 1.1 (free, commercial use allowed); it is not in
   the license list of the Mocap Studio rule (MIT, Apache-2.0, BSD, CC0,

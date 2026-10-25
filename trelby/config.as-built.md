@@ -188,9 +188,7 @@ one-character file codes. All saved settings go through `mypickle.Vars`
   (`trelby/config.py:1312-1320`, `trelby/config.py:1611`).
 - `Config.load` and `ConfigGlobal.load` never raise: unknown keys are
   ignored, bad values fall back to defaults and are clamped
-  (`trelby/config.py:595-608`). Old keys such as
-  `Element/Scene/AutoCompletion` in `tests/fixtures/test.trelby` are
-  silently dropped.
+  (`trelby/config.py:595-608`).
 - `ConfigGlobal` setting `scriptDir` defaults to `misc.progPath`
   (`trelby/config.py:1270`), so `misc.init()` must have run before
   `ConfigGlobal.setupVars` (first instantiation).

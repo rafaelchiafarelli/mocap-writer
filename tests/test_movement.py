@@ -12,7 +12,7 @@ def testMoveRight():
     assert (sp.line == 1) and (sp.column == 0)
     sp.cmd("moveEnd")
     sp.cmd("moveRight")
-    assert (sp.line == 161) and (sp.column == 4)
+    assert (sp.line == 159) and (sp.column == 4)
 
 
 def testMoveLeft():
@@ -47,7 +47,7 @@ def testMoveDown():
     assert (sp.line == 4) and (sp.column == 31)
     sp.cmd("moveEnd")
     sp.cmd("moveDown")
-    assert sp.line == 161
+    assert sp.line == 159
 
 
 def testMoveLineEnd():
@@ -66,7 +66,7 @@ def testMoveLineStart():
 def testMoveEnd():
     sp = u.load()
     sp.cmd("moveEnd")
-    assert (sp.line == 161) and (sp.column == 4)
+    assert (sp.line == 159) and (sp.column == 4)
 
 
 def testMoveStart():
@@ -101,11 +101,12 @@ def testMoveSceneDown():
     assert (sp.line == 30) and (sp.column == 0)
     sp.cmd("moveEnd")
     sp.cmd("moveSceneDown")
-    assert (sp.line == 161) and (sp.column == 0)
+    assert (sp.line == 159) and (sp.column == 0)
 
 
 def testMoveNextWord():
-    sp = u.load()
+    # steps through the two empty lines of the old ending
+    sp = u.withOldEnding(u.load())
     sp.line = 157
     sp.column = 0
     sp.cmd("moveNextWord")
@@ -125,7 +126,7 @@ def testMoveNextWord():
 
 
 def testMovePrevWord():
-    sp = u.load()
+    sp = u.withOldEnding(u.load())
     sp.line = 161
     sp.column = 3
     sp.cmd("movePrevWord")

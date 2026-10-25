@@ -8,8 +8,8 @@ foreign formats (PDF through a layout profile) and exports six.
 This file is the **stage-by-stage spec** of what the program does, in the
 order a session runs. Per-module detail is in each folder's `CLAUDE.md` (and
 `trelby/<module>.as-built.md` for the large modules). The user manual is
-`doc/manual.xml`. Trelby's old `.trelby` format, now used only by the
-tests' fixture, is described in `trelby/fileformat.txt`.
+`doc/manual.xml`. Trelby's own `.trelby` format was removed (2026-10-25,
+fountain-native/io/3 and io/4).
 
 Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 `mocap-writer`.
@@ -101,12 +101,12 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 
 ## Stage 2 — the screenplay model
 
-- A `Screenplay` (`trelby/screenplay.py:52`) is a flat list `lines` of
+- A `Screenplay` (`trelby/screenplay.py:51`) is a flat list `lines` of
   `Line(lb, lt, text)` (`trelby/line.py:10`), plus the cursor (`line`,
   `column`), the selection (`mark`), the page table (`pages`) and the undo
   chain. It also owns per-script `config.Config` (`cfg`), `Titles`,
   `Headers`, `Locations`, `AutoCompletion` and a script spell-checker
-  dictionary (`trelby/screenplay.py:53-112`).
+  dictionary (`trelby/screenplay.py:52-111`).
 - **Line types** (`trelby/screenplay.py:17-25`): `SCENE`, `ACTION`,
   `CHARACTER`, `DIALOGUE`, `PAREN`, `TRANSITION`, `SHOT`, `NOTE`, `ACTBREAK`.
   Each has a one-character code and a name in `config._init`
@@ -118,13 +118,13 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 - **Element** = consecutive lines up to and including an `LB_LAST` line; all
   its lines have the same type. **Paragraph** = lines up to an `LB_FORCED` or
   `LB_LAST`. **Scene** = the elements from one `SCENE` (or `ACTBREAK`)
-  element to the next (`trelby/screenplay.py:1465`).
+  element to the next (`trelby/screenplay.py:1204`).
 - **Wrapping**: `wrapLine` cuts text at the element type's width in
-  characters (`trelby/screenplay.py:1188`); `rewrapPara` re-joins one
+  characters (`trelby/screenplay.py:927`); `rewrapPara` re-joins one
   paragraph and re-wraps it while keeping the cursor in place
-  (`trelby/screenplay.py:1251`). `reformatAll` re-wraps the whole script and
-  must not run while there is undo history (`trelby/screenplay.py:1152`).
-- **Pages**: `paginate()` (`trelby/screenplay.py:1559`) fills
+  (`trelby/screenplay.py:990`). `reformatAll` re-wraps the whole script and
+  must not run while there is undo history (`trelby/screenplay.py:891`).
+- **Pages**: `paginate()` (`trelby/screenplay.py:1298`) fills
   `pages[i]` = index of the last line on page `i` (`pages[0] = -1`).
   Vertical space is counted in tenths of a line: each line is 10, plus the
   type's `beforeSpacing` / `intraSpacing`. Page capacity is
@@ -133,10 +133,10 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   `(cont'd)` lines. Breaks are moved back so that scene headings, shots and
   characters are not left at the bottom of a page and at least
   `pbActionLines` / `pbDialogueLines` lines of action / dialogue stay
-  together (`trelby/screenplay.py:1627-1703`). `pagesNoAdjust` keeps the
+  together (`trelby/screenplay.py:1366-1442`). `pagesNoAdjust` keeps the
   breaks before that adjustment.
 - **Element-type sequencing rules** are only checked, not enforced, by
-  `findError` (`trelby/screenplay.py:2465`): a character must be followed by
+  `findError` (`trelby/screenplay.py:2204`): a character must be followed by
   a parenthetical or dialogue, a parenthetical must follow a character or
   dialogue, dialogue must follow a character or parenthetical.
 
@@ -157,21 +157,21 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
     call `MyCtrl.cmd<Name>` (`trelby/trelbyctrl.py:1401-1407`), which mostly
     forward to `Screenplay.<name>Cmd`.
   - After every command: `cmdPost` fixes the column and refreshes
-    auto-completion (`trelby/screenplay.py:2788`); the script is re-paginated
+    auto-completion (`trelby/screenplay.py:2527`); the script is re-paginated
     if `paginateInterval` seconds (default 1) have passed
     (`trelby/trelbyctrl.py:1414-1420`); the cursor line is scrolled into view
     and the screen is redrawn (`trelby/trelbyctrl.py:1422-1425`).
 - **Enter** (`NewElement`, `trelby/config.py:996`) →
-  `Screenplay.splitElementCmd` (`trelby/screenplay.py:3119`): splits the
+  `Screenplay.splitElementCmd` (`trelby/screenplay.py:2858`): splits the
   element at the cursor and gives the new element the current type's
   `newTypeEnter`. If an auto-completion list is open, the selected item
-  replaces the line first (`trelby/screenplay.py:1853-1858`).
+  replaces the line first (`trelby/screenplay.py:1592-1597`).
 - **Tab** (`trelby/config.py:1138`) → `Screenplay.tabCmd`
-  (`trelby/screenplay.py:3128`): at the end of a non-empty element (or before
+  (`trelby/screenplay.py:2867`): at the end of a non-empty element (or before
   the closing `)` of a parenthetical) it creates a new element of type
-  `newTypeTab` (`tabMakesNew`, `trelby/screenplay.py:2032`); otherwise it
+  `newTypeTab` (`tabMakesNew`, `trelby/screenplay.py:1771`); otherwise it
   converts the current element to the next one of the Tab cycle.
-  **Shift-Tab** converts to the previous one (`trelby/screenplay.py:3142`).
+  **Shift-Tab** converts to the previous one (`trelby/screenplay.py:2881`).
   The cycle is `ConfigGlobal.tabOrder`, Scene → Action → Character →
   Dialogue → Scene by default; an element outside it converts to Action
   both ways (`ConfigGlobal.nextTypeTab`, `trelby/config.py:1428-1444`).
@@ -192,26 +192,26 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   | Act break   | Scene      | Action     | Action        | Action     |
   | Note        | Action     | Character  | Action        | Action     |
 
-- **Typing rules** in `addCharCmd` (`trelby/screenplay.py:3152`):
+- **Typing rules** in `addCharCmd` (`trelby/screenplay.py:2891`):
   - the first letter of a sentence is upper-cased when `capitalize` is on
-    (`capitalizeNeeded`, `trelby/screenplay.py:2396`);
+    (`capitalizeNeeded`, `trelby/screenplay.py:2135`);
   - a lone `i` becomes `I` when `capitalizeI` is on
-    (`trelby/screenplay.py:3213-3228`);
+    (`trelby/screenplay.py:2952-2967`);
   - an element whose whole text becomes `INT.` or `EXT.` turns into a Scene
-    (`trelby/screenplay.py:3234-3237`);
+    (`trelby/screenplay.py:2973-2976`);
   - typing `(` as the only text of a Dialogue or Character element turns it
-    into a Parenthetical `()` (`trelby/screenplay.py:3238-3244`).
+    into a Parenthetical `()` (`trelby/screenplay.py:2977-2983`).
 - Element type changes: Alt+letter shortcuts (e.g. Alt+A Action,
-  `trelby/config.py:764`) and the right-click menu call `convertTypeTo` (`trelby/screenplay.py:1741`, `trelby/trelbyctrl.py:76`).
+  `trelby/config.py:764`) and the right-click menu call `convertTypeTo` (`trelby/screenplay.py:1480`, `trelby/trelbyctrl.py:76`).
 - **Undo**: each edit records an `undo.*` object (`trelby/undo.py`) on a
   doubly linked list; consecutive typing and deleting are merged into word
   steps; history is trimmed past ~5 MB (`addUndo`,
-  `trelby/screenplay.py:3303-3356`).
+  `trelby/screenplay.py:3042-3095`).
 - **Auto-completion**: Scene, Character, Transition and Shot elements offer
   the matching earlier lines of the same type plus the configured list
-  (`getMatchingText`, `trelby/screenplay.py:2083`).
+  (`getMatchingText`, `trelby/screenplay.py:1822`).
 - **Clipboard**: the internal clipboard keeps typed lines (`ClipData`,
-  `trelby/screenplay.py:3447`); pasting from the system clipboard turns each
+  `trelby/screenplay.py:3186`); pasting from the system clipboard turns each
   non-empty text line into an Action element (`trelby/trelbyctrl.py:882`).
 
 ## Stage 4 — screen rendering (`viewmode`)
@@ -229,7 +229,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 - **Layout** (`ViewModeLayout`, `trelby/viewmode.py:280`) and **side by
   side** (`ViewModeSideBySide`, `trelby/viewmode.py:422`): pages are built
   with `Screenplay.generatePMLPage(..., forPDF=False, ...)`
-  (`trelby/screenplay.py:900`), the same code the PDF uses, and their
+  (`trelby/screenplay.py:639`), the same code the PDF uses, and their
   millimeter positions are scaled to pixels by `ctrl.mm2p`
   (`trelby/trelbyctrl.py:117`).
 - Screen fonts are the four global `font*` settings (`trelby/config.py:1264`)
@@ -257,9 +257,8 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   Fountain, except a name ending in `.trelby`, which is refused with a
   message (`MyCtrl.loadFile`, `trelby/trelbyctrl.py:128-135`); Save adds
   `.fountain` unless the name ends in it (`MyCtrl.saveFile`,
-  `trelby/trelbyctrl.py:166-183`). The `.trelby` reader and writer
-  (`Screenplay.load` / `save`) are left only for the test fixture
-  (fountain-native/io/4).
+  `trelby/trelbyctrl.py:166-183`). There is no `.trelby` reader or writer
+  left (fountain-native/io/4).
 - **Save**: `fountain.generate(sp)` (`trelby/fountain.py:541`)
   writes unchanged elements, the title page and everything the editor does
   not show (boneyard, synopses, `##` sections, page breaks, blank lines)
@@ -325,20 +324,20 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   and asks whether to continue, drops Note elements on a copy when
   `pdfRemoveNotes`, re-paginates. The format is the file dialog's filter
   index:
-  - **PDF** → `generatePDF` (`trelby/screenplay.py:857`) →
-    `generatePML` (`trelby/screenplay.py:861`): title pages, then
+  - **PDF** → `generatePDF` (`trelby/screenplay.py:596`) →
+    `generatePML` (`trelby/screenplay.py:600`): title pages, then
     `generatePMLPage` per page (headers, `CONTINUED:`, `(MORE)`,
     `(cont'd)`, scene numbers, note outlines, TOC entries, line numbers),
     then custom PDF fonts → `pdf.generate` (`trelby/pdf.py:20`), which draws
     the PML with ReportLab;
-  - **RTF** → `generateRTF` (`trelby/screenplay.py:753`), one style per
+  - **RTF** → `generateRTF` (`trelby/screenplay.py:492`), one style per
     element type;
-  - **Final Draft XML** → `generateFDX` (`trelby/screenplay.py:607`);
-  - **HTML** → `generateHtml` (`trelby/screenplay.py:490`), notes optional;
-  - **Fountain** → `generateFountain` (`trelby/screenplay.py:656`): title
+  - **Final Draft XML** → `generateFDX` (`trelby/screenplay.py:346`);
+  - **HTML** → `generateHtml` (`trelby/screenplay.py:229`), notes optional;
+  - **Fountain** → `generateFountain` (`trelby/screenplay.py:395`): title
     page keys from the title strings, `.` forced scene headings, `>` forced
     transitions, `[[notes]]`, `>act break<`;
-  - **formatted text** → `generateText` (`trelby/screenplay.py:456`), page
+  - **formatted text** → `generateText` (`trelby/screenplay.py:195`), page
     markers optional.
 - **Print** writes the same PDF to a temporary file and opens the configured
   PDF viewer (`trelby/trelbyctrl.py:1178`, `trelby/gutil.py:82`).
@@ -347,7 +346,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   page (`trelby/watermarkdlg.py:11`).
 - **Compare scripts** diffs two open scripts' formatted text and shows the
   diff as a colored PDF (`trelby/trelbyctrl.py:689`,
-  `trelby/screenplay.py:2558`).
+  `trelby/screenplay.py:2297`).
 
 ## Stage 8 — reports
 

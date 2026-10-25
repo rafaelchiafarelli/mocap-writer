@@ -272,17 +272,21 @@ def testLostReported():
     assert save(sp).lost == [(scr.DIALOGUE, "Sem personagem.")]
 
 
-def testFromTrelby():
+def testFixtureRoundTrip():
+    # the shared fixture, with its script settings, saves back unchanged
     sp = u.load()
     res = save(sp)
 
-    # test.trelby has a dialogue split by an empty action: Fountain cannot
-    # tell the two apart
-    assert res.lost == [(scr.DIALOGUE, "Very."), (scr.DIALOGUE, "Very")]
+    assert res.lost == []
+    assert res.text == fixture("../test.fountain")
 
-    back = load(res.text)
-    assert len(elems(back)) == len([e for e in elems(sp) if e[1].strip()]) - 1
-    assert save(back).text == res.text
+
+def testOldEndingLost():
+    # what test.trelby ended with: a dialogue split by empty actions;
+    # Fountain cannot tell the two dialogues apart
+    sp = u.withOldEnding(u.load())
+
+    assert save(sp).lost == [(scr.DIALOGUE, "Very."), (scr.DIALOGUE, "Very")]
 
 
 def testWrappedLinesJoin():
