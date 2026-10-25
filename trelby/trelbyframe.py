@@ -455,13 +455,13 @@ class MyFrame(wx.Frame):
         i = self.findPage(panel)
 
         if i != -1:
-            # strip out ".trelby" suffix from tab names (it's a bit
+            # strip out ".fountain" suffix from tab names (it's a bit
             # complicated since if we open the same file multiple times,
-            # we have e.g. "foo.trelby" and "foo.trelby<2>", so actually
-            # we just strip out ".trelby" if it's found anywhere in the
+            # we have e.g. "foo.fountain" and "foo.fountain-2", so actually
+            # we just strip out ".fountain" if it's found anywhere in the
             # string)
 
-            s = text.replace(".trelby", "")
+            s = text.replace(".fountain", "")
             self.tabCtrl.setTabText(i, s)
 
     # iterates over all tabs and finds out the corresponding page number
@@ -592,14 +592,7 @@ class MyFrame(wx.Frame):
             self,
             _("File to open"),
             misc.scriptDir,
-            wildcard=_("Scripts")
-            + " (*.fountain, *.trelby)|*.fountain;*.trelby|"
-            + "Fountain (*.fountain)|*.fountain|"
-            + "Trelby "
-            + _("files")
-            + " (*.trelby)|*.trelby|"
-            + _("All files")
-            + "|*",
+            wildcard="Fountain (*.fountain)|*.fountain|" + _("All files") + "|*",
             style=wx.FD_OPEN,
         )
 

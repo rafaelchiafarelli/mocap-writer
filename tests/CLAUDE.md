@@ -103,7 +103,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   importer/1, now in git history).
 - Not covered by any test: the wx GUI (`trelbyframe`, `trelbyctrl`,
   `viewmode`, dialogs; the Fountain open/save in `MyCtrl` was checked by
-  hand through the real window, 2026-10-24), `.trelby` save round-trip,
+  hand through the real window, 2026-10-24 and 2026-10-25), `.trelby` save
+  round-trip,
   Fountain/FDX/HTML/RTF/text export, Fountain/FDX/Astx/Fade In import (the
   native `.fountain` open/save is `test_fountain.py`), pagination results,
   undo/redo.

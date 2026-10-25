@@ -2,7 +2,8 @@
 
 `trelby/screenplay.py` (3474 lines) holds the script model and almost all
 behaviour that does not need wx: editing commands, wrapping, pagination,
-undo bookkeeping, `.trelby` load/save and every export. It imports `wx`
+undo bookkeeping, the old `.trelby` load/save (used only by the tests'
+fixture since fountain-native/io/3) and every export. It imports `wx`
 (`trelby/screenplay.py:2`) but does not use it in the code paths the tests
 run.
 
@@ -172,7 +173,7 @@ Export
   `Config.__init__` (`trelby/config.py:445-512`); an Enter/Tab row in
   `ConfigGlobal.__init__` (`trelby/config.py:693-737`); a `ChangeTo<Type>`
   command in the alphabetical command list (`trelby/config.py:740`), a
-  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1246-1274`) and a
+  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1206-1234`) and a
   `to<Type>Cmd` here (`trelby/screenplay.py:3257-3282`); a menu id in
   `trelby/ids.py:72-92` and the right-click menu
   (`trelby/trelbyframe.py:289-297`); entries in the export maps `htmlMap`
@@ -195,7 +196,7 @@ Export
   `getElementsAsList()`, so it sees export caps but no styles.
 - **Import** produces `lines` only; whatever imports must give lines that
   satisfy the invariants above before `reformatAll` + `paginate`
-  (`trelby/trelbyctrl.py:248-252`).
+  (`trelby/trelbyctrl.py:222-226`).
 
 ## Gotchas
 

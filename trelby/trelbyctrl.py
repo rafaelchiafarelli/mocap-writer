@@ -30,7 +30,6 @@ import trelby.spellcheckdlg as spellcheckdlg
 import trelby.titlesdlg as titlesdlg
 import trelby.util as util
 import trelby.watermarkdlg as watermarkdlg
-from trelby.error import TrelbyError
 from trelby.ids import ID_EDIT_REDO, ID_EDIT_UNDO, idToLTMap
 from trelby.line import Line
 
@@ -124,51 +123,26 @@ class MyCtrl(wx.Control):
     def getCfgGui(self):
         return self.gd.cfgGui
 
+    # open a script: every file is read as Fountain (UTF-8); .trelby is
+    # refused (fountain-native/io/3)
     def loadFile(self, fileName):
-        if fountain.isFountain(fileName):
-            data = util.loadFile(fileName, self.gd.mainFrame, binary=True)
-            if data is None:
-                return
-
-            try:
-                (sp, msg) = (fountain.load(data.decode("UTF-8"), self.gd.cfgGl), "")
-            except UnicodeDecodeError:
-                wx.MessageBox(
-                    _("Error loading file:\n\n{}").format(
-                        _("The file is not UTF-8 text.")
-                    ),
-                    _("Error"),
-                    wx.OK,
-                    self.gd.mainFrame,
-                )
-
-                return
-
-            self.useLoaded(sp, msg, fileName)
-
-            return
-
-        s = str(util.loadFile(fileName, self.gd.mainFrame))
-        if s == None:
-            return
-
-        try:
-            (sp, msg) = screenplay.Screenplay.load(s, self.gd.cfgGl)
-        except TrelbyError as e:
-            wx.MessageBox(
-                _("Error loading file:\n\n{}".format(e)),
-                _("Error"),
-                wx.OK,
-                self.gd.mainFrame,
+        if fileName.lower().endswith(".trelby"):
+            self.loadError(
+                _(".trelby files are no longer supported; scripts are Fountain.")
             )
 
             return
 
-        self.useLoaded(sp, msg, fileName)
+        data = util.loadFile(fileName, self.gd.mainFrame, binary=True)
+        if data is None:
+            return
 
-    def useLoaded(self, sp, msg, fileName):
-        if msg:
-            misc.showText(self.gd.mainFrame, msg, _("Warning"))
+        try:
+            sp = fountain.load(data.decode("UTF-8"), self.gd.cfgGl)
+        except UnicodeDecodeError:
+            self.loadError(_("The file is not UTF-8 text."))
+
+            return
 
         self.clearVars()
         self.sp = sp
@@ -179,27 +153,27 @@ class MyCtrl(wx.Control):
         # display the first page
         self.makeLineVisible(self.sp.line)
 
-    # save script to given filename: .trelby if it ends so, else Fountain
-    # (an extension is added). returns True on success.
+    def loadError(self, msg):
+        wx.MessageBox(
+            _("Error loading file:\n\n{}").format(msg),
+            _("Error"),
+            wx.OK,
+            self.gd.mainFrame,
+        )
+
+    # save script to given filename as Fountain (".fountain" is added
+    # unless the name ends in it). returns True on success.
     def saveFile(self, fileName):
-        res = None
+        fileName = str(util.ensureEndsIn(fileName, ".fountain"))
+        res = fountain.generate(self.sp)
 
-        if fileName.lower().endswith(".trelby"):
-            data = self.sp.save()
-        else:
-            fileName = str(util.ensureEndsIn(fileName, ".fountain"))
-            res = fountain.generate(self.sp)
-            data = res.text.encode("UTF-8")
-
-        if util.writeToFile(fileName, data, self.gd.mainFrame):
-            if res:
-                self.sp.fountainSource = res.source
-
+        if util.writeToFile(fileName, res.text.encode("UTF-8"), self.gd.mainFrame):
+            self.sp.fountainSource = res.source
             self.setFile(fileName)
             self.sp.markChanged(False)
             self.gd.mru.add(fileName)
 
-            if res and res.lost:
+            if res.lost:
                 self.showLost(res.lost)
 
             return True
@@ -1136,10 +1110,6 @@ class MyCtrl(wx.Control):
         if self.fileName:
             dDir = os.path.dirname(self.fileName)
             dFile = os.path.basename(self.fileName)
-
-            # Fountain is the default format, also for a .trelby script
-            if dFile.lower().endswith(".trelby"):
-                dFile = dFile[: -len(".trelby")] + ".fountain"
         else:
             dDir = misc.scriptDir
             dFile = ""
@@ -1149,21 +1119,11 @@ class MyCtrl(wx.Control):
             _("Filename to save as"),
             defaultDir=dDir,
             defaultFile=dFile,
-            wildcard="Fountain (*.fountain)|*.fountain|"
-            + "Trelby "
-            + _("files")
-            + " (*.trelby)|*.trelby|"
-            + _("All files")
-            + "|*",
+            wildcard="Fountain (*.fountain)|*.fountain|" + _("All files") + "|*",
             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
         )
         if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
-
-            if dlg.GetFilterIndex() == 1:
-                path = util.ensureEndsIn(path, ".trelby")
-
-            self.saveFile(path)
+            self.saveFile(dlg.GetPath())
 
         dlg.Destroy()
 
@@ -1425,7 +1385,7 @@ class MyCtrl(wx.Control):
                 cs.char = chr(kc)
 
                 if opts.isTest and (cs.char == "�"):
-                    self.loadFile("sample.trelby")
+                    self.loadFile("trelby/sample.fountain")
                 elif opts.isTest and (cs.char == "�"):
                     self.cmdTest(cs)
                 elif opts.isTest and (cs.char == "�"):

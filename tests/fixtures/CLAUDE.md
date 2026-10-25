@@ -8,7 +8,9 @@ with the native file.
 **Inputs → Outputs:** read-only test data.
 
 ## Files
-- `test.trelby` — the reference script, `#Version 2` format (no
+- `test.trelby` — the reference script, the only `.trelby` left (the
+  program no longer opens the format; moving the tests to Fountain is
+  fountain-native/io/4); `#Version 2` format (no
   `#Start-Script` line; read with `startSeen = True`,
   `trelby/screenplay.py:291`). Default for `u.load()`.
 - `test.txt` — the same script as indented plain text (Trelby's text export
