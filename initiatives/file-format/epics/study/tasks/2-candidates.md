@@ -1,5 +1,7 @@
 ## 2. Candidate formats
 
+- **Status:** Done (2026-10-25) — comparison below
+
 - **Type:** study (no code)
 - **Depends on:** 1 (the list it is scored against)
 - **Contract:**
@@ -39,6 +41,12 @@
    Harpia message, validated on read. The script stays `script.fountain`,
    its notes pointing to records by id. History is not in ISOXML and needs
    its own design (`history/`).
+8. **Change log in SQLite** — every change is a Harpia message appended to
+   a log table in `film.db` (WAL mode); the current state is a table
+   rebuilt from the log; media in a folder beside it. The log is the
+   history; teams sync by exchanging the changes the other has not seen.
+9. **CRDT documents** — Automerge or Yjs (MIT): made for live and offline
+   team editing, marks on spans of text included; binary.
 
 ### Criteria
 - holds everything in task 1; the Fountain stays byte-identical;
@@ -51,3 +59,22 @@
 - every structured file is a Harpia message, easy to parse and share
   between apps (Rafael, 2026-10-25); Python stdlib or a commercial-use license;
 - effort to build and to keep.
+
+### Comparison (2026-10-25)
+
+Candidates 1, 6 and 7 are one family (folder of records) and are scored as
+**A**; 3 as **B**; 8 as **C**; 9 as **D**; 2 as **E**. Extended Fountain (4)
+cannot hold binaries, states or proposals without burying them in the
+script text; existing screenplay formats (5) hold no bible, states or
+proposals, and Rafael does not need other screenplay programs (task 1).
+
+| | Big | Team sharing | Debug / readable | History | Effort |
+|---|---|---|---|---|---|
+| **A. Folder of Harpia JSON records** (ISOXML-style) | thousands of files fine; slower on `/mnt/g` | good: any file sync, small records merge | excellent | to design | low |
+| **B. SQLite file** + `media/` | excellent | weak: copies do not merge; unsafe on network shares (sqlite.org) without a sync layer (session extension via `apsw`, cr-sqlite, or a server) | poor without a dump tool | to design | low–medium |
+| **C. Change log in SQLite** | excellent | best: exchange unseen changes; per-writer id spaces avoid collisions | good: each change is a message | built in | medium |
+| **D. CRDT documents** | good | excellent | poor (binary) | built in | high: young Python bindings, poor Harpia fit |
+| **E. Zip container** | poor: every save rewrites the file | easy to send, cannot merge | fair | none | low |
+
+Licenses: stdlib `json`/`sqlite3` (PSF, public domain); `apsw` (zlib-style),
+cr-sqlite (MIT/Apache-2.0), Automerge/Yjs (MIT) — all allow commercial use.
