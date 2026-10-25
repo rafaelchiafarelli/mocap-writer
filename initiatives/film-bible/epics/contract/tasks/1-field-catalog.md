@@ -112,9 +112,11 @@ file-format question (file-format/study/1).
 - **General direction** — anything else for the director
 
 **Transition**
-- Type: cut, match cut (on action, shape or sound), jump cut, smash cut,
-  dissolve / cross-dissolve, fade in, fade out, fade to black / white, wipe,
-  iris, J-cut / L-cut (sound leads or trails)
+- Types, **one or more combined** (Rafael, 2026-10-25: e.g. a cross-
+  dissolve that is also a match cut with an L-cut): cut, match cut (on
+  action, shape or sound), jump cut, smash cut, dissolve / cross-dissolve,
+  fade in, fade out, fade to black / white, wipe, iris, J-cut / L-cut
+  (sound leads or trails); picture and sound can each have their own
 - Duration (frames or seconds, at the film's frame rate)
 - Sound bridge: what carries over and how (music, dialogue, effect)
 - What motivates it (matching element in both shots)
