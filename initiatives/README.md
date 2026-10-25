@@ -4,6 +4,8 @@ Source: Rafael's review of unmodified Trelby (2026-10-23). Known bugs live in
 the **bugs** initiative (`bugs/bugs.md`), a backlog outside the order below:
 each is fixed on a fix branch when it gets in the way.
 
+**Open points** (decisions pending, work waiting, gates): `open-points.md`.
+
 The as-built documentation (initiative 0, done 2026-10-24) lives with the
 code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 
