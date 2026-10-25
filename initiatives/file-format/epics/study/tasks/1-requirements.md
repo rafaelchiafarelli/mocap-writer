@@ -22,6 +22,20 @@
 - Title page.
 - Acts and beats: where a scene is in the story (story-structure, study).
 
+**Scene annotations** (Rafael, 2026-10-25; fields in film-bible
+contract/1, "Scene annotations")
+- On Action (notes; character, prop, set, sound and general directions;
+  special effects), Transition (type, duration, sound bridge...) and Shot
+  (size, angle, lens, movement, machinery, frame rate, previz camera...).
+- Anchored to an element or a span of its text; kind, text, links to bible
+  items, state and source, like every value.
+- Rafael's idea: mark them with Fountain notes. Open: the whole annotation
+  in the note (one file, but structured fields, states and agent proposals
+  then live inside the script text, and other Fountain tools show them
+  inline), or a short typed note in the text pointing to a record kept
+  elsewhere (the script stays readable; a note can be orphaned).
+- Could be many: tens per scene, thousands per film.
+
 **Per-script settings** (were in `.trelby`)
 - Page setup and element styles (also savable today with Script →
   Settings → Save as), auto-completion lists, locations (heading groups),
