@@ -1,8 +1,12 @@
 ## 2. Per-script settings with a Fountain script
 
 - **Type:** code
-- **Depends on:** io/1; **Rafael's decision on where the settings live**
-  (open, 2026-10-24)
+- **Depends on:** io/1
+- **Decision (Rafael, 2026-10-25):** a **sidecar file** next to the script,
+  for now; a richer format (Fountain extended with Mocap Studio's own
+  parts) may replace it later. Waiting on the same conversation: whether
+  the writer's own file, not the Fountain, becomes the source of truth;
+  if so this task changes.
 - **Problem:** a `.trelby` file carries per-script settings: page setup and
   element styles (`Config`), auto-completion lists, locations, the script's
   spell-checker words, page headers. Fountain has no place for them, so
@@ -19,6 +23,7 @@
   - Requires: open restores them, save writes them, the Fountain text
     itself is still byte-identical after open → save
   - Delivers: settings that survive the round trip
-- **Pre-work:** the decision, recorded in this file
+- **Pre-work:** the decision (recorded above); the sidecar's name and
+  form, to propose and confirm
 - **Tests:** settings changed → saved → reopened equal; the script text
   unchanged
