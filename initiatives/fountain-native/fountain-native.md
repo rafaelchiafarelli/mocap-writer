@@ -10,7 +10,7 @@ cover a span of text.
 **Scope:** reading/writing Fountain 1.1 in the editor, scene ids and the
 numbering rule, notes on spans.
 
-**Out of scope:** `.trelby` files (still open, never the default), the
+**Out of scope:** `.trelby` files (removed from the program, io/3), the
 mocap-previz parser (it reads what this writes).
 
 **Initiative gate:** the neutral sample and one real scene survive open → save

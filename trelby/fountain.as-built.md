@@ -90,15 +90,16 @@ block → no title page.
   empty Scene line (`trelby/fountain.py:457`).
 - `generate(sp)` → `Result(text, source, lost)`; the caller writes `text`
   (UTF-8) and stores `source` (`MyCtrl.saveFile`,
-  `trelby/trelbyctrl.py:184`).
+  `trelby/trelbyctrl.py:166`).
 
 ## Gotchas
 
 - **Per-script settings are not in the Fountain file**: page setup,
   element styles, auto-completion lists, locations, the script's
   spell-checker words and headers stay at their defaults when a `.fountain`
-  is opened. Saving as `.trelby` keeps them. Open decision:
-  fountain-native/io/2.
+  is opened. Page setup and styles can be kept with Script → Settings →
+  Save as / Load. Where the rest will live waits for the file-format
+  investigation (fountain-native/io/2 on hold).
 - **Shot is Trelby's own convention** (upper case + two trailing spaces);
   other Fountain tools, and editors that strip trailing spaces, read it as
   Action. A Shot not in upper case is written as Action and reported lost.
@@ -110,7 +111,7 @@ block → no title page.
 - Emphasis (`*`, `**`, `_`), inline notes and inline boneyard stay in the
   text as typed characters; the editor shows them as they are.
 - Only UTF-8 files open (`MyCtrl.loadFile` shows an error otherwise,
-  `trelby/trelbyctrl.py:127`); the BOM and the line ending of the first line
+  `trelby/trelbyctrl.py:128`); the BOM and the line ending of the first line
   are kept, and new lines are written with that line ending.
 - Import → Fountain (`myimport.importFountain`) is the old one-way import
   with its option dialog, and Export → Fountain is still
@@ -118,8 +119,8 @@ block → no title page.
 
 ## Touchpoints
 
-- Called by: `MyCtrl.loadFile` / `saveFile` (`trelby/trelbyctrl.py:127`,
-  `trelby/trelbyctrl.py:184`); `tests/test_fountain.py`.
+- Called by: `MyCtrl.loadFile` / `saveFile` (`trelby/trelbyctrl.py:128`,
+  `trelby/trelbyctrl.py:166`); `tests/test_fountain.py`.
 - Uses: `screenplay` constants and `Screenplay`, `titles`, `pml`, `util`,
   `line.Line`; stdlib `difflib`, `re`.
 - Read by: the mocap-previz parser reads what this writes.

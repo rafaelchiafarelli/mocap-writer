@@ -1,5 +1,9 @@
 ## 2. Per-script settings with a Fountain script
 
+- **Status:** On hold (Rafael, 2026-10-25) — waits for the file-format
+  investigation (`initiatives/file-format/`), which may hold the settings
+  in the writer's own format instead of a sidecar.
+
 - **Type:** code
 - **Depends on:** io/1
 - **Decision (Rafael, 2026-10-25):** a **sidecar file** next to the script,
