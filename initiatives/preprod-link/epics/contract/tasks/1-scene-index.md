@@ -2,7 +2,9 @@
 
 - **Type:** code, here and in `mocap-contracts`
 - **Depends on:** fountain-native/scenes/1 (scene ids); film-bible/contract/2
-  (bible library, to resolve known characters and props); a
+  (bible library, to resolve known characters and props);
+  file-format/layout/1 (scene ids follow its scheme; the index is a part
+  listed in `film.json`, owned by the writer); a
   `mocap-contracts` task for a `scene_index` message, done and tagged
 - **Contract:**
   - In: the open script (Fountain) and `<film-root>/bible/`

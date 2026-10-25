@@ -10,9 +10,9 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 1. **pdf-import** — Rafael's existing PDF scripts open in the writer and come out as Fountain (done 2026-10-24; the gate's real-script import is left to a film session, Rafael's call; history: `git log -- initiatives/pdf-import`)
 2. **editor-ux** — zoom, dark theme, Tab order, capitalized words in Action (done 2026-10-24; history: `git log -- initiatives/editor-ux`)
 3. **fountain-native** — open/save Fountain as the native format; scene ids and numbering; notes on text spans
-4. **file-format** — the one format that holds the script, the bible, notes, links and the rest: a study first (Rafael, 2026-10-25)
+4. **file-format** — the one format that holds the script, the bible, notes, links and the rest: study done 2026-10-25, option A (a folder of Harpia JSON records, ISOXML-style; C, a change log in SQLite, kept in mind); next the root index and ids
 5. **film-bible** — the maps (sets, characters, props, wardrobe) as folders in the film root
 6. **preprod-link** — feed the mocap-preprod agents: scene index, Sync to spec (script-to-spec on every change), review of proposals
 7. **story-structure** — where we are in the story (acts, beats): a study first
 
-`film-bible` needs `fountain-native/scenes` (scene numbers) and the `file-format` decision. `preprod-link` needs `film-bible`. `fountain-native/io/2` (per-script settings) waits for `file-format`. `pdf-import` and `editor-ux` need nothing.
+`film-bible` needs `fountain-native/scenes` (scene numbers). `preprod-link` needs `film-bible`. `film-bible`, `preprod-link` and `fountain-native/io/2` (per-script settings) need `file-format/layout/1`. `pdf-import` and `editor-ux` need nothing.

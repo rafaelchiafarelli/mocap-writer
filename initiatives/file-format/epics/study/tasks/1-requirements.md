@@ -1,5 +1,7 @@
 ## 1. What the format must hold
 
+- **Status:** Done (2026-10-25) — confirmed through Rafael's answers below
+
 - **Type:** study (no code); Rafael confirms, cuts or extends the list
 - **Depends on:** —
 - **Contract:**
@@ -106,4 +108,4 @@ contract/1, "Scene annotations")
   a Harpia message (`mocap-contracts`, JSON through `to_json`/`from_json`),
   so any app reads it with the generated classes and a broken file fails
   with the path of the problem. XML would need a second schema system next
-  to Harpia, so it is not the encoding.
+  to Harpia (weighed in task 2; Rafael chose option A in task 3).
