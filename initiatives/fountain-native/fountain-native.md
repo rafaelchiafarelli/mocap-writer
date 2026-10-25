@@ -7,7 +7,7 @@ notes/1 wait for Rafael's decisions.
 saves `.fountain` without loss, scenes have a stable identity, and notes can
 cover a span of text.
 
-**Scope:** reading/writing Fountain 1.1 in the editor, scene ids and the
+**Scope:** reading/writing Fountain 1.1 in the editor, permanent scene numbers and the
 numbering rule, notes on spans.
 
 **Out of scope:** `.trelby` files (removed from the program, io/3), the

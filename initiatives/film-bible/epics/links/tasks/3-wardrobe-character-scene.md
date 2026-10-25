@@ -4,7 +4,7 @@
 - **Depends on:** maps/2, maps/4
 - **Contract:**
   - In: a character in a scene
-  - Requires: a wardrobe item links to (character id, scene id); a character
+  - Requires: a wardrobe item links to (character id, scene number); a character
     in a scene without wardrobe is listed as a gap, not an error; a wardrobe
     item with no character is allowed
   - Delivers: the links and the gap list
