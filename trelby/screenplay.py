@@ -717,11 +717,22 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
                 y += 10
 
+        # first line drawn on this page; with forPDF, act breaks are not
+        # drawn, so this can be after start.
+        first = None
+
         for i in range(start, end + 1):
             line = ls[i]
             tcfg = cfg.getType(line.lt)
 
-            if i != start:
+            # an act break is a marker only and never printed; the text
+            # after it moves up, pagination is left as it is.
+            if forPDF and (line.lt == ACTBREAK):
+                continue
+
+            if first is None:
+                first = i
+            else:
                 y += self.getSpacingBefore(i)
 
             typ = pml.NORMAL
