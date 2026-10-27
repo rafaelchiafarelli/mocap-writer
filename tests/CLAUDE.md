@@ -8,13 +8,14 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 **Inputs → Outputs:** `tests/fixtures/*` → pass/fail.
 
 ## Files
-- `u.py` — helpers: `init()` (`misc.init(False)` + `util.init(False)`, once),
+- `u.py` — helpers; importing it installs the builtin `_`
+  (`tests/u.py:16`), so every test file also runs on its own; `init()` (`misc.init(False)` + `util.init(False)`, once),
   `new()` (empty `Screenplay` with a fresh `ConfigGlobal`), `load(name)`
   (a Fountain fixture through `fountain.load`, plus the script settings of
-  the `.sconf` of the same name, `tests/u.py:40`), `withOldEnding(sp)`
+  the `.sconf` of the same name, `tests/u.py:45`), `withOldEnding(sp)`
   (puts back the ending `test.trelby` had and Fountain cannot hold: "Very."
-  as its own dialogue, two empty Actions, "Very"; `tests/u.py:64`),
-  `loadString(s)` (Fountain text), `fixtureFilePath` (`tests/u.py:31`).
+  as its own dialogue, two empty Actions, "Very"; `tests/u.py:69`),
+  `loadString(s)` (Fountain text), `fixtureFilePath` (`tests/u.py:36`).
 - `__init__.py` — empty; makes `tests.u` importable.
 - Editing commands on `tests/fixtures/test.fountain`:
   - `test_addchar.py` — typing a space / non-breaking space at the end of
@@ -40,8 +41,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - `test_renderscreenplay.py` — PDF export with core fonts and with the
   custom TTF.
 - `test_myimport.py` — `importCeltx` (against `test.fountain` with the old
-  ending) and `importTextFile` (against `test.fountain`); replaces `wx` in `sys.modules` by a `Mock` before importing
-  `myimport` (`tests/test_myimport.py:10-16`).
+  ending) and `importTextFile` (against `test.fountain`); the real `wx`,
+  with only `myimport.ImportDlg` patched to answer OK
+  (`tests/test_myimport.py:40-42`).
 - `test_pdfimport.py` — PDF import (`trelby/pdfimport.py`): draws its PDFs
   with ReportLab at test time (`makePdf`, US Letter, Courier 12; no PDF
   committed). With the profile `fixtures/pdf/letter-test.toml`: expected
@@ -99,14 +101,11 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   pytest because of its name).
 
 ## Key facts / gotchas
-- **`_` comes from `test_validate.py`**: it is the only test module that
-  loads the translations (`tests/test_validate.py:5`), which installs `_` as
-  a builtin. The whole suite passes; running a single test file such as
-  `tests/test_cut.py` fails with `NameError: name '_' is not defined`. Bug: [bugs/tooling/1](../initiatives/bugs/epics/tooling/tasks/1-tests-underscore.md).
-- `tests/test_myimport.py` swaps `sys.modules["wx"]` for a `Mock` at import
-  time; modules imported earlier by other tests keep the real `wx`, so the
-  result depends on import order. Nothing in the suite sets
-  `TRELBY_TESTING` (`trelby/config.py:14`). Bug: [bugs/tooling/2](../initiatives/bugs/epics/tooling/tasks/2-tests-wx-mock-order.md).
+- Every test runs with the real `wx` and no display: nothing replaces
+  `sys.modules["wx"]` and nothing sets `TRELBY_TESTING`
+  (`trelby/config.py:14`); a test that would open a dialog patches that
+  dialog. Several test files still load the translations themselves, which
+  `tests/u.py` already does.
 - `execute_random_tests.py` still imports `u` and `screenplay` as top-level
   modules via `sys.path` (`tests/execute_random_tests.py:16-20`), the
   pre-package layout. Bug: [bugs/tooling/4](../initiatives/bugs/epics/tooling/tasks/4-random-tests-stale.md).
@@ -119,7 +118,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   Fountain/FDX/HTML/RTF/text export, Fountain/FDX/Astx/Fade In import (the
   native `.fountain` open/save is `test_fountain.py`), pagination results,
   undo/redo.
-- Two `SyntaxWarning`s from `trelby/titles.py` appear in every run. Bug: [bugs/tooling/5](../initiatives/bugs/epics/tooling/tasks/5-titles-escapes.md).
+- Every run shows about 76 `DeprecationWarning`s for `wx.NewId()` from
+  `trelby/ids.py`, imported through `trelbyframe` by `test_saveall.py`;
+  harmless, the ids still work.
 
 ## Touchpoints
 - Tests: `trelby/screenplay.py`, `trelby/config.py`, `trelby/myimport.py`,

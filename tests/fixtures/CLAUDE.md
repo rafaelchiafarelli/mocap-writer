@@ -4,14 +4,14 @@
 sample script (a night scene at Stonehenge), so imports can be compared
 with the native file.
 **Entry points:** `tests.u.fixtureFilePath(name)` / `tests.u.load(name)`
-(`tests/u.py:31-49`).
+(`tests/u.py:36-54`).
 **Inputs → Outputs:** read-only test data.
 
 ## Files
 - `test.fountain` — the reference script (upstream Trelby's sample,
   converted from `test.trelby` 2026-10-25 with its text kept as stored,
   lower case included; its last two dialogue elements, which `test.trelby`
-  split with two empty Actions, are one here: `tests/u.py:64` puts them
+  split with two empty Actions, are one here: `tests/u.py:69` puts them
   back where a test needs them). Default for `u.load()`.
 - `test.sconf` — its script settings (page setup, element styles), the form
   Script → Settings → Save as writes; `u.load()` applies it.

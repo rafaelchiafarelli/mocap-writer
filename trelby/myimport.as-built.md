@@ -145,7 +145,7 @@ with the result.
 - `tests/test_myimport.py`: `importCeltx` against `tests/fixtures/test.celtx`
   and `importTextFile` against `tests/fixtures/test.txt`, each compared with
   `tests/fixtures/test.fountain` (with the old ending put back,
-  `tests/u.py:64`) after reformatting; `wx` is replaced by a
+  `tests/u.py:69`) after reformatting; `wx` is replaced by a
   `Mock` whose dialogs return OK.
 - `tests/test_pdfimport.py`: `importPdf` with `wx` and `misc.TextDlg`
   patched on the module (no question asked, report shown, error box, trace
