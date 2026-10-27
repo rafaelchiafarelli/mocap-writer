@@ -24,9 +24,8 @@
     and then with a message, never a crash
   - Delivers: the library that opens a film root, validates `film.json`,
     tells a program which parts it owns, and hands out new ids
-- **Pre-work:** Rafael confirms the default part paths (proposed below,
-  to confirm); the `mocap-contracts` task above. The id form is decided
-  (below, 2026-10-26)
+- **Pre-work:** the `mocap-contracts` task above. The id form and the
+  default part paths are decided (below, Rafael 2026-10-26)
 - **Out of scope:** the warning and the search for missing files
   (layout/3); history (layout/2); the contents of each part (their
   own tasks); moving to C (study/3: kept in mind, not built)
@@ -75,7 +74,12 @@ number (fountain-native/scenes/1).
   spaces, but unreadable, and debugging by eye is why ISOXML was picked.
   Both forms move to C (a change log) the same way.
 
-### Proposal: default part paths (session, 2026-10-25; Rafael to confirm)
+### Decided: default part paths (Rafael, 2026-10-26)
+
+The session's proposal (2026-10-25), confirmed, except that the scene
+index and the sync snapshots stay in `bible/` as data of the `bible`
+part, not parts of their own (question 3), and `analysis/` stays out of
+`film.json` (question 4).
 
 **`film.json`** (a `film` message):
 - `format_version` (int, `1`); `origin`: `program` and `version` of the
@@ -100,30 +104,32 @@ e.g. an existing script's own name):
 | `settings` | `settings/script-settings.json` | writer | fountain-native/io/2 |
 | `bible` | `bible/` | writer | film-bible/contract/2 |
 | `annotations` | `annotations/` | writer | film-bible/contract/1 (if study/1 option A, records pointed to by notes, is confirmed) |
-| `scene-index` | `preprod/scene-index.json` | writer | preprod-link/contract/1 (today `bible/scene-index.json`) |
-| `sync` | `preprod/sync/` | writer | preprod-link/sync/1 (today `bible/sync/`) |
 | `proposals-<code>` | `proposals/<agent>/` | that agent | open: how agents write proposals |
 | `history` | `history/` | writer | layout/2 (reserved, empty until decided) |
 
 The `ids/<space>.json` counters are not parts: each one belongs to its
 space's owner by the rule above.
 
-**What it changes if confirmed:** preprod-link contract/1 and sync/1 move
-from `bible/` to `preprod/` (a part may not sit inside `bible/`);
-film-bible contract/2 keeps `bible/` and gains the id form. Their task
-files are edited when this is confirmed, not before.
+The scene index (`bible/scene-index.json`, preprod-link/contract/1) and
+the sync snapshots (`bible/sync/`, preprod-link/sync/1) are files of the
+`bible` part, owned by the writer like the rest of it. `analysis/`, where
+agents write their brief, worklist and memos in Markdown, is not listed:
+layout/1 ignores folders `film.json` doesn't list.
+
+**What it changed:** preprod-link contract/1 no longer lists the index as
+a part of its own; sync/1 already writes `bible/sync/`; film-bible
+contract/2 keeps `bible/` and the layout/1 id form.
 
 **Questions for Rafael:**
 1. ~~The id form `character-w-12`, or UUIDs?~~ Answered 2026-10-26:
    `character-w-12` (above).
 2. ~~One counter per space, or one per kind per space?~~ Answered
    2026-10-26: one per kind per space (above).
-3. Move the scene index and the sync snapshots out of `bible/` to
-   `preprod/`?
-4. The `analysis/` folder that agents already write (brief, worklist,
-   memos in Markdown): leave it out of `film.json` for now (recommended:
-   they are not Harpia records, and layout/1 ignores folders it doesn't
-   list), or list it as one part per agent?
+3. ~~Move the scene index and the sync snapshots out of `bible/` to
+   `preprod/`?~~ Answered 2026-10-26: no, they stay in `bible/` as data
+   of the `bible` part.
+4. ~~The `analysis/` folder: leave it out of `film.json`, or one part per
+   agent?~~ Answered 2026-10-26: left out for now.
 
 **Touchpoint:** `mocap-contracts` `session.harpia` already has a
 `Character` with a free-form `id` for capture. A bible `character-…` id
