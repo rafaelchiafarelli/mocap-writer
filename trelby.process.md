@@ -85,8 +85,10 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   (`misc.MyTabCtrl`), the status area (`misc.MyStatus`) and the right-click
   menus (`trelby/trelbyframe.py:283-306`).
 - Each open script is one tab: a `MyPanel` (`trelby/trelbypanel.py:7`)
-  holding a `MyCtrl` editor widget (`trelby/trelbyctrl.py:50`) and a vertical
-  scroll bar. `MyCtrl` owns one `Screenplay` (`self.sp`) and binds paint,
+  holding a `MyCtrl` editor widget (`trelby/trelbyctrl.py:50`), a vertical
+  scroll bar and, at the right, the act panel (`trelby/actpanel.py:12`):
+  the acts, their sizes in scenes and the cursor's act, untouched by zoom
+  and scrolling (story-structure/acts/2). `MyCtrl` owns one `Screenplay` (`self.sp`) and binds paint,
   mouse and key events (`trelby/trelbyctrl.py:59-68`).
 - `createEmptySp()` (`trelby/trelbyctrl.py:101`) starts a script with the
   default title page and header (`trelby/titles.py:15`,
@@ -142,7 +144,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 
 ## Stage 3 — editing and keyboard
 
-- `MyCtrl.OnKeyChar` (`trelby/trelbyctrl.py:1363`) receives every key, with the
+- `MyCtrl.OnKeyChar` (`trelby/trelbyctrl.py:1368`) receives every key, with the
     key code from `util.eventKeyCode` (`trelby/util.py:209`): the Unicode
     character, or the `WXK_` code for arrows, Home, End and other keys that
     have none. A key that matches no command is skipped, and GTK then uses an
@@ -150,17 +152,17 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   - A printable character without Ctrl/Alt (`util.isValidInputChar`:
     code 32–255 minus 0x7F–0x9F and 0xAD, `trelby/util.py:219`) replaces the
     selection if `overwriteSelectionOnInsert` and is inserted with
-    `Screenplay.addCharCmd` (`trelby/trelbyctrl.py:1370-1394`).
+    `Screenplay.addCharCmd` (`trelby/trelbyctrl.py:1375-1399`).
   - Anything else is looked up in `MyFrame.kbdCommands`
     (`trelby/trelbyframe.py:494-512`, built from `cfgGl.commands`,
     `trelby/config.py:740`). Menu commands call `MyFrame.On<Name>`; the rest
-    call `MyCtrl.cmd<Name>` (`trelby/trelbyctrl.py:1401-1407`), which mostly
+    call `MyCtrl.cmd<Name>` (`trelby/trelbyctrl.py:1406-1412`), which mostly
     forward to `Screenplay.<name>Cmd`.
   - After every command: `cmdPost` fixes the column and refreshes
     auto-completion (`trelby/screenplay.py:2538`); the script is re-paginated
     if `paginateInterval` seconds (default 1) have passed
-    (`trelby/trelbyctrl.py:1414-1420`); the cursor line is scrolled into view
-    and the screen is redrawn (`trelby/trelbyctrl.py:1422-1425`).
+    (`trelby/trelbyctrl.py:1419-1425`); the cursor line is scrolled into view
+    and the screen is redrawn (`trelby/trelbyctrl.py:1427-1430`).
 - **Enter** (`NewElement`, `trelby/config.py:996`) →
   `Screenplay.splitElementCmd` (`trelby/screenplay.py:2869`): splits the
   element at the cursor and gives the new element the current type's
@@ -212,11 +214,11 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   (`getMatchingText`, `trelby/screenplay.py:1833`).
 - **Clipboard**: the internal clipboard keeps typed lines (`ClipData`,
   `trelby/screenplay.py:3197`); pasting from the system clipboard turns each
-  non-empty text line into an Action element (`trelby/trelbyctrl.py:882`).
+  non-empty text line into an Action element (`trelby/trelbyctrl.py:887`).
 
 ## Stage 4 — screen rendering (`viewmode`)
 
-- `MyCtrl.OnPaint` (`trelby/trelbyctrl.py:1427`) asks the active view mode
+- `MyCtrl.OnPaint` (`trelby/trelbyctrl.py:1432`) asks the active view mode
   (`gd.vm`, `trelby/globaldata.py:106`) for `getScreen(ctrl, True, True)` →
   `(texts, dpages)`: positioned `TextString`s and, outside draft mode, page
   rectangles (`trelby/viewmode.py:82`). It then paints the workspace, pages,
@@ -237,15 +239,15 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   element's screen style (caps/bold/italic/underline) comes from the script's
   `Type.screen` (`trelby/config.py:191`). In Action lines, words written
   fully in capitals (2+ letters, accents included) are underlined as props,
-  on screen only (`propwords.find_prop_words`, `trelby/trelbyctrl.py:1594-1603`). **Zoom** (50–300 % in steps of
+  on screen only (`propwords.find_prop_words`, `trelby/trelbyctrl.py:1599-1608`). **Zoom** (50–300 % in steps of
   10, Ctrl `+` / `-` / `0`, Ctrl + wheel, the status control) scales those
   fonts and the draft row height only; it is a global setting and never
-  touches the PDF (`trelby/config.py:1697-1709`, `trelby/trelbyctrl.py:432`). Colors are the global `*Color`
+  touches the PDF (`trelby/config.py:1697-1709`, `trelby/trelbyctrl.py:437`). Colors are the global `*Color`
   settings (`trelby/config.py:1273-1320`) of the chosen theme, Light or Dark
   (Settings → Colors, or the View → Dark theme check item, which switches
   at once and saves the config: `MyFrame.OnDarkTheme`,
   `trelby/trelbyframe.py:788-795`, `MyCtrl.OnDarkTheme`,
-  `trelby/trelbyctrl.py:457-470`); each theme keeps its own colors
+  `trelby/trelbyctrl.py:462-475`); each theme keeps its own colors
   (`trelby/config.py:1382-1411`). Under Docker, Dark also starts GTK's dark
   variant (`docker/run.sh:34-39`).
 
@@ -253,7 +255,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 
 - **Fountain only** (fountain-native/io/3, 2026-10-25): Open and Save As
   offer Fountain and All files (`trelby/trelbyframe.py:590-603`,
-  `trelby/trelbyctrl.py:1109-1128`); every file opened is read as
+  `trelby/trelbyctrl.py:1114-1133`); every file opened is read as
   Fountain, except a name ending in `.trelby`, which is refused with a
   message (`MyCtrl.loadFile`, `trelby/trelbyctrl.py:128-135`); Save adds
   `.fountain` unless the name ends in it (`MyCtrl.saveFile`,
@@ -277,8 +279,8 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   the file, default headers and settings, `reformatAll`, `paginate`,
   refresh locations; its parsed source is kept in `sp.fountainSource` for
   the next save. If the open fails, the new tab stays open, empty.
-- **Revert** reloads from disk (`trelby/trelbyctrl.py:791`). **Close** asks
-  before discarding changes (`trelby/trelbyctrl.py:752`). **Exit** writes the
+- **Revert** reloads from disk (`trelby/trelbyctrl.py:796`). **Close** asks
+  before discarding changes (`trelby/trelbyctrl.py:757`). **Exit** writes the
   window state and removes temporary files (`trelby/trelbyframe.py:989`).
 
 ## Stage 6 — import (`myimport`)
@@ -319,8 +321,8 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 
 ## Stage 7 — export
 
-- `MyCtrl.OnExportScript` (`trelby/trelbyctrl.py:1130`) first calls
-  `getExportable` (`trelby/trelbyctrl.py:481`): optionally runs `findError`
+- `MyCtrl.OnExportScript` (`trelby/trelbyctrl.py:1135`) first calls
+  `getExportable` (`trelby/trelbyctrl.py:486`): optionally runs `findError`
   and asks whether to continue, drops Note elements on a copy when
   `pdfRemoveNotes`, re-paginates. The format is the file dialog's filter
   index:
@@ -343,18 +345,18 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   - **formatted text** → `generateText` (`trelby/screenplay.py:195`), page
     markers optional.
 - **Print** writes the same PDF to a temporary file and opens the configured
-  PDF viewer (`trelby/trelbyctrl.py:1178`, `trelby/gutil.py:82`).
+  PDF viewer (`trelby/trelbyctrl.py:1183`, `trelby/gutil.py:82`).
 - **Watermark** writes one PDF per line of the watermark list, with that
   text and an optional common mark printed in light gray at 45° behind each
   page (`trelby/watermarkdlg.py:11`).
 - **Compare scripts** diffs two open scripts' formatted text and shows the
-  diff as a colored PDF (`trelby/trelbyctrl.py:689`,
+  diff as a colored PDF (`trelby/trelbyctrl.py:694`,
   `trelby/screenplay.py:2308`).
 
 ## Stage 8 — reports
 
 - Each report re-paginates and builds a PDF that is opened in the viewer
-  (`trelby/trelbyctrl.py:669-687`, `trelby/reports.py`):
+  (`trelby/trelbyctrl.py:674-692`, `trelby/reports.py`):
   - **script report** — line counts per type, interior/exterior share,
     longest/average scene and action length, speaking characters
     (`trelby/scriptreport.py:10`);

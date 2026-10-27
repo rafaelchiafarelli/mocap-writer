@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 57 modules: the
+**Role:** All of Trelby's code. One flat package of 59 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -64,13 +64,20 @@ Model and file format
   (`trelby/autocompletion.py:13-39`).
 - `autocompletiontype.py` — `AutoCompletionType`: one element type's
   `enabled` flag and item list.
+- `acts.py` — the acts of a script (story-structure/acts/2), no wx:
+  `actsOf(sp) -> [Act]` (`trelby/acts.py:35`), one `Act(name, line,
+  scenes)` per Act break element, `Act n` when its text is empty, sized
+  by the Scene elements up to the next act break; scenes before the first
+  act break are an unnamed first part (`name` None), listed only when
+  there is an act break; `actAt(acts, line)` → index or None
+  (`trelby/acts.py:64`).
 - `propwords.py` — `find_prop_words(line) -> [(start, end, word)]`
   (`trelby/propwords.py:15`): runs of 2+ letters, accents included, that are
   fully upper case (`trelby/propwords.py:9`); the editor underlines them in
   Action lines, film-bible will reuse it for prop records. No wx.
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1387`).
+  (`trelby/trelbyctrl.py:1392`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -97,7 +104,19 @@ Application and editor (wx)
   (`updateThemeMenu`, `trelby/trelbyframe.py:791-795`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
-  (`trelby/trelbypanel.py:7`).
+  + `ActPanel` at the right (`trelby/trelbypanel.py:7`); the act panel is
+  made before `MyCtrl`, whose constructor already updates it
+  (`trelby/trelbypanel.py:28`).
+- `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
+  wide, one row per act with its name, `n scenes` and a bar as long as its
+  scene count against the largest act; the cursor's act highlighted; a
+  hint when there is no act break. Own pixel fonts, so the zoom never
+  changes it, and it does not scroll. `update(sp)` repaints only when the
+  acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:375`); repainted on a theme
+  change (`trelby/trelbyctrl.py:418`); `draw(dc, w, h)` does the drawing
+  (`trelby/actpanel.py:60`); a click gives the focus back to the script
+  (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
   handling, mouse, painting, load/save/import/export/print, dialogs and
   reports for its script. Detail: [trelbyctrl.as-built.md](trelbyctrl.as-built.md).
@@ -231,7 +250,7 @@ Data and folders
   `tests/test_cut.py tests/test_myimport.py` alone: 8 failures). The full
   suite passes because collection imports `test_validate.py`. Bug: [bugs/tooling/1](../initiatives/bugs/epics/tooling/tasks/1-tests-underscore.md).
 - **`_("...".format(x))` formats before translating**, so the translated
-  string is never found for those messages (e.g. `trelby/trelbyctrl.py:942`,
+  string is never found for those messages (e.g. `trelby/trelbyctrl.py:947`,
   `trelby/config.py:1319`). Throughout the package. Bug: [bugs/config-i18n/3](../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md).
 - **`TRELBY_TESTING` env var** makes `config`, `misc`, `util` and `gutil`
   import a `Mock` instead of `wx` (`trelby/config.py:14-19`) and leaves
@@ -249,9 +268,9 @@ Data and folders
 - **Character map → Insert, Name database → Insert and Edit → Insert
   non-breaking space are broken:** they call
   `MyCtrl.OnKeyChar(util.MyKeyEvent(...))` (`trelby/charmapdlg.py:27`,
-  `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:990`), but
+  `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:995`), but
   `OnKeyChar` → `util.eventKeyCode` calls `ev.GetUnicodeKey()`
-  (`trelby/trelbyctrl.py:1364`, `trelby/util.py:210`),
+  (`trelby/trelbyctrl.py:1369`, `trelby/util.py:210`),
   which `util.MyKeyEvent` does not have (`trelby/util.py:789-810`) →
   `AttributeError`. Bug: [bugs/editor/1](../initiatives/bugs/epics/editor/tasks/1-insert-char-crash.md).
 - **`opts.py --conf` crashes:** `str(sys.argv[i + 1], "UTF-8", "ignore")`
@@ -269,7 +288,7 @@ Data and folders
   `(a.x < a.y)` for `(a.x < b.x)` (`trelby/titles.py:58`). Bug: [bugs/editor/9](../initiatives/bugs/epics/editor/tasks/9-titles-sort-noop.md).
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
-  branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1387-1392`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
+  branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1392-1397`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
 - **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:1000-1001`
   → `OnSave`); other modified tabs are discarded. Bug: [bugs/editor/2](../initiatives/bugs/epics/editor/tasks/2-exit-saves-current-tab.md).
 - **Help → Commands → Save** uses `wx.OVERWRITE_PROMPT`
