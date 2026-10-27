@@ -372,6 +372,8 @@ class MyCtrl(wx.Control):
             page, pageCnt, cur.ti.name, tabNext, enterNext
         )
 
+        self.panel.actPanel.update(self.sp)
+
         canUndo = self.sp.canUndo()
         canRedo = self.sp.canRedo()
 
@@ -411,6 +413,9 @@ class MyCtrl(wx.Control):
             c.refreshCache()
             c.makeLineVisible(c.sp.line)
             c.adjustScrollBar()
+
+            # in case the theme changed
+            c.panel.actPanel.Refresh(False)
 
         self.updateScreen()
 
