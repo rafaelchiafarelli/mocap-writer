@@ -30,8 +30,9 @@ the field catalog (film-bible/contract/1); "needs review" not stored
   writer refuses an invalid file, or (b) a validating `bible propose`
   command; deferred to the mocap-preprod planning
   ([preprod-link](preprod-link/preprod-link.md)).
-- **Story structure** — study done 2026-10-26: options A, B
-  (recommended), C, with a worked example of B; Rafael tries it and picks
+- **Story structure** — study done 2026-10-26: an act is a marker only,
+  with a panel of act sizes (epic `acts`); models and beats wait for a
+  later talk with an agent
   ([study/1](story-structure/epics/study/tasks/1-structure-study.md)).
 - **Across repositories** — mocap-previz decision D8, where the Fountain
   parser lives, is open there. Proposal to bring to it:
