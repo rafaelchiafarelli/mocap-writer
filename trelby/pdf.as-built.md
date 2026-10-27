@@ -76,7 +76,7 @@ watermarks, the dialogue chart and script comparison all build PML and call
   draws nothing (`trelby/pdf.py:117-120`).
 - A custom font that cannot be used (a name with no file, or a file
   ReportLab cannot read) raises `error.MiscError` (`trelby/pdf.py:327-346`);
-  Export, Print (`MyCtrl.makePDF`, `trelby/trelbyctrl.py:1214`) and
+  Export, Print (`MyCtrl.makePDF`, `trelby/trelbyctrl.py:1216`) and
   Watermark show it in a message box. The script settings only send a
   font that has a file (`trelby/screenplay.py:520-524`).
 - Text widths for Helvetica/Times use Latin-1 tables; a character above

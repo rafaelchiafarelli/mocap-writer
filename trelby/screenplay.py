@@ -2582,11 +2582,20 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
     def moveLineEndCmd(self, cs):
         if self.acItems:
+            # accept the completion: one undo step, re-wrapped, like Enter
+            u = undo.SinglePara(self, undo.CMD_MISC, self.line)
+
             self.lines[self.line].text = self.acItems[self.acSel]
+            self.column = len(self.lines[self.line].text)
+
+            self.rewrapPara()
+            self.markChanged()
+
+            u.setAfter(self)
+            self.addUndo(u)
         else:
             self.maybeMark(cs.mark)
-
-        self.column = len(self.lines[self.line].text)
+            self.column = len(self.lines[self.line].text)
 
     def moveLineStartCmd(self, cs):
         self.maybeMark(cs.mark)

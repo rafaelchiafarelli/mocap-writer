@@ -40,32 +40,32 @@ Files
   `trelby/trelbyctrl.py:208-218`; other files by file-name ending to
   `myimport`; `.pdf`, any case, → `importPdf`,
   `trelby/trelbyctrl.py:230`), `OnSave` / `OnSaveScriptAs`
-  (`trelby/trelbyctrl.py:1124-1149`; Save As offers Fountain and All
+  (`trelby/trelbyctrl.py:1126-1151`; Save As offers Fountain and All
   files), `OnRevertScript`
   (`trelby/trelbyctrl.py:812`), `canBeClosed` (`trelby/trelbyctrl.py:773`).
 - `getExportable(action)` (`trelby/trelbyctrl.py:502`) → paginated script
   (a copy without notes if `pdfRemoveNotes`), after an optional error check.
-- `OnExportScript` (`trelby/trelbyctrl.py:1151`) — format by the save
+- `OnExportScript` (`trelby/trelbyctrl.py:1153`) — format by the save
   dialog's filter index 0–5: PDF, RTF, FDX, HTML, Fountain, text;
   `getExportText` / `getExportHtml` ask their one option first
-  (`trelby/trelbyctrl.py:246-274`). `OnPrint` (`trelby/trelbyctrl.py:1203`); both make the PDF with
-  `makePDF` (`trelby/trelbyctrl.py:1214`), which shows a `TrelbyError`
+  (`trelby/trelbyctrl.py:246-274`). `OnPrint` (`trelby/trelbyctrl.py:1205`); both make the PDF with
+  `makePDF` (`trelby/trelbyctrl.py:1216`), which shows a `TrelbyError`
   (an unusable custom PDF font) and returns None.
 
 Keyboard
-- `OnKeyChar(ev)` (`trelby/trelbyctrl.py:1399`): see
+- `OnKeyChar(ev)` (`trelby/trelbyctrl.py:1401`): see
   `../trelby.process.md`, stage 3. The key code is `util.eventKeyCode(ev)`: the Unicode
   character, or the `WXK_` code for keys that have none (arrows, Home, End,
   F-keys). Plain characters go to `sp.addCharCmd`;
   other keys through `gd.mainFrame.kbdCommands` to `MyFrame.On<Name>` (menu
   commands) or `self.cmd<Name>(cs)`. Then `cmdPost`, timed re-pagination,
   scroll into view, `updateScreen`.
-- `cmd<Name>` methods (`trelby/trelbyctrl.py:1242-1397`) are one-line
+- `cmd<Name>` methods (`trelby/trelbyctrl.py:1244-1399`) are one-line
   forwards to `Screenplay`; `cmdDelete` / `cmdDeleteBackward` cut the
-  selection instead when there is one (`trelby/trelbyctrl.py:1272-1282`);
+  selection instead when there is one (`trelby/trelbyctrl.py:1274-1284`);
   `cmdMovePageUp/Down` → `pageCmd` (`trelby/trelbyctrl.py:792`, also pages
   the completion list). `cmdSpeedTest` and `cmdTest` are developer hooks
-  (`trelby/trelbyctrl.py:1341-1397`).
+  (`trelby/trelbyctrl.py:1343-1399`).
 
 Mouse and scrolling
 - `OnLeftDown` / `OnMotion` / `OnLeftUp` select with the mouse through
@@ -79,19 +79,19 @@ Mouse and scrolling
   (`trelby/trelbyctrl.py:317-345`).
 
 Painting
-- `OnPaint` (`trelby/trelbyctrl.py:1463`): workspace fill, then either one
+- `OnPaint` (`trelby/trelbyctrl.py:1465`): workspace fill, then either one
   endless page (draft, `dpages` empty) or a rectangle + shadow per
   `DisplayPage`; per `TextString`: note box, selection, show-formatting
   marks, page-break lines (draft only, by `cfgGl.pbi`), cursor; then
-  underlines and text; then `drawAutoComp` (`trelby/trelbyctrl.py:1659`).
+  underlines and text; then `drawAutoComp` (`trelby/trelbyctrl.py:1661`).
 - Props: in an Action line, each word `propwords.find_prop_words` finds
   in the line's own text (not the screen text, which is all caps when the
   Action style is) gets an underline of the text pen; display only
-  (`trelby/trelbyctrl.py:1630-1639`). A line already underlined by its
+  (`trelby/trelbyctrl.py:1632-1641`). A line already underlined by its
   style gets no extra underline.
 - Text color: `cfgGui.textColor`, or the per-type color when
   `useCustomElemColors`; header/continued texts (line −1) use
-  `textHdrColor` (`trelby/trelbyctrl.py:1614-1620`).
+  `textHdrColor` (`trelby/trelbyctrl.py:1616-1622`).
 - `updateScreen` / `updateCommon` (`trelby/trelbyctrl.py:363-400`): scroll
   bar, status area (page, element, next Tab/Enter types), the tab's act
   panel (`trelby/trelbyctrl.py:391`, `trelby/actpanel.py:40`), Undo/Redo
@@ -100,25 +100,25 @@ Painting
 
 Clipboard
 - `OnCut(doUpdate, doDelete, copyToClip)` (`trelby/trelbyctrl.py:833`),
-  `OnCopy`, `OnPaste(clines)` (`trelby/trelbyctrl.py:889`) — the internal
+  `OnCopy`, `OnPaste(clines)` (`trelby/trelbyctrl.py:891`) — the internal
   clipboard lives on the frame (`MyFrame.clipboard`).
 - `OnCopySystem(formatted)` (`trelby/trelbyctrl.py:853`), `OnPasteSystemCb`
-  (`trelby/trelbyctrl.py:903`, each non-empty line → one Action element).
+  (`trelby/trelbyctrl.py:905`, each non-empty line → one Action element).
 
 Settings and dialogs
 - `applyCfg(newCfg)` (`trelby/trelbyctrl.py:403`) — script settings;
   `applyGlobalCfg(newCfgGl, writeCfg)` (`trelby/trelbyctrl.py:411`) — global
   settings: rebuilds `ConfigGui`, keyboard table, every tab's cache, writes
   `default.conf`.
-- `OnSettings` / `OnScriptSettings` (`trelby/trelbyctrl.py:1222-1240`)
+- `OnSettings` / `OnScriptSettings` (`trelby/trelbyctrl.py:1224-1242`)
   open `CfgDlg` on a deep copy; Apply and OK call the apply function.
 - Script dialogs on deep copies, stored back on OK: auto-completion, titles,
   headers, locations, script dictionary (`trelby/trelbyctrl.py:627-681`);
-  watermark (`trelby/trelbyctrl.py:683`); find (`trelby/trelbyctrl.py:1030`),
-  spell check (`trelby/trelbyctrl.py:1044`), delete elements
-  (`trelby/trelbyctrl.py:1090`), goto scene/page
-  (`trelby/trelbyctrl.py:949-1008`), find next error
-  (`trelby/trelbyctrl.py:1013`).
+  watermark (`trelby/trelbyctrl.py:683`); find (`trelby/trelbyctrl.py:1032`),
+  spell check (`trelby/trelbyctrl.py:1046`), delete elements
+  (`trelby/trelbyctrl.py:1092`), goto scene/page
+  (`trelby/trelbyctrl.py:951-1010`), find next error
+  (`trelby/trelbyctrl.py:1015`).
 - Reports (`trelby/trelbyctrl.py:690-708`) and compare
   (`trelby/trelbyctrl.py:710`).
 
@@ -146,7 +146,7 @@ Settings and dialogs
   `importFile` (`trelby/trelbyctrl.py:220-233`) plus the file-dialog
   wildcard in `MyFrame.OnImportScript` (`trelby/trelbyframe.py:616-644`).
 - **Export formats**: one more filter in the wildcard and branch in
-  `OnExportScript` (`trelby/trelbyctrl.py:1160-1194`); the branch order is
+  `OnExportScript` (`trelby/trelbyctrl.py:1162-1196`); the branch order is
   the filter index.
 - **New command**: a `Command` in `ConfigGlobal` (alphabetical) and either a
   `cmd<Name>` here or, with `isMenu=True`, an `On<Name>` on `MyFrame`.
@@ -159,15 +159,16 @@ Settings and dialogs
 - `importFile` picks the importer by the lower-cased extension
   (`trelby/trelbyctrl.py:220`); anything not listed, a name without an
   extension included, is read as plain text.
-- `OnCopySystem` lays text out with a fresh default `Screenplay`, so the
-  formatted copy uses default element widths, not the script's
-  (`trelby/trelbyctrl.py:858-866`). Bug: [bugs/editor/6](../initiatives/bugs/epics/editor/tasks/6-copy-system-default-widths.md).
+- `OnCopySystem` lays the selection out in a temporary `Screenplay` with a
+  copy of the script's `Config`, so a formatted copy has the script's
+  indents and styles (`trelby/trelbyctrl.py:853-889`); the lines arrive
+  already wrapped by the script.
 - `OnPaint` keys its per-font text batches by testing
   `fi.font not in texts`, where `texts` is a list of `(font, data)` tuples
-  (`trelby/trelbyctrl.py:1607-1610`); the test is always true, so every
+  (`trelby/trelbyctrl.py:1609-1612`); the test is always true, so every
   string gets its own `DrawTextList` call. Output is correct, just slower.
 - Test-mode hotkeys: all three compare against U+FFFD, so only "load
-  `trelby/sample.fountain`" is reachable (`trelby/trelbyctrl.py:1423-1428`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
+  `trelby/sample.fountain`" is reachable (`trelby/trelbyctrl.py:1425-1430`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
 - `toolbarshown` and the `KC_CTRL_*` constants at the top
   (`trelby/trelbyctrl.py:37-48`) are unused, as are the same names in
   `trelby/trelby.py:20-31`.
