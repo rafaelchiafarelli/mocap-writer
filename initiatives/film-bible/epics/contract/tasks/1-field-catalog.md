@@ -9,7 +9,7 @@
   - Requires: every field has a name, type (text, number+unit, choice, list,
     file, link), whether it repeats per scene, and who fills it; every value
     carries a **state** (`script-stated`, `creator-approved`, `proposal`,
-    `TBD`) and a source (scene id or decision), as the mocap-preprod registers
+    `TBD`) and a source (scene number or decision), as the mocap-preprod registers
     already do, so AI proposals never pass as approved
   - Delivers: the approved catalog below, edited by Rafael, with the date
 - **Pre-work:** —
@@ -19,7 +19,7 @@
 ### Proposal (to approve, cut or extend)
 
 Every item: `id`, `name`, `aliases`, `description`, `photos/`, `references/`,
-`notes`, `tags`, `children` (sub-items), `scenes` (ids, derived from links).
+`notes`, `tags`, `children` (sub-items), `scenes` (numbers, derived from links).
 
 **Set (cenário)**
 - Space: interior/exterior, type (house, office, street…), period/era, place
@@ -85,3 +85,68 @@ Every item: `id`, `name`, `aliases`, `description`, `photos/`, `references/`,
 - Files: photos, references, `.blend` model, pattern files
 - Changes: which scenes it is worn in, what changes between scenes
 - Capture: what the actor wears for capture (markerless: tight vs loose)
+
+### Scene annotations (Rafael, 2026-10-25; proposal to approve, cut or extend)
+
+Inside a scene, an **Action**, a **Transition** or a **Shot** element can
+carry annotations. Each annotation is anchored to the element (or to a span
+of its text, the notes/1 mechanism), has a **kind**, a short text, links to
+bible items, and like every value a **state** and a **source**. Proposed
+marking in Fountain: a typed note, e.g. `[[fx:3b1 chuva forte]]`; where the
+full fields live (in the note or in a record the note points to) is a
+file-format question (file-format/study/1).
+
+**Action** — annotation kinds:
+- **Note** — free text for the writer or the crew
+- **Character direction** — character (link), what they do: blocking and
+  path (from → to), gesture, look/eyeline, emotion and intensity, timing
+  (beat, pause, overlap); feeds mocap capture planning
+- **Prop direction** — prop (link), the action on it (picks up, drops,
+  breaks, hands over to [character]), state before → after (continuity)
+- **Special effect** — practical (rain, smoke, fire, breakaway, squib) or
+  visual (digital); description, when it starts and stops, intensity,
+  safety notes, who makes it (SFX / VFX)
+- **Set direction** — set (link), a change during the scene: dressing
+  moved, door opens, light changes (practical on/off, time of day shifts)
+- **Sound direction** — a sound effect or ambience cue (feeds mocap-audio)
+- **General direction** — anything else for the director
+
+**Transition**
+- Types, **one or more combined** (Rafael, 2026-10-25: e.g. a cross-
+  dissolve that is also a match cut with an L-cut): cut, match cut (on
+  action, shape or sound), jump cut, smash cut, dissolve / cross-dissolve,
+  fade in, fade out, fade to black / white, wipe, iris, J-cut / L-cut
+  (sound leads or trails); picture and sound can each have their own
+- Duration (frames or seconds, at the film's frame rate)
+- Sound bridge: what carries over and how (music, dialogue, effect)
+- What motivates it (matching element in both shots)
+- Description
+
+**Shot** — photographic and machinery description
+- Size: extreme close-up, close-up, medium close-up, medium, cowboy, medium
+  long, long, extreme long, insert
+- Angle: eye level, high, low, overhead / bird's eye, worm's eye, Dutch
+  (tilt in degrees); point of view: neutral, POV of [character], over the
+  shoulder of [character]
+- Subjects in frame (links: characters, props), composition (rule of thirds,
+  centered, headroom, lead room), two-shot / group
+- Lens: focal length (mm), type (spherical, anamorphic, macro, fisheye),
+  aperture (T/f-stop), depth of field, focus (fixed, rack focus from → to,
+  split diopter)
+- Camera movement: static, pan, tilt, dolly in/out, truck, pedestal, crane /
+  jib, zoom, dolly zoom, handheld, steadicam / gimbal, drone, arc around
+  [subject]; speed and path
+- Support / machinery: tripod, dolly and track, slider, crane, gimbal,
+  car mount, drone, motion-control rig
+- Frame rate (slow / fast motion), shutter angle, duration, aspect ratio
+- Lighting intent: key direction, high-key / low-key, contrast, color
+  temperature, practicals in shot
+- Previz: the virtual camera for mocap-previz / Blender (sensor, focal
+  length, position and path), so a shot description becomes a camera
+- Description; references (frames, storyboard images)
+
+Questions for Rafael: should Dialogue and Parenthetical carry character
+directions too (they are performance, as much as Action)? Is a Shot always
+its own element, or can it also be an annotation on an Action ("the camera
+follows her")?
+

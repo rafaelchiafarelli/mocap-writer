@@ -1,6 +1,8 @@
 # film-bible — mocap-writer
 
-**Status:** Planned — not started. Needs `fountain-native/scenes` (scene ids).
+**Status:** Planned — not started. Needs `fountain-native/scenes` (scene
+numbers) and `file-format/layout/1` (root index, ids). The file-format
+decision (option A, 2026-10-25) keeps the maps as folders.
 
 **Goal:** the writer keeps the film's maps (sets, characters, props,
 wardrobe) next to the script, as a tree like Windows Explorer: every item is a
@@ -10,7 +12,7 @@ another film, linked or not.
 
 **Decided (Rafael, 2026-10-23):** the maps are **folders in the film root**
 (`<film-root>/bible/`), with their format defined as a Harpia contract. The
-Fountain script never holds map data; the maps point to scene **ids**.
+Fountain script never holds map data; the maps point to scene **numbers** (permanent, the scene's identity).
 
 **Scope:** the field catalog, the contract, the tree panel, one editor per map,
 links (scene ↔ set, prop words → props, wardrobe ↔ character × scene), copy

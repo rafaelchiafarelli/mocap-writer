@@ -92,8 +92,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   modules via `sys.path` (`tests/execute_random_tests.py:16-20`), the
   pre-package layout. Bug: [bugs/tooling/4](../initiatives/bugs/epics/tooling/tasks/4-random-tests-stale.md).
 - PDFs are generated, not committed: Rafael's real PDFs hold film text and
-  stay out of the repo (see
-  `initiatives/pdf-import/epics/importer/tasks/1-pdf-importer.md`).
+  stay out of the repo (decided in the pdf-import initiative, task
+  importer/1, now in git history).
 - Not covered by any test: the wx GUI (`trelbyframe`, `trelbyctrl`,
   `viewmode`, dialogs), `.trelby` save round-trip, Fountain/FDX/HTML/RTF/text
   export, Fountain/FDX/Astx/Fade In import, pagination results, undo/redo.
