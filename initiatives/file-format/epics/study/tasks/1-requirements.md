@@ -1,5 +1,7 @@
 ## 1. What the format must hold
 
+- **Status:** Done (2026-10-25) — confirmed through Rafael's answers below
+
 - **Type:** study (no code); Rafael confirms, cuts or extends the list
 - **Depends on:** —
 - **Contract:**
@@ -17,8 +19,9 @@
 - Fountain 1.1 text, open → save → open byte-identical, readable by other
   Fountain tools and by the mocap-previz parser (fountain-native/io/1).
 - Scene numbers: permanent, `12A` for inserts, not editable, written as
-  `#12A#` (fountain-native/scenes/1, 2026-10-25).
-- Notes on spans of text (fountain-native/notes/1, marker format open).
+  `#12A#` (fountain-native/scenes/1, 2026-10-25; the notation became
+  `12.A`, nested `12.A.1`, on 2026-10-26).
+- Notes on spans of text (fountain-native/notes/1; kept outside the script text, decided 2026-10-26).
 - Title page.
 - Acts and beats: where a scene is in the story (story-structure, study).
 
@@ -34,6 +37,8 @@ contract/1, "Scene annotations")
   then live inside the script text, and other Fountain tools show them
   inline), or a short typed note in the text pointing to a record kept
   elsewhere (the script stays readable; a note can be orphaned).
+  Decided 2026-10-26: neither; the records hold their own anchor and
+  nothing goes in the script text (fountain-native/notes/1).
 - Could be many: tens per scene, thousands per film.
 
 **Per-script settings** (were in `.trelby`)
@@ -54,7 +59,7 @@ contract/1, "Scene annotations")
 **Links**
 - Scene ↔ set; prop runs in Action ↔ props (a run of capitalized words,
   film-bible links/2); wardrobe ↔ character × scene; notes ↔ text spans.
-- Everything outside the script points to the scene number (or id), never
+- Everything outside the script points to the scene number (the scene's identity, 2026-10-25), never
   to a position.
 
 **Pre-production link** (preprod-link)
@@ -95,3 +100,15 @@ contract/1, "Scene annotations")
   format needs it. It is an initial step. → Byte-identical Fountain is a
   strong preference, no longer a hard requirement; a Fountain export would
   be enough.
+- **ISOXML philosophy** (Rafael has worked with ISO 11783-10 and finds it
+  easy to debug, a good source of truth). → The design follows it: one root
+  index file with format version and origin; flat records with typed,
+  stable ids, linked by id only; records split into separate files, one
+  owner each; large binaries beside the records, referenced, never
+  embedded; strict validation on read that names the broken field. Not its
+  syntax: readable names, not 3-letter tags.
+- **Easily parseable and shareable via Harpia.** → Every structured file is
+  a Harpia message (`mocap-contracts`, JSON through `to_json`/`from_json`),
+  so any app reads it with the generated classes and a broken file fails
+  with the path of the problem. XML would need a second schema system next
+  to Harpia (weighed in task 2; Rafael chose option A in task 3).

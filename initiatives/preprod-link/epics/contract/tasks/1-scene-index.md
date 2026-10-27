@@ -1,12 +1,14 @@
 ## 1. Scene index
 
 - **Type:** code, here and in `mocap-contracts`
-- **Depends on:** fountain-native/scenes/1 (scene ids); film-bible/contract/2
-  (bible library, to resolve known characters and props); a
+- **Depends on:** fountain-native/scenes/1 (scene numbers); film-bible/contract/2
+  (bible library, to resolve known characters and props);
+  file-format/layout/1 (the index is a file of the writer's `bible`
+  part, Rafael 2026-10-26); a
   `mocap-contracts` task for a `scene_index` message, done and tagged
 - **Contract:**
   - In: the open script (Fountain) and `<film-root>/bible/`
-  - Requires: one entry per scene with its scene id, order, scene number,
+  - Requires: one entry per scene with its scene number (its identity), order,
     heading parts (INT/EXT, set name as written, time of day), the bible set
     id it links to (if linked), speaking characters and characters named in
     Action (bible ids when known, the written name otherwise), prop words
