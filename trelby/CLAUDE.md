@@ -221,8 +221,8 @@ Data and folders
 - **A `.fountain` keeps no per-script settings** (page setup, element
   styles, auto-completion, locations, script dictionary, headers): they are
   defaults after opening one. Page setup and styles can be kept with
-  Script → Settings → Save as / Load. Where the rest will live waits for the
-  file-format investigation (fountain-native/io/2 on hold). Shot is written as upper case + two trailing spaces,
+  Script → Settings → Save as / Load. The rest is planned as a record in
+  the film root (fountain-native/settings/1, waits for file-format/layout/1). Shot is written as upper case + two trailing spaces,
   Trelby's own convention (`trelby/fountain.py:483`).
 - **`_` is a builtin installed by `translations.trelby_translations_load()`**
   (`trelby/translations.py:26`); no module imports it. A test file run on its
