@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 166 tests.
+objects directly and never create the wx GUI. 168 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -91,6 +91,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   keys fall back to their `WXK_` code, characters keep their Unicode value,
   and the `util.MyKeyEvent` the insert commands send is read too.
 - `test_opts.py` — `opts.init()`: `--conf <file>` and the scripts to open.
+- `test_i18n.py` — static checks over `trelby/`: no `_()` around an
+  already formatted string, and no translated string as a `setattr` name,
+  a `Vars.add*` name or save name, or a helper argument that becomes one.
 - `test_importfountain.py` — `MyCtrl.importFile` on a fake control: a
   `.fountain` (any case) is read by `readFountain` like Open and the tab
   stays untitled and modified; an unreadable one changes nothing.

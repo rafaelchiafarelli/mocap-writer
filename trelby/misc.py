@@ -1032,9 +1032,9 @@ class KeyDlg(wx.Dialog):
                 self,
                 -1,
                 _(
-                    "Press the key combination you\nwant to bind to the command\n'{}'.".format(
-                        cmdName
-                    )
+                    "Press the key combination you\nwant to bind to the command\n'{}'."
+                ).format(
+                    cmdName
                 ),
             )
         )

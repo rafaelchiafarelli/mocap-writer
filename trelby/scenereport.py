@@ -52,12 +52,12 @@ class SceneReport:
 
             tf.addText(
                 _(
-                    "     Lines: {} (%{} action), Pages: {} ({})".format(
-                        si.lines,
-                        util.pct(si.actionLines, si.lines),
-                        len(si.pages),
-                        si.pages,
-                    )
+                    "     Lines: {} (%{} action), Pages: {} ({})"
+                ).format(
+                    si.lines,
+                    util.pct(si.actionLines, si.lines),
+                    len(si.pages),
+                    si.pages,
                 )
             )
 

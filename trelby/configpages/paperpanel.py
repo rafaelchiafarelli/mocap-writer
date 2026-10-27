@@ -57,10 +57,10 @@ class PaperPanel(wx.Panel):
 
         gsizer = wx.FlexGridSizer(4, 5, 5, 5)
 
-        self.addMarginCtrl(_("Top"), self, gsizer)
-        self.addMarginCtrl(_("Bottom"), self, gsizer)
-        self.addMarginCtrl(_("Left"), self, gsizer)
-        self.addMarginCtrl(_("Right"), self, gsizer)
+        self.addMarginCtrl("top", _("Top"), self, gsizer)
+        self.addMarginCtrl("bottom", _("Bottom"), self, gsizer)
+        self.addMarginCtrl("left", _("Left"), self, gsizer)
+        self.addMarginCtrl("right", _("Right"), self, gsizer)
 
         bsizer.Add(gsizer, 0, wx.EXPAND | wx.ALL, 10)
 
@@ -103,8 +103,10 @@ class PaperPanel(wx.Panel):
     def eqFloat(self, f1, f2):
         return round(f1, 2) == round(f2, 2)
 
-    def addMarginCtrl(self, name, parent, sizer):
-        sizer.Add(wx.StaticText(parent, -1, name + ":"), 0, wx.ALIGN_CENTER_VERTICAL)
+    # key names the attributes (key + "EntryMm" / "EntryInch"); label is
+    # shown, translated
+    def addMarginCtrl(self, key, label, parent, sizer):
+        sizer.Add(wx.StaticText(parent, -1, label + ":"), 0, wx.ALIGN_CENTER_VERTICAL)
 
         entry = wx.TextCtrl(parent, -1)
         sizer.Add(entry, 0)
@@ -116,8 +118,8 @@ class PaperPanel(wx.Panel):
         label2 = wx.StaticText(parent, -1, "inch")
         sizer.Add(label2, 0, wx.ALIGN_CENTER_VERTICAL)
 
-        setattr(self, name.lower() + "EntryMm", entry)
-        setattr(self, name.lower() + "EntryInch", entry2)
+        setattr(self, key + "EntryMm", entry)
+        setattr(self, key + "EntryInch", entry2)
 
         self.Bind(wx.EVT_TEXT, self.OnMarginMm, id=entry.GetId())
         self.Bind(wx.EVT_TEXT, self.OnMarginInch, id=entry2.GetId())
@@ -127,7 +129,7 @@ class PaperPanel(wx.Panel):
 
     def setLines(self):
         self.cfg.recalc(False)
-        self.linesLabel.SetLabel(_("Lines per page: {}".format(self.cfg.linesOnPage)))
+        self.linesLabel.SetLabel(_("Lines per page: {}").format(self.cfg.linesOnPage))
 
     def OnPaperCombo(self, event):
         w, h = self.paperCombo.GetClientData(self.paperCombo.GetSelection())

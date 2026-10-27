@@ -17,10 +17,8 @@ these files → translated GUI strings.
   `../../t_03_build.sh` from the repository root; never edit the `.mo`.
 - `gettext.translation(...)` is called without `fallback=True`
   (`trelby/translations.py:25`): if `en` were missing, startup would fail.
-- Strings built as `_("…{}".format(x))` are never found in the catalog (see
-  `trelby/CLAUDE.md`, gotchas). Translated strings are also used as
-  attribute names and save keys in a few places (`trelby/globaldata.py:70`,
-  `trelby/configpages/CLAUDE.md`). Bug: [bugs/config-i18n/3](../../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md), [bugs/config-i18n/4](../../initiatives/bugs/epics/config-i18n/tasks/4-mru-translated-key.md).
+- A translation must keep its message's `{}` placeholders: messages are
+  formatted after the lookup (`../../po/CLAUDE.md`).
 
 ## Touchpoints
 - Called by: `trelby/translations.py`.

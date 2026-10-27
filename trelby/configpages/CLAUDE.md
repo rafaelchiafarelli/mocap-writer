@@ -59,14 +59,11 @@ Shared
   About pages.
 
 ## Key facts / gotchas
-- **Translated attribute names break two pages outside English:**
-  `setattr(self, name + _("Entry"), …)` (`trelby/configpages/miscpanel.py:150`)
-  and `setattr(self, name + _("Combo"), …)`
-  (`trelby/configpages/elementsglobalpanel.py:64`) create attributes named
-  after the translation (Italian `…Annotazione`, `…Combinazione`,
-  `po/it.po`), while the rest of the code reads `paginateEntry`,
-  `newEnterCombo`, … → `AttributeError` when those pages open with
-  `LANG=it`. Bug: [bugs/config-i18n/2](../../initiatives/bugs/epics/config-i18n/tasks/2-translated-attribute-names.md).
+- Widgets are found by attribute names built in helpers
+  (`addCheckBox`, `addMarginCtrl`, `addEntry`, `addTypeCombo`): those
+  names come from a fixed key, never from the translated label, or a page
+  breaks outside English (fixed 2026-10-27, bugs/config-i18n/2;
+  `tests/test_i18n.py`).
 - "Open PDF on current page" (`trelby/configpages/pdfpanel.py:26`) has no
   effect: the PDF writer ignores it (`trelby/pdf.py:266-269`). Bug: [bugs/import-export/9](../../initiatives/bugs/epics/import-export/tasks/9-pdf-open-on-page.md).
 - The folder has no `__init__.py`; `trelby.configpages.*` imports work as a
