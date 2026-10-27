@@ -37,6 +37,8 @@ contract/1, "Scene annotations")
   then live inside the script text, and other Fountain tools show them
   inline), or a short typed note in the text pointing to a record kept
   elsewhere (the script stays readable; a note can be orphaned).
+  Decided 2026-10-26: the short typed note pointing to a record
+  (fountain-native/notes/1).
 - Could be many: tens per scene, thousands per film.
 
 **Per-script settings** (were in `.trelby`)

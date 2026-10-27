@@ -91,10 +91,10 @@ Every item: `id`, `name`, `aliases`, `description`, `photos/`, `references/`,
 Inside a scene, an **Action**, a **Transition** or a **Shot** element can
 carry annotations. Each annotation is anchored to the element (or to a span
 of its text, the notes/1 mechanism), has a **kind**, a short text, links to
-bible items, and like every value a **state** and a **source**. Proposed
-marking in Fountain: a typed note, e.g. `[[fx:3b1 chuva forte]]`; where the
-full fields live (in the note or in a record the note points to) is a
-file-format question (file-format/study/1).
+bible items, and like every value a **state** and a **source**. Marking in
+Fountain (Rafael, 2026-10-26, fountain-native/notes/1): a typed note with
+kind, id and a short text, e.g. `[[fx annotation-w-7: chuva forte]]`; the
+full fields live in the record in `annotations/` the note points to.
 
 **Action** — annotation kinds:
 - **Note** — free text for the writer or the crew
