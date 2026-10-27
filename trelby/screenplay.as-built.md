@@ -35,14 +35,14 @@ run.
     `undoMemoryUsed` — undo chain;
   - `cfg: config.Config` (per script), `cfgGl` (shared global config),
     `titles`, `headers`, `locations`, `autoCompletion`, `scDict`.
-- `Mark(line, column)` (`trelby/screenplay.py:3090`), `ClipData`
-  (`lines`, `trelby/screenplay.py:3100`), `CommandState`
+- `Mark(line, column)` (`trelby/screenplay.py:3099`), `ClipData`
+  (`lines`, `trelby/screenplay.py:3109`), `CommandState`
   (`doAutoComp` = `AC_DEL` / `AC_REDO` / `AC_KEEP`, `char`, `mark`,
-  `needsVisifying`, `trelby/screenplay.py:3108`).
+  `needsVisifying`, `trelby/screenplay.py:3117`).
 
 ## Data-structure invariants
 
-Checked by `_validate` (`trelby/screenplay.py:3051`, test code only):
+Checked by `_validate` (`trelby/screenplay.py:3060`, test code only):
 - at least one line; cursor inside the script and inside its line;
 - every line's text equals `util.toInputStr(text)`;
 - `len(text.rstrip(" "))` ≤ the type's `width` — trailing spaces may run
@@ -51,7 +51,7 @@ Checked by `_validate` (`trelby/screenplay.py:3051`, test code only):
 - all lines of one element have the same type (an element ends at
   `LB_LAST`).
 
-`_validate` checks them (`trelby/screenplay.py:3051`). Paragraph = lines up to `LB_FORCED` /
+`_validate` checks them (`trelby/screenplay.py:3060`). Paragraph = lines up to `LB_FORCED` /
 `LB_LAST`; element = lines up to `LB_LAST`; scene = from a `SCENE` or
 `ACTBREAK` element to the next (`getSceneIndexesFromLine`,
 `trelby/screenplay.py:1118`).
@@ -91,15 +91,15 @@ Pagination
 Editing commands (`cmd(name)` calls `<name>Cmd` then `cmdPost`,
 `trelby/screenplay.py:2452`)
 - Movement: `moveLeftCmd` … `moveSceneDownCmd`
-  (`trelby/screenplay.py:2468-2628`). Up/Down move the completion selection
+  (`trelby/screenplay.py:2468-2637`). Up/Down move the completion selection
   when a list is open (`trelby/screenplay.py:2488-2513`).
-- Text: `addCharCmd` (`trelby/screenplay.py:2805`), `deleteBackwardCmd`
-  (`trelby/screenplay.py:2630`), `deleteForwardCmd`
-  (`trelby/screenplay.py:2685`), `insertForcedLineBreakCmd`
-  (`trelby/screenplay.py:2761`).
-- Elements: `splitElementCmd` (Enter, `trelby/screenplay.py:2772`),
-  `tabCmd` (`trelby/screenplay.py:2781`), `toPrevTypeTabCmd`
-  (`trelby/screenplay.py:2795`), `to<Type>Cmd` (`trelby/screenplay.py:2910-2935`)
+- Text: `addCharCmd` (`trelby/screenplay.py:2814`), `deleteBackwardCmd`
+  (`trelby/screenplay.py:2639`), `deleteForwardCmd`
+  (`trelby/screenplay.py:2694`), `insertForcedLineBreakCmd`
+  (`trelby/screenplay.py:2770`).
+- Elements: `splitElementCmd` (Enter, `trelby/screenplay.py:2781`),
+  `tabCmd` (`trelby/screenplay.py:2790`), `toPrevTypeTabCmd`
+  (`trelby/screenplay.py:2804`), `to<Type>Cmd` (`trelby/screenplay.py:2919-2944`)
   → `convertTypeTo(lt, saveUndo)` (`trelby/screenplay.py:1394`, works on the
   selection's elements if any; empty parenthetical ↔ `()`).
 - Selection and clipboard: `getMarkedLines`, `getMarkedColumns`,
@@ -114,15 +114,15 @@ Editing commands (`cmd(name)` calls `<name>Cmd` then `cmdPost`,
   `getCharacterNames`, `getSceneNumber`, `getCharCount`
   (`trelby/screenplay.py:1145-1629`).
 
-Undo (`trelby/screenplay.py:2938-3047`)
+Undo (`trelby/screenplay.py:2947-3056`)
 - Doubly linked list of `undo.*` objects. A new edit while inside the
-  history cuts off the redo part (`trelby/screenplay.py:2957-2981`).
+  history cuts off the redo part (`trelby/screenplay.py:2966-2990`).
   History is trimmed from the oldest end once the estimate reaches
-  5 000 000 bytes (`trelby/screenplay.py:2996-3009`).
+  5 000 000 bytes (`trelby/screenplay.py:3005-3018`).
 - Merging: consecutive `addChar` (word-level, spaces join the preceding
   word), `deleteBackward`, `deleteForward` merge when the cursor is where
-  the last step left it (`trelby/screenplay.py:2638-2643`,
-  `trelby/screenplay.py:2835-2858`).
+  the last step left it (`trelby/screenplay.py:2647-2652`,
+  `trelby/screenplay.py:2844-2867`).
 
 Export
 - `generateText(doPages)` (`trelby/screenplay.py:195`), `generateHtml(includeNotes)`
@@ -149,8 +149,8 @@ Export
   `Config.__init__` (`trelby/config.py:445-512`); an Enter/Tab row in
   `ConfigGlobal.__init__` (`trelby/config.py:693-737`); a `ChangeTo<Type>`
   command in the alphabetical command list (`trelby/config.py:740`), a
-  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1242-1270`) and a
-  `to<Type>Cmd` here (`trelby/screenplay.py:2910-2935`); a menu id in
+  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1244-1272`) and a
+  `to<Type>Cmd` here (`trelby/screenplay.py:2919-2944`); a menu id in
   `trelby/ids.py:72-92` and the right-click menu
   (`trelby/trelbyframe.py:289-297`); entries in the export maps `htmlMap`
   (`trelby/screenplay.py:233`), `xmlMap` (`trelby/screenplay.py:354`) and
@@ -160,12 +160,12 @@ Export
 - **Enter/Tab behaviour** is data, not code: `splitElementCmd` / `tabCmd`
   read `cfgGl.getType(lt).newTypeEnter|newTypeTab` and
   `cfgGl.nextTypeTab(lt)` / `prevTypeTab(lt)`, the `tabOrder` cycle
-  (`trelby/screenplay.py:2773`, `trelby/screenplay.py:2787-2792`,
-  `trelby/screenplay.py:2801-2802`); the table is in
+  (`trelby/screenplay.py:2782`, `trelby/screenplay.py:2796-2801`,
+  `trelby/screenplay.py:2810-2811`); the table is in
   `trelby/config.py:693-737`. `tabMakesNew` decides "new element vs.
   convert" (`trelby/screenplay.py:1685`).
 - **Typing rules** (auto-capitalize, `INT.`/`EXT.` → Scene, `(` → Paren) are
-  hard-coded in `addCharCmd` (`trelby/screenplay.py:2860-2897`) and
+  hard-coded in `addCharCmd` (`trelby/screenplay.py:2869-2906`) and
   `capitalizeNeeded` (`trelby/screenplay.py:2049`); only the two capitalize
   switches are settings.
 - **Import** produces `lines` only; whatever imports must give lines that
@@ -182,8 +182,9 @@ Export
   `checkOnExport` is on.
 - `Config.cursorLine` / `cursorColumn` and `cfgGl.honorSavedPos` are left
   from the `.trelby` format: nothing writes or reads the saved cursor now.
-- Completing with End replaces the line text with no undo record and no
-  re-wrap (`moveLineEndCmd`, `trelby/screenplay.py:2583-2589`). Bug: [bugs/editor/5](../initiatives/bugs/epics/editor/tasks/5-end-completion-no-undo.md).
+- Accepting a completion with End (`moveLineEndCmd`,
+  `trelby/screenplay.py:2583-2598`) replaces only the current screen line's
+  text, as Enter does, then re-wraps; it is one `SinglePara` undo step.
 - `generateHtml` uses one `<pre>` per screen line, not per element
   (`trelby/screenplay.py:305-313`).
 - `generateFDX` writes notes as an Action paragraph wrapping a `ScriptNote`,

@@ -856,7 +856,9 @@ class MyCtrl(wx.Control):
         if not cd:
             return
 
+        # the script's own settings, so a formatted copy uses its widths
         tmpSp = screenplay.Screenplay(self.gd.cfgGl)
+        tmpSp.cfg = copy.deepcopy(self.sp.cfg)
         tmpSp.lines = cd.lines
 
         if formatted:

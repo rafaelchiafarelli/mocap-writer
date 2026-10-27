@@ -12,6 +12,8 @@ from trelby.line import Line
 #   charmap
 #   namesDlg
 # spellCheck             SinglePara
+# moveLineEnd:
+#   (completion)         SinglePara
 # findAndReplace         SinglePara
 # NewElement             ManyElems(1, 2)
 # Tab:

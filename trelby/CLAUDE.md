@@ -48,12 +48,14 @@ Model and file format
   stores lines in. `fromStr` has no error checking and is for internal
   storage only (undo).
 - `undo.py` — undo objects: `FullCopy`, `SinglePara`, `ManyElems`,
-  `AnyDifference` (`trelby/undo.py:167-264`); lines are stored as
-  zlib-compressed strings when that is shorter (`trelby/undo.py:62`). The
-  table at `trelby/undo.py:5-30` says which command uses which.
+  `AnyDifference` (`trelby/undo.py:169-266`); lines are stored as
+  zlib-compressed strings when that is shorter (`trelby/undo.py:64`). The
+  table at `trelby/undo.py:5-32` says which command uses which.
 - `titles.py` — `Titles` (list of title pages) and `TitleString` (lines of
   text at an x/y position in mm, font, style); PML, RTF and the
-  `#Title-String` save form (`trelby/titles.py:207`).
+  `#Title-String` save form (`trelby/titles.py:202`); `sort()` orders each
+  page's strings by y, then x (`trelby/titles.py:54`), called by the
+  title-page dialog.
 - `headers.py` — `Headers` / `HeaderString`: per-page header lines,
   `${PAGE}` replaced by the page number (`trelby/headers.py:90`); default is
   `${PAGE}.` right-aligned on line 1 (`trelby/headers.py:16`).
@@ -78,7 +80,7 @@ Model and file format
   Action lines, film-bible will reuse it for prop records. No wx.
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1423`).
+  (`trelby/trelbyctrl.py:1425`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -223,7 +225,7 @@ Dialogs
 - `commandsdlg.py` — `CommandsDlg`: HTML list of commands and their keys,
   can be saved to a file.
 - `watermarkdlg.py` — `WatermarkDlg`: one watermarked PDF per line of text
-  (`trelby/watermarkdlg.py:13`); an unusable custom PDF font
+  (`trelby/watermarkdlg.py:12`); an unusable custom PDF font
   stops it with a message.
 
 Data and folders
@@ -265,12 +267,9 @@ Data and folders
   `cleanInput` helpers are identity functions left from the Python 2 code
   (`trelby/util.py:194-245`). Helvetica and Times measure a character
   above U+00FF like `?` (`trelby/fontinfo.py:50-65`); Courier has no table.
-- **`Titles.sort()` does nothing**: it rebinds a local
-  (`trelby/titles.py:60-61`), and its compare function has a typo
-  `(a.x < a.y)` for `(a.x < b.x)` (`trelby/titles.py:58`). Bug: [bugs/editor/9](../initiatives/bugs/epics/editor/tasks/9-titles-sort-noop.md).
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
-  branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1423-1428`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
+  branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1425-1430`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
 - The "PDF viewer not found" message mixes `{}` and `%s`
   (`trelby/util.py:1293`): the default viewer's path is never filled in,
   a literal `%s` is shown. Bug: [bugs/editor/19](../initiatives/bugs/epics/editor/tasks/19-pdf-viewer-message.md).
