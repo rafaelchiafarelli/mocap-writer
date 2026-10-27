@@ -23,11 +23,19 @@
     outside a film root opens with defaults, as today
   - Delivers: settings that survive the round trip
 - **Pre-work:** the `mocap-contracts` task above; the record's fields
-  (the `Config` and lists named in Problem), proposed below, to confirm
+  were approved on 2026-10-26 (below)
 - **Tests:** settings changed → saved → reopened equal; the script text
-  unchanged
+  unchanged; a custom title layout survives; a title page edited outside
+  the writer opens from Fountain in the default layout and is listed
 
-### Proposal: the record's fields (session, 2026-10-25; Rafael to confirm)
+### Decided: the record's fields (Rafael, 2026-10-26)
+
+The session's proposal (2026-10-25) below, approved, with the answers to
+its questions: the cursor stays out (question 1); the **title page's
+layout is kept in the record** (question 2, `title_page` below);
+locations keep naming scene headings, as today (question 3).
+
+### The record's fields (proposed 2026-10-25, approved 2026-10-26)
 
 Read from the code as it is: `Config` (`trelby/config.py:432`), `Type`
 and `TextType` (`trelby/config.py:179`, `:157`), `PDFFontInfo`
@@ -71,6 +79,20 @@ enum starting at `UNSET`. Defaults are today's `Config` defaults.
 - `locations`: a list of `Location`s, each a list of scene headings
   joined into one location (`INT. ROOM 413 - DAY` with `… - NIGHT`).
 - `spelling_words`: the script's own spell-checker words.
+- `title_page` (Rafael, 2026-10-26, question 2): the layout of the title
+  page as the Titles dialog leaves it, so a custom layout survives.
+  `pages`, each a list of `TitleString`s (`trelby/titles.py:65`): `items`
+  (the text lines), `x_mm`, `y_mm`, `size_pt` (4–288), `align`
+  (`ALIGN_LEFT`/`CENTER`/`RIGHT`, from `isCentered`/`isRightJustified`),
+  `bold`, `italic`, `underlined`, `font` (`FONT_COURIER`/`HELVETICA`/
+  `TIMES`); and `fountain_title`, the Fountain title page block it was
+  saved with. **The Fountain text stays the source of truth:** on open the
+  layout is used only while the script's title block still equals
+  `fountain_title`; if the title page was edited elsewhere, it is built
+  from Fountain in the default layout (`makeTitles`,
+  `trelby/fountain.py:342`) and the mismatch is listed as a problem. On
+  save the Fountain block is written as today and the record gets the
+  layout and the block.
 
 **Rules:**
 - **Every field is written**, defaults included. The file then says the
@@ -87,10 +109,9 @@ enum starting at `UNSET`. Defaults are today's `Config` defaults.
   field's path; the script then opens with defaults and the problem is
   listed (layout/1's "opening never breaks").
 
-**Left out (questions 1–3 below):** `cursorLine`/`cursorColumn` and the
-title page's layout.
+**Left out (question 1 below):** `cursorLine`/`cursorColumn`.
 
-**Questions for Rafael:**
+**Questions for Rafael** (all answered 2026-10-26, see "Decided" above):
 1. The cursor position (`Config.cursorLine`/`cursorColumn`, saved by
    nothing today, a known quirk): leave it out (recommended; it is one
    person's view, not the script's, and belongs in per-user state, not a
