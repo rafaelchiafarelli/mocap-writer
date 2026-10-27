@@ -54,9 +54,13 @@ class FontMetrics:
         if not widths:
             return 0.6 * (size * len(text))
 
+        # the tables cover Latin-1 only; text pasted or imported can hold
+        # other characters, measured like "?" (what the core fonts cannot
+        # draw)
         total = 0
         for ch in text:
-            total += widths[ord(ch)]
+            c = ord(ch)
+            total += widths[c] if c < len(widths) else widths[ord("?")]
 
         return (total / 1000.0) * size
 

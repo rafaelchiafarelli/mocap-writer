@@ -90,7 +90,7 @@ block → no title page.
   empty Scene line (`trelby/fountain.py:457`).
 - `generate(sp)` → `Result(text, source, lost)`; the caller writes `text`
   (UTF-8) and stores `source` (`MyCtrl.saveFile`,
-  `trelby/trelbyctrl.py:172`).
+  `trelby/trelbyctrl.py:173`).
 
 ## Gotchas
 
@@ -111,7 +111,7 @@ block → no title page.
 - Emphasis (`*`, `**`, `_`), inline notes and inline boneyard stay in the
   text as typed characters; the editor shows them as they are.
 - Only UTF-8 files open (`MyCtrl.loadFile` shows an error otherwise,
-  `trelby/trelbyctrl.py:128`); the BOM and the line ending of the first line
+  `trelby/trelbyctrl.py:129`); the BOM and the line ending of the first line
   are kept, and new lines are written with that line ending.
 - It is the program's only Fountain reader and writer (fountain-native/io/5):
   Import → Fountain reads through `load` like Open (the tab stays
@@ -122,8 +122,8 @@ block → no title page.
 ## Touchpoints
 
 - Called by: `MyCtrl.readFountain` (Open and Import) / `saveFile` /
-  `OnExportScript` (`trelby/trelbyctrl.py:150`, `trelby/trelbyctrl.py:172`,
-  `trelby/trelbyctrl.py:1182-1188`); `pdfimport.main`
+  `OnExportScript` (`trelby/trelbyctrl.py:151`, `trelby/trelbyctrl.py:173`,
+  `trelby/trelbyctrl.py:1185-1191`); `pdfimport.main`
   (`trelby/pdfimport.py:1137`); `tests/test_fountain.py`,
   `tests/test_pdfimport.py`.
 - Uses: `screenplay` constants and `Screenplay`, `titles`, `pml`, `util`,

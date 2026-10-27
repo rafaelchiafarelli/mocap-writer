@@ -2,6 +2,7 @@ import random
 
 import wx
 
+import trelby.error as error
 import trelby.pdf as pdf
 import trelby.pml as pml
 import trelby.util as util
@@ -152,7 +153,11 @@ class WatermarkDlg(wx.Dialog):
 
             pmldoc.uniqueId = self.getUniqueId(usedIds)
 
-            pdfdata = pdf.generate(pmldoc)
+            try:
+                pdfdata = pdf.generate(pmldoc)
+            except error.TrelbyError as e:
+                wx.MessageBox(str(e), _("Error"), wx.OK, self)
+                return
 
             if not util.writeToFile(fn, pdfdata, self):
                 wx.MessageBox(_("PDF generation aborted."), _("Error"), wx.OK, self)

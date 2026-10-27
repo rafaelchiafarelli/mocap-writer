@@ -149,7 +149,7 @@ Export
   `Config.__init__` (`trelby/config.py:445-512`); an Enter/Tab row in
   `ConfigGlobal.__init__` (`trelby/config.py:693-737`); a `ChangeTo<Type>`
   command in the alphabetical command list (`trelby/config.py:740`), a
-  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1228-1256`) and a
+  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1242-1270`) and a
   `to<Type>Cmd` here (`trelby/screenplay.py:2910-2935`); a menu id in
   `trelby/ids.py:72-92` and the right-click menu
   (`trelby/trelbyframe.py:289-297`); entries in the export maps `htmlMap`
@@ -170,7 +170,7 @@ Export
   switches are settings.
 - **Import** produces `lines` only; whatever imports must give lines that
   satisfy the invariants above before `reformatAll` + `paginate`
-  (`trelby/trelbyctrl.py:237-239`).
+  (`trelby/trelbyctrl.py:240-242`).
 
 ## Gotchas
 

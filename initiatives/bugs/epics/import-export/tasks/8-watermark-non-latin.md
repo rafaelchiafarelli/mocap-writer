@@ -2,6 +2,6 @@
 
 - **Status:** Open
 - **Symptom:** Rotated text goes through `addLiteral` + `escapeStr`.
-- **Where:** `trelby/pdf.py:77` (TODO in the code)
+- **Where:** `trelby/pdf.py:79` (TODO in the code)
 - **Reproduce:** Found by reading the code in the as-built review (2026-10-24).
 - **Impact:** only for watermarked PDFs with such characters.
