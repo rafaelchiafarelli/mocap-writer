@@ -99,7 +99,8 @@ Application and editor (wx)
   and `main()`; loads translations at import time (`trelby/trelby.py:34`).
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
-  current `MyCtrl`; open/import into a tab; exit (`trelby/trelbyframe.py:26`).
+  current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:993`).
   View → Dark theme is a check item kept in step with the theme
   (`updateThemeMenu`, `trelby/trelbyframe.py:791-795`, called from
   `MyCtrl.applyGlobalCfg`).
@@ -289,8 +290,6 @@ Data and folders
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
   branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1392-1397`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
-- **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:1000-1001`
-  → `OnSave`); other modified tabs are discarded. Bug: [bugs/editor/2](../initiatives/bugs/epics/editor/tasks/2-exit-saves-current-tab.md).
 - **Help → Commands → Save** uses `wx.OVERWRITE_PROMPT`
   (`trelby/commandsdlg.py:94`), which wxPython 4 calls
   `wx.FD_OVERWRITE_PROMPT` → `AttributeError`. Bug: [bugs/editor/18](../initiatives/bugs/epics/editor/tasks/18-commands-save-overwrite-prompt.md).

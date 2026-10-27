@@ -280,8 +280,11 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   refresh locations; its parsed source is kept in `sp.fountainSource` for
   the next save. If the open fails, the new tab stays open, empty.
 - **Revert** reloads from disk (`trelby/trelbyctrl.py:796`). **Close** asks
-  before discarding changes (`trelby/trelbyctrl.py:757`). **Exit** writes the
-  window state and removes temporary files (`trelby/trelbyframe.py:989`).
+  before discarding changes (`trelby/trelbyctrl.py:757`). **Exit** with
+  unsaved changes asks once; Save saves every modified tab, showing each
+  (`MyFrame.saveAll`, `trelby/trelbyframe.py:993`), and calls the exit off
+  if one stays unsaved; then it writes the window state and removes
+  temporary files (`trelby/trelbyframe.py:1006`).
 
 ## Stage 6 — import (`myimport`)
 
