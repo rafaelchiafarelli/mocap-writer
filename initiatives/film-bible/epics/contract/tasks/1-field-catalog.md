@@ -49,16 +49,24 @@ The proposal below (2026-10-23/25), approved with these additions:
   (virtual cloth, practical), duplicates (wet or torn continuity), hair and
   makeup per scene.
 - **Annotations:** Dialogue and Parenthetical carry **Character direction**
-  and **Note** annotations; the other kinds stay on Action. A **Shot** is
-  its own element and can also be a `shot` annotation on Action ("the
-  camera follows her"), with the same fields. Every Shot has a **shot
-  number** within its scene for call sheets and take logs, permanent like
-  scene numbers: a number never changes or comes back.
-  - **Open:** how it is written. The session wrote `12.A-3` (scene
-    `12.A`, shot 3) and, for an insert, `12.A-3.A` (the scenes/1 nesting);
-    Rafael asked why not a dot (2026-10-26). A dot alone is ambiguous:
-    `12.A.3` is already a valid scene number (scenes/1 alternates number
-    and letter), so the shot needs a separator a scene number never uses.
+  and **Note** annotations; the other kinds stay on Action.
+- **Shots** (Rafael, 2026-10-26): a shot is an annotation of kind `shot`,
+  anchored like every annotation to its scene and a quote (or a whole
+  element) — and it can be attached to **any element**: Action, Dialogue,
+  Parenthetical, Character, Transition, a Fountain Shot line. If its quote
+  or element is deleted, it follows the annotations' rule
+  (fountain-native/notes/1: quote → element → scene → the scene's
+  `OMITTED` heading).
+  - **Shot number:** `S` and a counter **per scene**, `S1`, `S2`, `S3`,
+    kept visibly different from scene numbers so the two never get
+    confused. Permanent: a number never changes or comes back, and it is
+    never nested; an inserted shot takes the next free number (`S4`), and
+    the **order of shots comes from where they are attached** in the
+    script, not from their numbers (an identifier, not an index).
+  - **Full name:** scene + shot, `12.A S4`; in a file name `12.A_S4`.
+  - Not chosen: `12.A-3` with nested inserts `12.A-3.A`; a dot alone
+    (`12.A.3` is already a valid scene number); `12.A./S1` (a slash is not
+    allowed in file names); a film-wide counter; nested shot numbers.
 
 ### Proposal (2026-10-23/25, approved 2026-10-26 with the additions above)
 
@@ -167,10 +175,11 @@ quoted text), and a button in the writer shows what is annotated.
 - **Sound direction** — a sound effect or ambience cue (feeds mocap-audio)
 - **General direction** — anything else for the director
 - **Shot** — camera intent inside the scene, the Shot fields below
-  (approved 2026-10-26)
+  (approved 2026-10-26; a shot can be attached to any element, see
+  "Shots" above)
 
 **Dialogue and Parenthetical** (approved 2026-10-26) — Character direction
-and Note only.
+and Note, and Shot (which goes on any element).
 
 **Transition**
 - Types, **one or more combined** (Rafael, 2026-10-25: e.g. a cross-
@@ -184,7 +193,7 @@ and Note only.
 - Description
 
 **Shot** — photographic and machinery description
-- Shot number within its scene (approved 2026-10-26; how it is written is open, above)
+- Shot number within its scene: `S1`, `S2`...; full name `12.A S4` (2026-10-26, "Shots" above)
 - Size: extreme close-up, close-up, medium close-up, medium, cowboy, medium
   long, long, extreme long, insert
 - Angle: eye level, high, low, overhead / bird's eye, worm's eye, Dutch

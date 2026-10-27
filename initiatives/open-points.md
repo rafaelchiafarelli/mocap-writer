@@ -10,7 +10,8 @@ part paths (file-format/layout/1); the scene-number open points
 (fountain-native/scenes/1); the settings record's fields
 (fountain-native/settings/1, was io/2); annotations kept out of the script
 text, anchored by quote and shown by a button (fountain-native/notes/1);
-the field catalog (film-bible/contract/1); "needs review" not stored
+the field catalog (film-bible/contract/1), with shots as annotations
+numbered `S1`, `S2` per scene; "needs review" not stored
 (preprod-link/sync/3).
 
 ## Ready to implement
@@ -20,10 +21,6 @@ the field catalog (film-bible/contract/1); "needs review" not stored
 
 ## Decisions for Rafael
 
-- **How a shot number is written** — a dot alone is ambiguous with a
-  nested scene number (`12.A.3`), so it needs a separator scene numbers
-  never use ([film-bible/contract/1](film-bible/epics/contract/tasks/1-field-catalog.md),
-  "Approved").
 - **How the film keeps its history** — a study to run, then Rafael decides
   ([layout/2](file-format/epics/layout/tasks/2-history.md)).
 - **How agents write proposals** — (a) they write `item.json` and the
