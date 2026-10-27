@@ -1,0 +1,65 @@
+Title:
+    _**O Teste**_
+    Segunda linha
+Credit: Escrito por
+Author: Alguém
+Draft date: 2026-10-24
+Contact:
+    Rua Um, 1
+    alguem@example.com
+
+# PRIMEIRO ATO
+
+## Sequência de abertura
+
+= A casa ainda dorme.
+
+INT. SALA - NOITE #1#
+
+Uma luz acende. Ninguém está aqui.
+Uma segunda linha da mesma ação.
+
+    Ação com recuo, *ênfase* e **negrito** e _sublinhado_.
+
+!FORÇADA EM MAIÚSCULAS
+continua aqui.
+
+/* um trecho
+   no boneyard */
+
+ANA (V.O.)
+(baixinho)
+Primeira linha.
+  
+Depois de uma linha vazia.
+(pausa)
+Última.
+
+BRUNO ^
+Ao mesmo tempo.
+
+@mcCLANE
+Yippee.
+
+CUT TO:
+
+> FADE OUT.
+
+>CENTRADO<
+
+CLOSE NA MÃO  
+
+[[uma nota sozinha]]
+
+[[nota em
+duas linhas]]
+
+===
+
+EXT. QUINTAL - DIA #1A#
+
+.FLASHBACK
+
+Ação com [[nota inline]] e /* boneyard inline */ dentro.
+
+FADE TO BLACK.

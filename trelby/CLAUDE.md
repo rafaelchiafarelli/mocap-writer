@@ -1,7 +1,8 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 56 modules: the
-screenplay model (`screenplay`, `line`, `undo`), configuration (`config`,
+**Role:** All of Trelby's code. One flat package of 57 modules: the
+screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
+(`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
 drawn by `viewmode`), the page language and PDF writer (`pml`, `pdf`), import
 (`myimport`), reports and dialogs. Stage-by-stage behaviour is in
@@ -10,17 +11,19 @@ drawn by `viewmode`), the page language and PDF writer (`pml`, `pdf`), import
 **Entry points:**
 - `trelby.main()` (`trelby/trelby.py:148`) — the GUI program; called by
   `../trelby.py`.
-- `screenplay.Screenplay.load(s, cfgGl)` / `.save()` — the `.trelby` format
-  without any GUI (what the tests use, `tests/u.py`).
+- `fountain.load(text, cfgGl)` / `fountain.generate(sp)` — the native
+  `.fountain` format without any GUI (`tests/test_fountain.py`).
+- `screenplay.Screenplay(cfgGl)` and its commands — the model without any
+  GUI (what the tests use, through `tests/u.py`).
 - `myimport.import*(fileName, frame)` — one function per import format.
 - `python -m trelby.pdfimport import|probe ...` — PDF → `.fountain` from
   the command line (`trelby/pdfimport.py:1061`).
 - `Screenplay.generate{PDF,RTF,FDX,Html,Fountain,Text}` — exports.
 
-**Inputs → Outputs:** `.trelby` scripts, imported `.fdx` / `.celtx` /
+**Inputs → Outputs:** `.fountain` scripts, imported `.fdx` / `.celtx` /
 `.astx` / `.fountain` / `.fadein` / text files, screenplay PDFs (with a
 layout profile), and the config files under
-`misc.confPath` → an edited script saved as `.trelby`, exports (PDF, RTF,
+`misc.confPath` → an edited script saved as `.fountain`, exports (PDF, RTF,
 FDX, HTML, Fountain, text), report PDFs, and the global config and state
 files.
 
@@ -28,12 +31,21 @@ files.
 
 Model and file format
 - `screenplay.py` — `Screenplay`: the script as a flat list of `Line`s, the
-  cursor, selection, pagination, every editing command, undo chain, `.trelby`
-  load/save and all exports; also the `LB_*` and line-type constants. Detail:
+  cursor, selection, pagination, every editing command, undo chain and all
+  exports; also the `LB_*` and line-type constants;
+  `fountainSource` holds the parsed `.fountain` the script came from
+  (`trelby/screenplay.py:66`). Detail:
   [screenplay.as-built.md](screenplay.as-built.md).
-- `line.py` — `Line(lb, lt, text)` (`trelby/line.py:10`); `str(line)` is the
-  saved form, line-break char + type char + text (`trelby/line.py:22`).
-  `fromStr` has no error checking and is for internal storage only (undo).
+- `fountain.py` — Fountain 1.1 as the native format, no wx: `parse` keeps
+  each element's exact source and the hidden source before it,
+  `load` builds a `Screenplay`, `generate` writes unchanged elements from
+  their source and edited ones in canonical Fountain (byte-identical round
+  trip), and reports what cannot read back the same. Detail:
+  [fountain.as-built.md](fountain.as-built.md).
+- `line.py` — `Line(lb, lt, text)` (`trelby/line.py:10`); `str(line)` is
+  line-break char + type char + text (`trelby/line.py:22`), the form undo
+  stores lines in. `fromStr` has no error checking and is for internal
+  storage only (undo).
 - `undo.py` — undo objects: `FullCopy`, `SinglePara`, `ManyElems`,
   `AnyDifference` (`trelby/undo.py:167-264`); lines are stored as
   zlib-compressed strings when that is shorter (`trelby/undo.py:62`). The
@@ -56,10 +68,9 @@ Model and file format
   (`trelby/propwords.py:15`): runs of 2+ letters, accents included, that are
   fully upper case (`trelby/propwords.py:9`); the editor underlines them in
   Action lines, film-bible will reuse it for prop records. No wx.
-- `fileformat.txt` — the `.trelby` format description (sections, config
-  keys, line codes).
-- `sample.trelby` — sample script, loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1357`).
+- `sample.fountain` — sample script (upstream's, converted 2026-10-25),
+  loaded by a test-mode hotkey
+  (`trelby/trelbyctrl.py:1387`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -83,7 +94,7 @@ Application and editor (wx)
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit (`trelby/trelbyframe.py:26`).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:795-799`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:791-795`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   (`trelby/trelbypanel.py:7`).
@@ -207,6 +218,12 @@ Data and folders
 - `locales/` — compiled gettext catalogs `en` and `it` (its own `CLAUDE.md`).
 
 ## Key facts / gotchas
+- **A `.fountain` keeps no per-script settings** (page setup, element
+  styles, auto-completion, locations, script dictionary, headers): they are
+  defaults after opening one. Page setup and styles can be kept with
+  Script → Settings → Save as / Load. The rest is planned as a record in
+  the film root (fountain-native/settings/1, waits for file-format/layout/1). Shot is written as upper case + two trailing spaces,
+  Trelby's own convention (`trelby/fountain.py:483`).
 - **`_` is a builtin installed by `translations.trelby_translations_load()`**
   (`trelby/translations.py:26`); no module imports it. A test file run on its
   own fails with `NameError: name '_' is not defined` unless something
@@ -214,7 +231,7 @@ Data and folders
   `tests/test_cut.py tests/test_myimport.py` alone: 8 failures). The full
   suite passes because collection imports `test_validate.py`. Bug: [bugs/tooling/1](../initiatives/bugs/epics/tooling/tasks/1-tests-underscore.md).
 - **`_("...".format(x))` formats before translating**, so the translated
-  string is never found for those messages (e.g. `trelby/trelbyctrl.py:135`,
+  string is never found for those messages (e.g. `trelby/trelbyctrl.py:942`,
   `trelby/config.py:1319`). Throughout the package. Bug: [bugs/config-i18n/3](../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md).
 - **`TRELBY_TESTING` env var** makes `config`, `misc`, `util` and `gutil`
   import a `Mock` instead of `wx` (`trelby/config.py:14-19`) and leaves
@@ -232,9 +249,9 @@ Data and folders
 - **Character map → Insert, Name database → Insert and Edit → Insert
   non-breaking space are broken:** they call
   `MyCtrl.OnKeyChar(util.MyKeyEvent(...))` (`trelby/charmapdlg.py:27`,
-  `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:960`), but
+  `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:990`), but
   `OnKeyChar` → `util.eventKeyCode` calls `ev.GetUnicodeKey()`
-  (`trelby/trelbyctrl.py:1334`, `trelby/util.py:210`),
+  (`trelby/trelbyctrl.py:1364`, `trelby/util.py:210`),
   which `util.MyKeyEvent` does not have (`trelby/util.py:789-810`) →
   `AttributeError`. Bug: [bugs/editor/1](../initiatives/bugs/epics/editor/tasks/1-insert-char-crash.md).
 - **`opts.py --conf` crashes:** `str(sys.argv[i + 1], "UTF-8", "ignore")`
@@ -252,8 +269,8 @@ Data and folders
   `(a.x < a.y)` for `(a.x < b.x)` (`trelby/titles.py:58`). Bug: [bugs/editor/9](../initiatives/bugs/epics/editor/tasks/9-titles-sort-noop.md).
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
-  branch (load `sample.trelby`) is reachable (`trelby/trelbyctrl.py:1357-1362`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
-- **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:1004-1005`
+  branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1387-1392`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
+- **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:1000-1001`
   → `OnSave`); other modified tabs are discarded. Bug: [bugs/editor/2](../initiatives/bugs/epics/editor/tasks/2-exit-saves-current-tab.md).
 - **Help → Commands → Save** uses `wx.OVERWRITE_PROMPT`
   (`trelby/commandsdlg.py:94`), which wxPython 4 calls
@@ -266,7 +283,7 @@ Data and folders
   `trelby/resources/...` (`trelby/splash.py:39`).
 - `trelby/manual.html`, `dict_en.dat.gz`, `names.txt.gz` and `trelby.1.gz`
   are build products of `../Makefile`, not in git; Help → Manual opens
-  `trelby/manual.html` (`trelby/trelbyframe.py:984`), which does not exist
+  `trelby/manual.html` (`trelby/trelbyframe.py:980`), which does not exist
   in a plain checkout. Bug: [bugs/editor/11](../initiatives/bugs/epics/editor/tasks/11-help-manual-missing.md).
 - Two invalid escape sequences in `titles.py`, `" \qc"` / `" \qr"`
   (`trelby/titles.py:158-160`): `SyntaxWarning` in every test run, output
