@@ -21,6 +21,10 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 
 ## Decisions for Rafael
 
+- **One Fountain reader and writer** — approve the plan, and say whether
+  Import → Fountain stays now that Open reads `.fountain`
+  ([io/5](fountain-native/epics/io/tasks/5-one-fountain-path.md)).
+
 - **How the film keeps its history** — a study to run, then Rafael decides
   ([layout/2](file-format/epics/layout/tasks/2-history.md)).
 - **How agents write proposals** — (a) they write `item.json` and the
