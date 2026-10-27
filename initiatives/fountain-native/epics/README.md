@@ -3,7 +3,8 @@
 1. **io** — open and save Fountain as the native format (done 2026-10-26:
    1 done 2026-10-24; 3, remove `.trelby`, and 4, tests off `.trelby`, done
    2026-10-25; 2, per-script settings, moved to the `settings` epic on
-   2026-10-26)
+   2026-10-26). Reopened 2026-10-26 for 5, one Fountain reader and writer
+   (planned, waits for Rafael's approval)
 2. **scenes** — permanent scene numbers, letters for inserts (1 task; decided
    2026-10-25, open points answered 2026-10-26: ready to implement)
 3. **notes** — notes on spans of text (1 task; annotations kept outside the script, decided 2026-10-26, waits for the
