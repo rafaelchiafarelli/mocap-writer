@@ -1,6 +1,6 @@
 # film-bible — epics (execution order)
 
-1. **contract** — field catalog (Rafael approves) and the folder/Harpia contract (2 tasks)
+1. **contract** — field catalog (approved 2026-10-26) and the folder/Harpia contract (2 tasks)
 2. **tree** — the tree panel over `bible/` (1 task)
 3. **maps** — one editor per map: sets, characters, props, wardrobe (4 tasks)
 4. **links** — scene ↔ set, prop detection, wardrobe ↔ character × scene, copy (4 tasks)

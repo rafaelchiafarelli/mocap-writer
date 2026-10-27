@@ -3,8 +3,8 @@
 - **Type:** code, here and in `mocap-contracts`
 - **Depends on:** fountain-native/scenes/1 (scene numbers); film-bible/contract/2
   (bible library, to resolve known characters and props);
-  file-format/layout/1 (the index is a part
-  listed in `film.json`, owned by the writer); a
+  file-format/layout/1 (the index is a file of the writer's `bible`
+  part, Rafael 2026-10-26); a
   `mocap-contracts` task for a `scene_index` message, done and tagged
 - **Contract:**
   - In: the open script (Fountain) and `<film-root>/bible/`
