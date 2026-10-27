@@ -78,7 +78,7 @@ Model and file format
   Action lines, film-bible will reuse it for prop records. No wx.
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1409`).
+  (`trelby/trelbyctrl.py:1423`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -115,8 +115,8 @@ Application and editor (wx)
   hint when there is no act break. Own pixel fonts, so the zoom never
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
-  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:388`); repainted on a theme
-  change (`trelby/trelbyctrl.py:431`); `draw(dc, w, h)` does the drawing
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:391`); repainted on a theme
+  change (`trelby/trelbyctrl.py:434`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
@@ -223,7 +223,8 @@ Dialogs
 - `commandsdlg.py` — `CommandsDlg`: HTML list of commands and their keys,
   can be saved to a file.
 - `watermarkdlg.py` — `WatermarkDlg`: one watermarked PDF per line of text
-  (`trelby/watermarkdlg.py:11`).
+  (`trelby/watermarkdlg.py:13`); an unusable custom PDF font
+  stops it with a message.
 
 Data and folders
 - `dict_en.dat` — English word list for the spell checker, one word per
@@ -262,17 +263,14 @@ Data and folders
   find/replace do not filter (`util.toInputStr` only removes form feeds and
   turns tabs into `|`, `trelby/util.py:233`). The `toUTF8` / `fromUTF8` /
   `cleanInput` helpers are identity functions left from the Python 2 code
-  (`trelby/util.py:194-245`). Bug: [bugs/import-export/7](../initiatives/bugs/epics/import-export/tasks/7-non-latin1-title-pdf.md).
-- **Non-Latin-1 text in Helvetica or Times** (title pages) raises
-  `IndexError`: `FontMetrics.getTextWidth` indexes a 256-entry table with
-  `ord(ch)` (`trelby/fontinfo.py:57-60`). Courier has no table, so script
-  text is safe. Bug: [bugs/import-export/7](../initiatives/bugs/epics/import-export/tasks/7-non-latin1-title-pdf.md).
+  (`trelby/util.py:194-245`). Helvetica and Times measure a character
+  above U+00FF like `?` (`trelby/fontinfo.py:50-65`); Courier has no table.
 - **`Titles.sort()` does nothing**: it rebinds a local
   (`trelby/titles.py:60-61`), and its compare function has a typo
   `(a.x < a.y)` for `(a.x < b.x)` (`trelby/titles.py:58`). Bug: [bugs/editor/9](../initiatives/bugs/epics/editor/tasks/9-titles-sort-noop.md).
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
-  branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1409-1414`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
+  branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1423-1428`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
 - The "PDF viewer not found" message mixes `{}` and `%s`
   (`trelby/util.py:1293`): the default viewer's path is never filled in,
   a literal `%s` is shown. Bug: [bugs/editor/19](../initiatives/bugs/epics/editor/tasks/19-pdf-viewer-message.md).

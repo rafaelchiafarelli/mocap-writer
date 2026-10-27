@@ -12,6 +12,7 @@ import trelby.autocompletiondlg as autocompletiondlg
 import trelby.cfgdlg as cfgdlg
 import trelby.config as config
 import trelby.dialoguechart as dialoguechart
+import trelby.error as error
 import trelby.finddlg as finddlg
 import trelby.fountain as fountain
 import trelby.gutil as gutil
@@ -216,15 +217,17 @@ class MyCtrl(wx.Control):
 
             return
 
-        if fileName.endswith("fdx"):
+        ext = os.path.splitext(fileName)[1].lower()
+
+        if ext == ".fdx":
             lines = myimport.importFDX(fileName, self.gd.mainFrame)
-        elif fileName.endswith("celtx"):
+        elif ext == ".celtx":
             lines = myimport.importCeltx(fileName, self.gd.mainFrame)
-        elif fileName.endswith("astx"):
+        elif ext == ".astx":
             lines = myimport.importAstx(fileName, self.gd.mainFrame)
-        elif fileName.endswith("fadein"):
+        elif ext == ".fadein":
             lines = myimport.importFadein(fileName, self.gd.mainFrame)
-        elif fileName.lower().endswith(".pdf"):
+        elif ext == ".pdf":
             lines = myimport.importPdf(fileName, self.gd.mainFrame)
         else:
             lines = myimport.importTextFile(fileName, self.gd.mainFrame)
@@ -1168,7 +1171,7 @@ class MyCtrl(wx.Control):
 
             choice = dlg.GetFilterIndex()
             if choice == 0:
-                data = sp.generatePDF(True)
+                data = self.makePDF(sp, True)
                 suffix = ".pdf"
             elif choice == 1:
                 data = sp.generateRTF()
@@ -1202,8 +1205,19 @@ class MyCtrl(wx.Control):
         if not sp:
             return
 
-        s = sp.generatePDF(False)
-        gutil.showTempPDF(s, self.gd.cfgGl, self.gd.mainFrame)
+        s = self.makePDF(sp, False)
+        if s:
+            gutil.showTempPDF(s, self.gd.cfgGl, self.gd.mainFrame)
+
+    # the script as PDF, or None after telling the user why (a custom PDF
+    # font that cannot be used, pdf.getFontForFlags)
+    def makePDF(self, sp, isExport):
+        try:
+            return sp.generatePDF(isExport)
+        except error.TrelbyError as e:
+            wx.MessageBox(str(e), _("Error"), wx.OK, self.gd.mainFrame)
+
+            return None
 
     def OnSettings(self):
         dlg = cfgdlg.CfgDlg(

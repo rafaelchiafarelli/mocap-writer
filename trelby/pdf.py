@@ -5,6 +5,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen.canvas import Canvas
 
+from trelby.error import MiscError
+
 import trelby.pml as pml
 import trelby.pml as util
 
@@ -324,16 +326,23 @@ class PDFExporter:
 
         if not customFontInfo.name in pdfmetrics.getRegisteredFontNames():
             if not customFontInfo.fontFileName:
-                raise Exception(
+                raise MiscError(
                     _(
                         'Font name "{}" is not known and no font file name provided. Please provide a file name for this font in the settings or use the default font.'
                     ).format(
                         customFontInfo.name
                     )
                 )
-            pdfmetrics.registerFont(
-                TTFont(customFontInfo.name, customFontInfo.fontFileName)
-            )
+            try:
+                pdfmetrics.registerFont(
+                    TTFont(customFontInfo.name, customFontInfo.fontFileName)
+                )
+            except Exception as e:
+                raise MiscError(
+                    _('Cannot use the font file "{}": {}').format(
+                        customFontInfo.fontFileName, e
+                    )
+                )
 
         return customFontInfo.name
 

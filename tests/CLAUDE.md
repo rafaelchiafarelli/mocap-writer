@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 168 tests.
+objects directly and never create the wx GUI. 171 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -39,7 +39,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   The `ActPanel` itself needs a display and is not tested (checked by
   hand through the real window, 2026-10-26).
 - `test_renderscreenplay.py` — PDF export with core fonts and with the
-  custom TTF.
+  custom TTF; an unusable custom font (not a font file, or no file) is an
+  `error.MiscError`; non-Latin-1 widths in Helvetica.
 - `test_myimport.py` — `importCeltx` (against `test.fountain` with the old
   ending) and `importTextFile` (against `test.fountain`); the real `wx`,
   with only `myimport.ImportDlg` patched to answer OK
@@ -96,7 +97,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   a `Vars.add*` name or save name, or a helper argument that becomes one.
 - `test_importfountain.py` — `MyCtrl.importFile` on a fake control: a
   `.fountain` (any case) is read by `readFountain` like Open and the tab
-  stays untitled and modified; an unreadable one changes nothing.
+  stays untitled and modified; an unreadable one changes nothing; other
+  formats are picked by their extension in any case.
 - `test_saveall.py` — `MyFrame.saveAll` on fake tabs: every modified tab
   is saved, and one left unsaved (Save As cancelled) calls the exit off.
 - `test_wxnames.py` — every `wx.<name>` used in `trelby/` exists in the
