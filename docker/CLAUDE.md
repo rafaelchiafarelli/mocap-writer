@@ -63,8 +63,8 @@ pytest result.
   mount.
 - Without the home mount, the folders above the work dir were empty
   root-owned stand-ins Docker creates for a mount point: visible in the
-  dialogs, not writable, not the host's folders. Bug:
-  [bugs/tooling/8](../initiatives/bugs/epics/tooling/tasks/8-run-parent-folders.md).
+  dialogs, not writable, not the host's folders (bugs/tooling/8, fixed
+  2026-10-25).
 - The container sees the whole host home read-write (as the host user):
   the editor can open and save anywhere under it, like a native program.
 - `-p no:cacheprovider` because `/app` is read-only.

@@ -1,7 +1,11 @@
 # bugs — epics
 
-- **editor** — the wx editor: commands, dialogs, painting, view modes (18)
-- **import-export** — import, Fountain/PDF/FDX export, fonts (10)
-- **config-i18n** — options, config and state files, translations (6)
-- **tooling** — tests, tools, packaging, build scripts (9)
-- **as-built-docs** — mismatches between the as-built docs and the code (3)
+Open bugs per epic, and the last number used. A fixed bug's file is deleted
+once its fix is pushed (history: `git log -- initiatives/bugs`); numbers are
+never reused, so a new bug takes the next one after the last used.
+
+- **editor** — the wx editor: commands, dialogs, painting, view modes (12 open; last 18)
+- **import-export** — import, Fountain/PDF/FDX export, fonts (10 open; last 10)
+- **config-i18n** — options, config and state files, translations (3 open; last 6)
+- **tooling** — tests, tools, packaging, build scripts (3 open; last 9)
+- **as-built-docs** — mismatches between the as-built docs and the code (none open; last 3)
