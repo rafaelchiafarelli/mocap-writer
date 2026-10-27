@@ -52,10 +52,13 @@ The proposal below (2026-10-23/25), approved with these additions:
   and **Note** annotations; the other kinds stay on Action. A **Shot** is
   its own element and can also be a `shot` annotation on Action ("the
   camera follows her"), with the same fields. Every Shot has a **shot
-  number** within its scene (`12.A-3`: scene `12.A`, shot 3) for call
-  sheets and take logs, permanent like scene numbers: a number never
-  changes or comes back, an inserted shot follows the scenes/1 nesting
-  rule.
+  number** within its scene for call sheets and take logs, permanent like
+  scene numbers: a number never changes or comes back.
+  - **Open:** how it is written. The session wrote `12.A-3` (scene
+    `12.A`, shot 3) and, for an insert, `12.A-3.A` (the scenes/1 nesting);
+    Rafael asked why not a dot (2026-10-26). A dot alone is ambiguous:
+    `12.A.3` is already a valid scene number (scenes/1 alternates number
+    and letter), so the shot needs a separator a scene number never uses.
 
 ### Proposal (2026-10-23/25, approved 2026-10-26 with the additions above)
 
@@ -181,7 +184,7 @@ and Note only.
 - Description
 
 **Shot** — photographic and machinery description
-- Shot number within its scene: `12.A-3` (approved 2026-10-26)
+- Shot number within its scene (approved 2026-10-26; how it is written is open, above)
 - Size: extreme close-up, close-up, medium close-up, medium, cowboy, medium
   long, long, extreme long, insert
 - Angle: eye level, high, low, overhead / bird's eye, worm's eye, Dutch
