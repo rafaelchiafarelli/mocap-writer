@@ -23,6 +23,7 @@ import tomllib
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+import trelby.fountain as fountain
 import trelby.screenplay as screenplay
 from trelby.line import Line
 
@@ -1133,8 +1134,14 @@ def main(argv=None):
 
         sp = toScreenplay(lines)
         out = os.path.join(args.out, base + ".fountain")
+        res = fountain.generate(sp)
         with open(out, "w", encoding="utf-8") as f:
-            f.write(sp.generateFountain())
+            f.write(res.text)
+        for lt, text in res.lost:
+            print(
+                "lost: %s: %s" % (out, text.replace("\n", " / ")[:70]),
+                file=sys.stderr,
+            )
 
         counts = {}
         for ln in lines:

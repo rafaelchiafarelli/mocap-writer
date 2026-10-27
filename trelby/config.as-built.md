@@ -150,7 +150,7 @@ one-character file codes. All saved settings go through `mypickle.Vars`
   `text` → `cfgGl.textColor` and `cfgGui.textColor`. The settings page lists
   every color var automatically (`trelby/configpages/colorspanel.py:8`).
   Per-element text colors `text<Name>Color` exist for each type but are used
-  only when `useCustomElemColors` is on (`trelby/trelbyctrl.py:1584-1587`).
+  only when `useCustomElemColors` is on (`trelby/trelbyctrl.py:1601-1604`).
   A new color also needs its dark value in `DARK_COLORS`
   (`tests/test_theme.py` fails otherwise).
 - **Themes** — `theme` (`THEME_LIGHT` 0 / `THEME_DARK` 1,

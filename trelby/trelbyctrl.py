@@ -133,15 +133,8 @@ class MyCtrl(wx.Control):
 
             return
 
-        data = util.loadFile(fileName, self.gd.mainFrame, binary=True)
-        if data is None:
-            return
-
-        try:
-            sp = fountain.load(data.decode("UTF-8"), self.gd.cfgGl)
-        except UnicodeDecodeError:
-            self.loadError(_("The file is not UTF-8 text."))
-
+        sp = self.readFountain(fileName)
+        if sp is None:
             return
 
         self.clearVars()
@@ -152,6 +145,19 @@ class MyCtrl(wx.Control):
         # saved cursor position might be anywhere, so we can't just
         # display the first page
         self.makeLineVisible(self.sp.line)
+
+    # a .fountain file -> Screenplay, or None after telling the user why
+    def readFountain(self, fileName):
+        data = util.loadFile(fileName, self.gd.mainFrame, binary=True)
+        if data is None:
+            return None
+
+        try:
+            return fountain.load(data.decode("UTF-8"), self.gd.cfgGl)
+        except UnicodeDecodeError:
+            self.loadError(_("The file is not UTF-8 text."))
+
+            return None
 
     def loadError(self, msg):
         wx.MessageBox(
@@ -196,17 +202,26 @@ class MyCtrl(wx.Control):
         misc.showText(self.gd.mainFrame, msg, _("Warning"))
 
     def importFile(self, fileName):
-        titlePages = False
+        # a .fountain is read like Open (fountain-native/io/5); the tab
+        # stays untitled, as after every import
+        if fileName.lower().endswith(".fountain"):
+            sp = self.readFountain(fileName)
+            if sp is None:
+                return
+
+            self.createEmptySp()
+            self.sp = sp
+            self.refreshCache()
+            self.sp.markChanged(True)
+
+            return
+
         if fileName.endswith("fdx"):
             lines = myimport.importFDX(fileName, self.gd.mainFrame)
         elif fileName.endswith("celtx"):
             lines = myimport.importCeltx(fileName, self.gd.mainFrame)
         elif fileName.endswith("astx"):
             lines = myimport.importAstx(fileName, self.gd.mainFrame)
-        elif fileName.endswith("fountain"):
-            lines, titlePages = myimport.importFountain(
-                fileName, self.gd.mainFrame, self.sp.titles.pages
-            )
         elif fileName.endswith("fadein"):
             lines = myimport.importFadein(fileName, self.gd.mainFrame)
         elif fileName.lower().endswith(".pdf"):
@@ -220,8 +235,6 @@ class MyCtrl(wx.Control):
         self.createEmptySp()
 
         self.sp.lines = lines
-        if titlePages:
-            self.sp.titles.pages = titlePages
         self.sp.reformatAll()
         self.sp.paginate()
         self.sp.markChanged(True)
@@ -1167,8 +1180,12 @@ class MyCtrl(wx.Control):
                 data = self.getExportHtml(sp)
                 suffix = ".html"
             elif choice == 4:
-                data = sp.generateFountain()
+                res = fountain.generate(sp)
+                data = res.text
                 suffix = ".fountain"
+
+                if res.lost:
+                    self.showLost(res.lost)
             else:
                 data = self.getExportText(sp)
                 suffix = ".txt"
