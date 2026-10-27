@@ -3,7 +3,7 @@
 **Role:** One `wx.Panel` per page of `CfgDlg` (`trelby/cfgdlg.py:21`). Each
 page edits a deep copy of a config object in place; the dialog's Apply / OK
 hands that copy to `MyCtrl.applyGlobalCfg` or `MyCtrl.applyCfg`
-(`trelby/trelbyctrl.py:355-398`).
+(`trelby/trelbyctrl.py:385-428`).
 **Entry points:** `CfgDlg.AddPage(PanelClass, name)` (`trelby/cfgdlg.py:80`)
 instantiates `PanelClass(listbook, -1, cfg)` or, for the four pages that
 open their own dialogs, `PanelClass(listbook, -1, cfg, cfgDlg)`
@@ -72,7 +72,7 @@ Shared
 - The folder has no `__init__.py`; `trelby.configpages.*` imports work as a
   namespace package (`trelby/cfgdlg.py:4-18`).
 - Pages hold no state of their own beyond widgets; cancelling the dialog
-  just drops the deep copy (`trelby/trelbyctrl.py:1156-1174`).
+  just drops the deep copy (`trelby/trelbyctrl.py:1186-1204`).
 
 ## Touchpoints
 - Called by: `trelby/cfgdlg.py`.

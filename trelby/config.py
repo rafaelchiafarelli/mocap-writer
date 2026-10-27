@@ -1,5 +1,5 @@
-# see fileformat.txt for more detailed information about the various
-# defines found here.
+# the settings of a script (Config), of the program (ConfigGlobal), and
+# the defines they use.
 
 import copy
 import os
