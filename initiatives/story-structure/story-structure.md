@@ -1,7 +1,8 @@
 # story-structure — mocap-writer
 
-**Status:** Study done (2026-10-26): options A, B (recommended), C in
-`epics/study/tasks/1-structure-study.md`, waiting for Rafael's pick.
+**Status:** Study done (2026-10-26); Rafael decided an act is a marker
+only, with a panel of act sizes (epic `acts`). Models and beats wait for a
+later talk with an agent.
 
 **Goal:** know which act and which moment of the story a scene is in.
 
@@ -9,8 +10,10 @@
 hero's journey, sequences) and how they map to Fountain sections `#` and
 synopses `=`, ending in options for Rafael.
 
-**Out of scope:** code, until the study is decided.
+**Out of scope (for now):** structure models, beats, templates, records in
+the film root.
 
-**Initiative gate:** Rafael picks a model and the next tasks are planned.
+**Initiative gate:** Rafael uses the act panel on a script and says it
+does what he wanted.
 
 Epics: `epics/README.md`.
