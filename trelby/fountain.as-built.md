@@ -98,8 +98,8 @@ block → no title page.
   element styles, auto-completion lists, locations, the script's
   spell-checker words and headers stay at their defaults when a `.fountain`
   is opened. Page setup and styles can be kept with Script → Settings →
-  Save as / Load. Where the rest will live waits for the file-format
-  investigation (fountain-native/io/2 on hold).
+  Save as / Load. The rest is planned as a record in the film root
+  (fountain-native/settings/1, waits for file-format/layout/1).
 - **Shot is Trelby's own convention** (upper case + two trailing spaces);
   other Fountain tools, and editors that strip trailing spaces, read it as
   Action. A Shot not in upper case is written as Action and reported lost.

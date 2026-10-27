@@ -33,5 +33,5 @@
   - **Shot** is written as an upper-case line with two trailing spaces,
     Trelby's own convention (confirmed by Rafael, 2026-10-25); Fountain has
     no shot, so other tools (and mocap-previz) read it as Action.
-  - **Not done here:** per-script settings are not saved in Fountain → io/2
-    (waits for Rafael's decision).
+  - **Not done here:** per-script settings are not saved in Fountain → io/2,
+    now fountain-native/settings/1 (a record in the film root).
