@@ -1,5 +1,7 @@
 ## 2. Act panel
 
+- **Status:** Done (2026-10-26)
+
 - **Type:** code
 - **Depends on:** 1 (the act break is the marker)
 - **Decided (Rafael, 2026-10-26):** a **panel on the right** of the
