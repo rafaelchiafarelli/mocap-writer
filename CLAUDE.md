@@ -35,7 +35,8 @@ Chocolatey from `choco/`).
   (`setup.cfg:3`), Python `>=3.11`, dependencies `wxPython`, `lxml`,
   `reportlab`, `pdfplumber` (`setup.cfg:16-22`), console script `trelby`
   (`setup.cfg:26`), package data (`setup.cfg:28-38`).
-- `requirements.txt` — upstream's unpinned pip list, used by the GitHub
+- `requirements.txt` — upstream's unpinned pip list (`pdfplumber` added
+  2026-10-26), used by the GitHub
   workflow (`.github/workflows/CLAUDE.md`); Mocap Studio uses
   `docker/requirements.lock` instead.
 - `long_description.txt` — PyPI long description (`setup.cfg:8`).
@@ -70,12 +71,6 @@ Chocolatey from `choco/`).
 - **Version in many places:** `setup.cfg:3`, `trelby/misc.py:20`,
   `choco/`, `doc/version.xml`, `debian/changelog`, and the
   `--package-version` in `t_01_update_pot.sh:4`; nothing keeps them in sync.
-- **`requirements.txt` lacks `pdfplumber`**, which `setup.cfg` and
-  `docker/requirements.in` have and the PDF import tests need. Bug:
-  [bugs/tooling/9](initiatives/bugs/epics/tooling/tasks/9-requirements-pdfplumber.md).
-- `TRANSLATION_NOTES.txt` lists `t_01_update_pot.sh` twice
-  (`TRANSLATION_NOTES.txt:4-5`). Bug:
-  [bugs/tooling/7](initiatives/bugs/epics/tooling/tasks/7-translation-notes-step.md).
 - `README.dev` sections 3–4 describe upstream's old layout (`bin/trelby`,
   `sample.trelby`); the test-mode hotkeys it lists are broken
   ([bugs/editor/10](initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md)).

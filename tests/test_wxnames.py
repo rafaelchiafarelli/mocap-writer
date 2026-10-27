@@ -10,10 +10,7 @@ import wx
 NOT_ATTRIBUTES = {"html", "svg", "GTK", "WXK_"}
 
 # known bugs, still open
-KNOWN = {
-    # initiatives/bugs/epics/editor/tasks/18-commands-save-overwrite-prompt.md
-    ("commandsdlg.py", "OVERWRITE_PROMPT"),
-}
+KNOWN = set()
 
 
 # every wx.<name> used in trelby/ exists in the installed wxPython: names

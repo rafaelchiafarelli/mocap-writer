@@ -39,3 +39,10 @@ def testCharactersUseUnicode():
     # an accented letter keeps its Unicode value (the upstream fix for #89)
     assert util.eventKeyCode(FakeCharEvent(ord("ç"), wx.WXK_NONE)) == ord("ç")
     assert util.eventKeyCode(FakeCharEvent(ord("a"), ord("A"))) == ord("a")
+
+
+def testInsertsReadTheirCharacter():
+    # Character map, Name database and non-breaking space insert through a
+    # util.MyKeyEvent, which eventKeyCode must be able to read (bugs/editor/1)
+    assert util.eventKeyCode(util.MyKeyEvent(160)) == 160
+    assert util.eventKeyCode(util.MyKeyEvent(ord("ç"))) == ord("ç")

@@ -2,7 +2,7 @@ Requirements: gettext, and a po file editor.
 
 If you make code changes, please run the following before committing and submitting a pull request:
 ./t_01_update_pot.sh
-./t_01_update_pot.sh
+./t_02_update_po.sh
 ./t_03_build.sh
 
 These will refresh the .pot file from the current code, update all .po files from the updated .pot,

@@ -19,7 +19,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 ## Inputs
 
 - **command line** — `trelby.py [--test] [--conf <file>] [script ...]`,
-  parsed by `opts.init()` (`trelby/opts.py:8`). Every argument that is not a
+  parsed by `opts.init()` (`trelby/opts.py:5`). Every argument that is not a
   flag is a script to open.
 - **global config** — `<confPath>/default.conf` (`trelby/globaldata.py:33`),
   `key:value` lines read into `config.ConfigGlobal`. `confPath` is
