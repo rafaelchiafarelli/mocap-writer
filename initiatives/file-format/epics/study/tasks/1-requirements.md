@@ -21,7 +21,7 @@
 - Scene numbers: permanent, `12A` for inserts, not editable, written as
   `#12A#` (fountain-native/scenes/1, 2026-10-25; the notation became
   `12.A`, nested `12.A.1`, on 2026-10-26).
-- Notes on spans of text (fountain-native/notes/1, marker format open).
+- Notes on spans of text (fountain-native/notes/1; kept outside the script text, decided 2026-10-26).
 - Title page.
 - Acts and beats: where a scene is in the story (story-structure, study).
 
@@ -37,8 +37,8 @@ contract/1, "Scene annotations")
   then live inside the script text, and other Fountain tools show them
   inline), or a short typed note in the text pointing to a record kept
   elsewhere (the script stays readable; a note can be orphaned).
-  Decided 2026-10-26: the short typed note pointing to a record
-  (fountain-native/notes/1).
+  Decided 2026-10-26: neither; the records hold their own anchor and
+  nothing goes in the script text (fountain-native/notes/1).
 - Could be many: tens per scene, thousands per film.
 
 **Per-script settings** (were in `.trelby`)

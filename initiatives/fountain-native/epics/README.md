@@ -3,7 +3,7 @@
 1. **io** — open and save Fountain as the native format (1 task)
 2. **scenes** — permanent scene numbers, letters for inserts (1 task; decided
    2026-10-25, open points answered 2026-10-26: ready to implement)
-3. **notes** — notes on spans of text (1 task; marker decided 2026-10-26, waits for the
+3. **notes** — notes on spans of text (1 task; annotations kept outside the script, decided 2026-10-26, waits for the
    `annotation` message)
 
 `scenes` and `notes` need `io`. Cross-repository: `scenes` keeps

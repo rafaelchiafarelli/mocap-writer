@@ -144,10 +144,10 @@ Every item: `id`, `name`, `aliases`, `description`, `photos/`, `references/`,
 Inside a scene, an **Action**, a **Transition** or a **Shot** element can
 carry annotations. Each annotation is anchored to the element (or to a span
 of its text, the notes/1 mechanism), has a **kind**, a short text, links to
-bible items, and like every value a **state** and a **source**. Marking in
-Fountain (Rafael, 2026-10-26, fountain-native/notes/1): a typed note with
-kind, id and a short text, e.g. `[[fx annotation-w-7: chuva forte]]`; the
-full fields live in the record in `annotations/` the note points to.
+bible items, and like every value a **state** and a **source**. Nothing is
+written in the Fountain text (Rafael, 2026-10-26, fountain-native/notes/1):
+the record in `annotations/` holds its anchor (scene number, element,
+quoted text), and a button in the writer shows what is annotated.
 
 **Action** — annotation kinds:
 - **Note** — free text for the writer or the crew
