@@ -8,10 +8,12 @@
     that scene as their source (set, characters, props, wardrobe); those
     values are listed as **needs review** in the change panel; a value whose
     source scene did not change is never listed; no state is changed
-    automatically — whether "needs review" becomes a stored state is decided
-    with Rafael during this task's planning
+    automatically; "needs review" is **not a stored state** (Rafael,
+    2026-10-26): it lives in the change panel for that sync only, and a
+    value keeps its state (a `creator-approved` value stays approved)
+    until Rafael acts on it
   - Delivers: the affected-records list and its section in the change panel
-- **Pre-work:** Rafael's decision above
+- **Pre-work:** —
 - **Out of scope:** editing records (the maps' editors, review/1)
 - **Tests:** renamed character → its records listed; removed scene → values
   sourced from it listed; untouched scene → nothing listed
