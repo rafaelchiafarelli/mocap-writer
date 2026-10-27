@@ -16,6 +16,7 @@ from typing import Optional
 location = os.path.dirname(__file__)
 sys.path.append(os.path.join(location, "../trelby"))
 
+import fountain
 import u
 from screenplay import Screenplay
 
@@ -207,8 +208,7 @@ def runRandomOps():
         if not failed:
             try:
                 ops.sp._validate()
-                s = ops.sp.save()
-                u.loadString(s.decode())
+                u.loadString(fountain.generate(ops.sp).text)
             except KeyboardInterrupt:
                 raise
             except:
@@ -251,8 +251,8 @@ def save(ops: Ops, cnt: int):
     f.write(ops.save())
     f.close()
 
-    f = open("%d.trelby" % cnt, "wb")
-    f.write(ops.sp.save())
+    f = open("%d.fountain" % cnt, "wb")
+    f.write(fountain.generate(ops.sp).text.encode("UTF-8"))
     f.close()
 
 

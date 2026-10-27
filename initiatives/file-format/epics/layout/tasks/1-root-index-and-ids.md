@@ -101,7 +101,7 @@ e.g. an existing script's own name):
 | Part | Path | Owner | Planned in |
 |---|---|---|---|
 | `script` | `script.fountain` | writer | fountain-native/io/1 |
-| `settings` | `settings/script-settings.json` | writer | fountain-native/io/2 |
+| `settings` | `settings/script-settings.json` | writer | fountain-native/settings/1 (was io/2) |
 | `bible` | `bible/` | writer | film-bible/contract/2 |
 | `annotations` | `annotations/` | writer | film-bible/contract/1 fields, fountain-native/notes/1 anchors (records anchored to the script, nothing in its text, Rafael 2026-10-26) |
 | `proposals-<code>` | `proposals/<agent>/` | that agent | open: how agents write proposals |

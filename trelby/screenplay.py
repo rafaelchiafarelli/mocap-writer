@@ -29,7 +29,6 @@ import difflib
 import re
 import sys
 import time
-from typing import Tuple
 
 from lxml import etree
 
@@ -61,6 +60,10 @@ class Screenplay:
 
         self.cfgGl = cfgGl
         self.cfg = config.Config()
+
+        # fountain.Source of the .fountain file this script was opened from
+        # or last saved to, None otherwise (trelby/fountain.py)
+        self.fountainSource = None
 
         # cursor position: line and column
         self.line = 0
@@ -158,6 +161,7 @@ class Screenplay:
         sp.locations = copy.deepcopy(self.locations)
         sp.titles = copy.deepcopy(self.titles)
         sp.scDict = copy.deepcopy(self.scDict)
+        sp.fountainSource = self.fountainSource
 
         sp.lines = [Line(ln.lb, ln.lt, ln.text) for ln in self.lines]
 
@@ -167,266 +171,6 @@ class Screenplay:
         sp.column = self.column
 
         return sp
-
-    # save script to a utf-8 encoded string and return that
-    def save(self) -> bytes:
-        self.cfg.cursorLine = self.line
-        self.cfg.cursorColumn = self.column
-
-        output = ""
-
-        output += "\ufeff"
-        output += "#Version 3\n"
-
-        output += "#Begin-Auto-Completion \n"
-        output += self.autoCompletion.save()
-        output += "#End-Auto-Completion \n"
-
-        output += "#Begin-Config \n"
-        output += self.cfg.save()
-        output += "#End-Config \n"
-
-        output += "#Begin-Locations \n"
-        output += self.locations.save()
-        output += "#End-Locations \n"
-
-        output += "#Begin-Spell-Checker-Dict \n"
-        output += self.scDict.save()
-        output += "#End-Spell-Checker-Dict \n"
-
-        pgs = self.titles.pages
-        for pg in range(len(pgs)):
-            if pg != 0:
-                output += "#Title-Page \n"
-
-            for i in range(len(pgs[pg])):
-                output += "#Title-String %s\n" % str(pgs[pg][i])
-
-        for h in self.headers.hdrs:
-            output += "#Header-String %s\n" % str(h)
-
-        output += "#Header-Empty-Lines %d\n" % self.headers.emptyLinesAfter
-
-        output += "#Start-Script \n"
-
-        for i in range(len(self.lines)):
-            output += str(self.lines[i]) + "\n"
-
-        return output.encode("UTF-8")
-
-    # load script from string s and return a (Screenplay, msg) tuple,
-    # where msgs is string (possibly empty) of warnings about the loading
-    # process. fatal errors are indicated by raising a MiscError. note
-    # that this is a static function.
-    @staticmethod
-    def load(s: str, cfgGl):
-        lines = s.splitlines()
-
-        sp = Screenplay(cfgGl)
-
-        # remove default empty line
-        sp.lines = []
-
-        if len(lines) < 2:
-            raise error.MiscError(
-                _("File has too few lines to be a valid\nscreenplay file.")
-            )
-
-        key, version = Screenplay.parseConfigLine(lines[0])
-        if not key or (key != "Version"):
-            raise error.MiscError(
-                _("File doesn't seem to be a proper\nscreenplay file.")
-            )
-
-        if version not in ("1", "2", "3"):
-            raise error.MiscError(
-                _(
-                    "File uses fileformat version '{}',\nwhich is not supported by this version\nof the program.".format(
-                        version
-                    )
-                )
-            )
-
-        version = int(version)
-
-        # current position at 'lines'
-        index = 1
-
-        s, index = Screenplay.getConfigPart(lines, "Auto-Completion", index)
-        if s:
-            sp.autoCompletion.load(s)
-
-        s, index = Screenplay.getConfigPart(lines, "Config", index)
-        if s:
-            sp.cfg.load(s)
-
-        s, index = Screenplay.getConfigPart(lines, "Locations", index)
-        if s:
-            sp.locations.load(s)
-
-        s, index = Screenplay.getConfigPart(lines, "Spell-Checker-Dict", index)
-        if s:
-            sp.scDict.load(s)
-
-        # used to keep track that element type only changes after a
-        # LB_LAST line.
-        prevType = None
-
-        # did we encounter unknown lb types
-        unknownLb = False
-
-        # did we encounter unknown element types
-        unknownTypes = False
-
-        # did we encounter unknown config lines
-        unknownConfigs = False
-
-        # have we seen the Start-Script line. defaults to True in old
-        # files which didn't have it.
-        startSeen = version < 3
-
-        for i in range(index, len(lines)):
-            s = lines[i]
-
-            if len(s) < 2:
-                raise error.MiscError(_("Line {} is too short.".format(i + 1)))
-
-            if s[0] == "#":
-                key, val = Screenplay.parseConfigLine(s)
-                if not key:
-                    raise error.MiscError(
-                        _("Line {} has invalid syntax for\nconfig line.".format(i + 1))
-                    )
-
-                if key == "Title-Page":
-                    sp.titles.pages.append([])
-
-                elif key == "Title-String":
-                    if len(sp.titles.pages) == 0:
-                        sp.titles.pages.append([])
-
-                    tmp = titles.TitleString([])
-                    tmp.load(val)
-                    sp.titles.pages[-1].append(tmp)
-
-                elif key == "Header-String":
-                    tmp = headers.HeaderString()
-                    tmp.load(val)
-                    sp.headers.hdrs.append(tmp)
-
-                elif key == "Header-Empty-Lines":
-                    sp.headers.emptyLinesAfter = util.str2int(val, 1, 0, 5)
-
-                elif key == "Start-Script":
-                    startSeen = True
-
-                else:
-                    unknownConfigs = True
-
-            else:
-                if not startSeen:
-                    unknownConfigs = True
-
-                    continue
-
-                lb = config.char2lb(s[0], False)
-                lt = config.char2lt(s[1], False)
-                text = util.toInputStr(util.fromUTF8(s[2:]))
-
-                # convert unknown lb types into LB_SPACE
-                if lb == None:
-                    lb = LB_SPACE
-                    unknownLb = True
-
-                # convert unknown types into ACTION
-                if lt == None:
-                    lt = ACTION
-                    unknownTypes = True
-
-                if prevType and (lt != prevType):
-                    raise error.MiscError(
-                        _("Line {} has invalid element type.".format(i + 1))
-                    )
-
-                line = Line(lb, lt, text)
-                sp.lines.append(line)
-
-                if lb != LB_LAST:
-                    prevType = lt
-                else:
-                    prevType = None
-
-        if not startSeen:
-            raise error.MiscError(_("Start-Script line not found."))
-
-        if len(sp.lines) == 0:
-            raise error.MiscError(_("File doesn't contain any screenplay lines."))
-
-        if sp.lines[-1].lb != LB_LAST:
-            raise error.MiscError(_("Last line doesn't end an element."))
-
-        if cfgGl.honorSavedPos:
-            sp.line = sp.cfg.cursorLine
-            sp.column = sp.cfg.cursorColumn
-            sp.validatePos()
-
-        sp.reformatAll()
-        sp.paginate()
-        sp.titles.sort()
-        sp.locations.refresh(sp.getSceneNames())
-
-        msgs = []
-
-        if unknownLb:
-            msgs.append(_("Screenplay contained unknown linebreak types."))
-
-        if unknownTypes:
-            msgs.append(
-                _(
-                    "Screenplay contained unknown element types. These have been converted to Action elements."
-                )
-            )
-
-        if unknownConfigs:
-            msgs.append(
-                _(
-                    "Screenplay contained unknown information. This probably means that the file was created with a newer version of this program.\n\n  You'll lose that information if you save over the existing file."
-                )
-            )
-
-        return (sp, "\n\n".join(msgs))
-
-    # lines is an array of strings. if lines[startIndex] == "Begin-$name
-    # ", this searches for a string of "End-$name ", takes all the strings
-    # between those two, joins the lines into a single string (lines
-    # separated by a "\n") and returns (string,
-    # line-index-after-the-end-line). returns ("", startIndex) if
-    # startIndex does not contain the start line or startIndex is too big
-    # for 'lines'. raises error.MiscError on errors.
-    @staticmethod
-    def getConfigPart(lines, name, startIndex):
-        if (startIndex >= len(lines)) or (lines[startIndex] != ("#Begin-%s " % name)):
-            return ("", startIndex)
-
-        try:
-            endIndex = lines.index("#End-%s " % name, startIndex)
-        except ValueError:
-            raise error.MiscError("#End-{} ".format(name) + _("not found"))
-
-        return ("\n".join(lines[startIndex + 1 : endIndex]), endIndex + 1)
-
-    # parse a line containing a config-value in the format detailed in
-    # fileformat.txt. line must have newline stripped from the end
-    # already. returns a (key, value) tuple. if line doesn't match the
-    # format, (None, None) is returned.
-    @staticmethod
-    def parseConfigLine(s: str) -> Tuple[str, str]:
-        pattern = re.compile("#([a-zA-Z0-9-]+) (.*)")
-        m = pattern.search(s)
-        if m:
-            return (m.group(1), m.group(2))
-        else:
-            return (None, None)
 
     # apply new config.
     def applyCfg(self, cfg):

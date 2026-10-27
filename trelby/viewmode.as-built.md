@@ -89,7 +89,7 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:69-82`):
   add a `VIEWMODE_*` constant and instance in `GlobalData`
   (`trelby/globaldata.py:25-29`, `trelby/globaldata.py:79-83`), a menu item
   and handler in `MyFrame` (`trelby/trelbyframe.py:109-121`,
-  `trelby/trelbyframe.py:801-837`), and widen the `ViewMode` range in
+  `trelby/trelbyframe.py:797-833`), and widen the `ViewMode` range in
   `GlobalData` (`trelby/globaldata.py:62-68`).
 
 ## Gotchas

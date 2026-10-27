@@ -4,6 +4,8 @@ Source: Rafael's review of unmodified Trelby (2026-10-23). Known bugs live in
 the **bugs** initiative (`bugs/bugs.md`), a backlog outside the order below:
 each is fixed on a fix branch when it gets in the way.
 
+**Open points** (decisions pending, work waiting, gates): `open-points.md`.
+
 The as-built documentation (initiative 0, done 2026-10-24) lives with the
 code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 
@@ -15,4 +17,4 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 6. **preprod-link** — feed the mocap-preprod agents: scene index, Sync to spec (script-to-spec on every change), review of proposals
 7. **story-structure** — where we are in the story (acts, beats): a study first
 
-`film-bible` needs `fountain-native/scenes` (scene numbers). `preprod-link` needs `film-bible`. `film-bible`, `preprod-link` and `fountain-native/io/2` (per-script settings) need `file-format/layout/1`. `pdf-import` and `editor-ux` need nothing.
+`film-bible` needs `fountain-native/scenes` (scene numbers). `preprod-link` needs `film-bible`. `film-bible`, `preprod-link` and `fountain-native/settings/1` (per-script settings, was io/2) need `file-format/layout/1`. `pdf-import` and `editor-ux` need nothing.
