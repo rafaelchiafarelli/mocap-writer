@@ -112,8 +112,11 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `loadLatin1EncodedFile`; the file
   itself is ISO-8859-1 encoded.
 - `execute_random_tests.py` — manual fuzzer: random command sequences on a
-  `Screenplay`, saving failing sequences (and the script as `.fountain`) (`# ut:ignore`, not collected by
-  pytest because of its name).
+  `Screenplay`, saving failing sequences (and the script as `.fountain`)
+  in the current directory (`# ut:ignore`, not collected by pytest because
+  of its name). Run from the repository root:
+  `python -m tests.execute_random_tests [file.ops]`; it prints only on a
+  failure (checked to start and run, 2026-10-27).
 
 ## Key facts / gotchas
 - Every test runs with the real `wx` and no display: nothing replaces
@@ -121,9 +124,6 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   (`trelby/config.py:14`); a test that would open a dialog patches that
   dialog. Several test files still load the translations themselves, which
   `tests/u.py` already does.
-- `execute_random_tests.py` still imports `u` and `screenplay` as top-level
-  modules via `sys.path` (`tests/execute_random_tests.py:16-20`), the
-  pre-package layout. Bug: [bugs/tooling/4](../initiatives/bugs/epics/tooling/tasks/4-random-tests-stale.md).
 - PDFs are generated, not committed: Rafael's real PDFs hold film text and
   stay out of the repo (decided in the pdf-import initiative, task
   importer/1, now in git history).
