@@ -1,6 +1,7 @@
 # story-structure — mocap-writer
 
-**Status:** Planned — not started. A study first (Rafael: exploratory).
+**Status:** Study done (2026-10-26): options A, B (recommended), C in
+`epics/study/tasks/1-structure-study.md`, waiting for Rafael's pick.
 
 **Goal:** know which act and which moment of the story a scene is in.
 
