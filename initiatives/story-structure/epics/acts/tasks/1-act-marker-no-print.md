@@ -1,5 +1,7 @@
 ## 1. The act marker does not print
 
+- **Status:** Done (2026-10-26)
+
 - **Type:** code
 - **Depends on:** — (native Fountain already saves the act break as `# X`)
 - **Decided (Rafael, 2026-10-26):** an act is a **marker only**: the
