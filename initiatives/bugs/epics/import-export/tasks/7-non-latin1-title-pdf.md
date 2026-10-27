@@ -1,7 +1,0 @@
-## 7. Non-Latin-1 text in a Helvetica/Times title page raises IndexError
-
-- **Status:** Fixed (2026-10-27) — fixes/00008c/import-export-small
-- **Symptom:** A character above U+00FF in a title string in Helvetica or Times raises `IndexError`; typed input is filtered to Latin-1 (`trelby/util.py:219`) but paste and import are not.
-- **Where:** `FontMetrics.getTextWidth` indexes a 256-entry table with `ord(ch)` (`trelby/fontinfo.py:60-64`)
-- **Reproduce:** paste "Ł" into a title string, export PDF.
-- **Impact:** PDF export fails.
