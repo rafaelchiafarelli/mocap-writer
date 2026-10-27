@@ -113,6 +113,90 @@ Later, out of this study: an agent that proposes beats from the script
 (a proposal Rafael approves, preprod-link review); TV act structures
 (teaser + 4–5 acts with printed act breaks) as more templates.
 
+### Example of option B (to try later, Rafael 2026-10-26)
+A made-up 100-page script, 40 scenes, template "15 beats (Snyder)".
+
+The script gains only one non-printing heading per act; `=` synopses are
+optional and the writer's own words. No beat names in the text:
+
+```fountain
+# ACT ONE
+= A courier who never looks back.
+
+INT. SORTING ROOM - NIGHT #1#
+
+Parcels slide down a chute. MARA (30s) catches one without looking.
+
+EXT. RAIL YARD - DAWN #12#
+
+A parcel with no address. It ticks.
+
+# ACT TWO
+
+INT. TRAIN CAR - DAY #14#
+
+# ACT THREE
+
+EXT. HARBOUR - NIGHT #33#
+```
+
+The record `<film-root>/structure/structure-w-1.json` holds the beats by
+scene number only; names, order and target pages come from the template,
+and a range beat ends where the next one starts:
+
+```json
+{
+  "id": "structure-w-1",
+  "template": "15-beats-snyder",
+  "parts": [
+    {"part": "opening-image",     "scene": "1"},
+    {"part": "theme-stated",      "scene": "2"},
+    {"part": "set-up",            "scene": "1"},
+    {"part": "catalyst",          "scene": "12"},
+    {"part": "debate",            "scene": "12.A"},
+    {"part": "break-into-two",    "scene": "14"},
+    {"part": "b-story",           "scene": "16"},
+    {"part": "fun-and-games",     "scene": "16"},
+    {"part": "midpoint",          "scene": "22"},
+    {"part": "bad-guys-close-in", "scene": "23"},
+    {"part": "all-is-lost",       "scene": "29"},
+    {"part": "dark-night",        "scene": "30"},
+    {"part": "break-into-three",  "scene": "33"},
+    {"part": "finale",            "scene": "33"},
+    {"part": "final-image",       "scene": "40"}
+  ]
+}
+```
+
+The editor with the structure button on (targets scaled from 110 to 100
+pages):
+
+```
+ ACT ONE         ACT TWO                              ACT THREE
+├──────────────┼─────────────────────────────────────┼────────────┤
+1      ▲   │  ▲            ▲      ●                ▲   ▲            100
+     Catalyst  Break       B     Midpoint      All is  Break
+      p 14     into 2    Story   p 52 ▼        Lost    into 3
+     (11 ▒)    p 27 ▒              you are     p 74    p 86 ▒
+               (23)                here p 47   (68 ▒)  (77 ▒)
+
+ ▲ actual page   ▒ target page   ● cursor
+```
+
+- Hover on a tick: `Catalyst — scene 12, page 14; target page 11 (3 pages late)`.
+- Status area: `Act 2 · Fun and Games · p. 47 (target 27–50)`.
+- Pacing report (PDF):
+
+  | Part | Pages | Target | |
+  |---|---|---|---|
+  | Act one | 1–26 (26) | 1–23 (23) | +3 |
+  | Fun and Games | 30–51 (22) | 27–50 (24) | −2 |
+  | Act three | 86–100 (15) | 77–100 (24) | −9, short |
+
+The same script under A: the `#` headings only, no record, no beat ticks.
+Under C: no `#` headings; the acts move into the record
+(`{"part": "act-two", "scene": "14"}`).
+
 ### Questions for Rafael
 1. Which option (A, B, C)?
 2. One model per film, or a model plus sequences on top (e.g. 15 beats
