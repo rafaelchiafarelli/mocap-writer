@@ -15,6 +15,6 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 4. **file-format** — the one format that holds the script, the bible, notes, links and the rest: study done 2026-10-25, option A (a folder of Harpia JSON records, ISOXML-style; C, a change log in SQLite, kept in mind); next the root index and ids
 5. **film-bible** — the maps (sets, characters, props, wardrobe) as folders in the film root
 6. **preprod-link** — feed the mocap-preprod agents: scene index, Sync to spec (script-to-spec on every change), review of proposals
-7. **story-structure** — where we are in the story (acts, beats): a study first
+7. **story-structure** — where we are in the story (acts, beats): study done 2026-10-26, options A/B/C waiting for Rafael's pick
 
 `film-bible` needs `fountain-native/scenes` (scene numbers). `preprod-link` needs `film-bible`. `film-bible`, `preprod-link` and `fountain-native/settings/1` (per-script settings, was io/2) need `file-format/layout/1`. `pdf-import` and `editor-ux` need nothing.
