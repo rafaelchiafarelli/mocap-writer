@@ -1,5 +1,8 @@
 ## 1. Field catalog
 
+- **Status:** Done (2026-10-26) — Rafael approved the catalog below, with
+  the extras and rules recorded under "Approved"
+
 - **Type:** **manual** task (Rafael approves; the session proposes and records).
 - **Depends on:** —
 - **Contract:**
@@ -16,7 +19,45 @@
 - **Out of scope:** the file format (contract/2)
 - **Tests:** —
 
-### Proposal (to approve, cut or extend)
+### Approved (Rafael, 2026-10-26)
+
+The proposal below (2026-10-23/25), approved with these additions:
+
+- **Every value** carries, besides its **state** and **source**, the
+  **department** downstream of it (wardrobe, art, sound, camera...) and,
+  for a `TBD` value, a **revisit trigger** (what reopens it), as the
+  mocap-preprod registers already record (e.g.
+  `mocap-preprod/.claude/agents/props-continuity-planner.md`, "Production-
+  facing specification"), so an agent's register lands in a record without
+  loss. Also who set it (`by`: the creator, the writer, or an agent).
+- **Field types, by rule**, not field by field: a field with listed options
+  is a **choice** with a free "other"; a size, weight, duration or rate is
+  a **number+unit** (SI units, frames per second); a floor plan, `.blend`,
+  photo or pattern is a **file**; a field that names an item is a **link**
+  (to its id); the rest is **text**. A group marked "per scene" (set
+  continuity, character per scene, prop state per scene, wardrobe changes)
+  **repeats per scene**, keyed by scene number.
+- **Who fills it, by rule:** the writer, when the script states it (state
+  `script-stated`); otherwise the creator, with the mocap-preprod agent of
+  that department proposing (state `proposal` until the creator approves).
+- **Extras on the maps:** Set: realization (virtual in Blender, practical
+  build, real location), connections (which sets adjoin, through which
+  opening), hazards and safety. Character: species or type (human, animal,
+  creature: drives the rig), color palette, a short backstory. Prop:
+  realization (virtual, practical, bought), duplicates (how many, why:
+  breakables, stunts), owner (link to a character). Wardrobe: realization
+  (virtual cloth, practical), duplicates (wet or torn continuity), hair and
+  makeup per scene.
+- **Annotations:** Dialogue and Parenthetical carry **Character direction**
+  and **Note** annotations; the other kinds stay on Action. A **Shot** is
+  its own element and can also be a `shot` annotation on Action ("the
+  camera follows her"), with the same fields. Every Shot has a **shot
+  number** within its scene (`12.A-3`: scene `12.A`, shot 3) for call
+  sheets and take logs, permanent like scene numbers: a number never
+  changes or comes back, an inserted shot follows the scenes/1 nesting
+  rule.
+
+### Proposal (2026-10-23/25, approved 2026-10-26 with the additions above)
 
 Every item: `id`, `name`, `aliases`, `description`, `photos/`, `references/`,
 `notes`, `tags`, `children` (sub-items), `scenes` (numbers, derived from links).
@@ -41,6 +82,9 @@ Every item: `id`, `name`, `aliases`, `description`, `photos/`, `references/`,
 - Continuity per scene: what changes between scenes (broken window, moved
   sofa)
 - Capture: floor area needed, obstacles the actor touches (mocap stand-ins)
+- Realization: virtual (Blender), practical build, real location
+- Connections: which sets adjoin, through which opening
+- Hazards and safety
 
 **Character (personagem)**
 - Identity: name, nicknames, age, gender, pronouns, nationality, social
@@ -61,6 +105,9 @@ Every item: `id`, `name`, `aliases`, `description`, `photos/`, `references/`,
   target skeleton)
 - Per scene: emotional state, physical state (wet, hurt, out of breath),
   wardrobe (link)
+- Species or type: human, animal, creature (drives the rig)
+- Color palette
+- Backstory (short)
 
 **Prop (item cênico)** — created from capitalized words in Action
 - Identity: category (hand prop, set dressing, vehicle, food…), quantity,
@@ -75,6 +122,9 @@ Every item: `id`, `name`, `aliases`, `description`, `photos/`, `references/`,
 - Handling: who handles it, how, hand-offs between characters
 - State per scene: new, used, broken, full/empty, lit/unlit
 - Capture: stand-in object for the actor, `.blend` model
+- Realization: virtual (Blender), practical, bought
+- Duplicates: how many, why (breakables, stunts)
+- Owner: character (link)
 
 **Wardrobe (figurino)** — linked to a character in a scene
 - Pieces: child items (shirt, trousers, shoes, accessories), each with
@@ -85,8 +135,11 @@ Every item: `id`, `name`, `aliases`, `description`, `photos/`, `references/`,
 - Files: photos, references, `.blend` model, pattern files
 - Changes: which scenes it is worn in, what changes between scenes
 - Capture: what the actor wears for capture (markerless: tight vs loose)
+- Realization: virtual cloth (Blender), practical
+- Duplicates (wet or torn continuity)
+- Hair and makeup, per scene
 
-### Scene annotations (Rafael, 2026-10-25; proposal to approve, cut or extend)
+### Scene annotations (Rafael, 2026-10-25; approved 2026-10-26)
 
 Inside a scene, an **Action**, a **Transition** or a **Shot** element can
 carry annotations. Each annotation is anchored to the element (or to a span
@@ -110,6 +163,11 @@ full fields live in the record in `annotations/` the note points to.
   moved, door opens, light changes (practical on/off, time of day shifts)
 - **Sound direction** — a sound effect or ambience cue (feeds mocap-audio)
 - **General direction** — anything else for the director
+- **Shot** — camera intent inside the scene, the Shot fields below
+  (approved 2026-10-26)
+
+**Dialogue and Parenthetical** (approved 2026-10-26) — Character direction
+and Note only.
 
 **Transition**
 - Types, **one or more combined** (Rafael, 2026-10-25: e.g. a cross-
@@ -123,6 +181,7 @@ full fields live in the record in `annotations/` the note points to.
 - Description
 
 **Shot** — photographic and machinery description
+- Shot number within its scene: `12.A-3` (approved 2026-10-26)
 - Size: extreme close-up, close-up, medium close-up, medium, cowboy, medium
   long, long, extreme long, insert
 - Angle: eye level, high, low, overhead / bird's eye, worm's eye, Dutch
@@ -145,8 +204,7 @@ full fields live in the record in `annotations/` the note points to.
   length, position and path), so a shot description becomes a camera
 - Description; references (frames, storyboard images)
 
-Questions for Rafael: should Dialogue and Parenthetical carry character
-directions too (they are performance, as much as Action)? Is a Shot always
-its own element, or can it also be an annotation on an Action ("the camera
-follows her")?
+Questions for Rafael (answered 2026-10-26, under "Approved"): should
+Dialogue and Parenthetical carry character directions too? Is a Shot always
+its own element, or can it also be an annotation on an Action?
 
