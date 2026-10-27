@@ -1,6 +1,16 @@
 ## 5. One Fountain reader and writer
 
-- **Status:** Planned (2026-10-26) — waits for Rafael's approval of this plan.
+- **Status:** Done (2026-10-26) — Rafael approved the plan and kept Import →
+  Fountain, through `fountain.load`; the old importer's options are a future
+  feature (`../../import/tasks/1-fountain-import-options.md`). Export →
+  Fountain and the PDF command line write with `fountain.generate`;
+  `generateFountain` and `importFountain` deleted. 166 tests (3 new:
+  `testFountainReadsBack`, `tests/test_importfountain.py`, which checks
+  the import's routing on a fake control rather than comparing with Open:
+  both go through `MyCtrl.readFountain`, and a real `MyCtrl` needs a
+  window); six
+  `test_pdfimport.py` expected texts gained the final newline
+  `fountain.generate` writes, nothing else changed in them.
 - **Why:** Open and Save use `fountain.load` / `fountain.generate`, but three
   paths still use upstream's one-way Fountain code: Export → Fountain
   (`Screenplay.generateFountain`, `trelby/trelbyctrl.py:1170`), the PDF
@@ -40,6 +50,5 @@
   `fountain.load` to the same element types and texts; importing
   `tests/fixtures/fountain/elements.fountain` gives the same lines as
   opening it.
-- **Decisions for Rafael:** (1) approve the plan; (2) is Import → Fountain
-  still wanted at all, now that Open reads `.fountain`? Dropping it from the
-  Import dialog is simpler than keeping a second way in.
+- **Decisions:** plan approved; Import → Fountain kept as a way in, and
+  its old options planned as a feature for later (Rafael, 2026-10-26).
