@@ -153,4 +153,4 @@ rule covers.
 `tests/test_pdfimport.py` draws its PDFs with ReportLab at test time:
 classification with the profile `tests/fixtures/pdf/letter-test.toml`,
 detection checked against that profile's result, and Trelby's own PDF export
-of `test.trelby` detected and through `trelby-a4.toml`.
+of `test.fountain` detected and through `trelby-a4.toml`.
