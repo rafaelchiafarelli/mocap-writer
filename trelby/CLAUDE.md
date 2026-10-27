@@ -249,9 +249,11 @@ Data and folders
 - **`_` is a builtin installed by `translations.trelby_translations_load()`**
   (`trelby/translations.py:26`); no module imports it. The tests get it
   from `tests/u.py:16`.
-- **`_("...".format(x))` formats before translating**, so the translated
-  string is never found for those messages (e.g. `trelby/trelbyctrl.py:960`,
-  `trelby/config.py:1319`). Throughout the package. Bug: [bugs/config-i18n/3](../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md).
+- **Messages are translated, then formatted:** `_("…{}").format(x)`; a
+  translated string is never an attribute or save name: helpers that build
+  attribute names take a fixed key and a separate label
+  (`tests/test_i18n.py` checks both). The Italian catalog's placeholders
+  match the English ones (checked 2026-10-27).
 - **`TRELBY_TESTING` env var** makes `config`, `misc`, `util` and `gutil`
   import a `Mock` instead of `wx` (`trelby/config.py:14-19`) and leaves
   `ConfigGlobal.commands` empty (`trelby/config.py:740-743`).
@@ -271,9 +273,9 @@ Data and folders
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
   branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1409-1414`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
-- The MRU list is saved under the **translated** key `_("Files")`
-  (`trelby/globaldata.py:70`), so switching `$LANG` loses the recent-files
-  list. Bug: [bugs/config-i18n/4](../initiatives/bugs/epics/config-i18n/tasks/4-mru-translated-key.md).
+- The "PDF viewer not found" message mixes `{}` and `%s`
+  (`trelby/util.py:1293`): the default viewer's path is never filled in,
+  a literal `%s` is shown. Bug: [bugs/editor/19](../initiatives/bugs/epics/editor/tasks/19-pdf-viewer-message.md).
 - `misc.progPath` is the repository root (parent of `trelby/`,
   `trelby/misc.py:54`), so resources are addressed as
   `trelby/resources/...` (`trelby/splash.py:39`).

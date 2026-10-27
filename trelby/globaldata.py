@@ -67,7 +67,7 @@ class GlobalData:
             self.VIEWMODE_SIDE_BY_SIDE,
         )
 
-        v.addList("files", [], _("Files"), mypickle.StrUnicodeVar("", "", ""))
+        v.addList("files", [], "Files", mypickle.StrUnicodeVar("", "", ""))
 
         v.makeDicts()
         v.setDefaults(self)
@@ -93,9 +93,9 @@ class GlobalData:
             except OSError as e:
                 wx.MessageBox(
                     _(
-                        "Error creating configuration directory\n'{}': {}".format(
-                            misc.confPath, e.strerror
-                        )
+                        "Error creating configuration directory\n'{}': {}"
+                    ).format(
+                        misc.confPath, e.strerror
                     ),
                     _("Error"),
                     wx.OK,

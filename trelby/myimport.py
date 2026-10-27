@@ -54,7 +54,7 @@ def importAstx(fileName, frame):
     try:
         root = etree.XML(data)
     except etree.XMLSyntaxError as e:
-        wx.MessageBox(_("Error parsing file: {}".format(e)), _("Error"), wx.OK, frame)
+        wx.MessageBox(_("Error parsing file: {}").format(e), _("Error"), wx.OK, frame)
         return None
 
     lines = []
@@ -128,7 +128,7 @@ def importFadein(fileName, frame):
     try:
         root = etree.XML(data)
     except etree.XMLSyntaxError as e:
-        wx.MessageBox(_("Error parsing file: {}".format(e)), _("Error"), wx.OK, frame)
+        wx.MessageBox(_("Error parsing file: {}").format(e), _("Error"), wx.OK, frame)
         return None
 
     lines = []
@@ -258,7 +258,7 @@ def importCeltx(fileName, frame):
         parser = etree.HTMLParser()
         root = etree.XML(content, parser)
     except etree.XMLSyntaxError as e:
-        wx.MessageBox(_("Error parsing file: {}".format(e)), _("Error"), wx.OK, frame)
+        wx.MessageBox(_("Error parsing file: {}").format(e), _("Error"), wx.OK, frame)
         return None
 
     lines = []
@@ -385,7 +385,7 @@ def importFDX(fileName, frame):
         return lines
 
     except etree.XMLSyntaxError as e:
-        wx.MessageBox(_("Error parsing file: {}".format(e)), _("Error"), wx.OK, frame)
+        wx.MessageBox(_("Error parsing file: {}").format(e), _("Error"), wx.OK, frame)
         return None
 
 

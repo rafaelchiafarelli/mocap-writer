@@ -479,7 +479,7 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
                     break
                 else:
                     raise error.MiscError(
-                        _("Unknown line break style {} in generateRTF".format(lb))
+                        _("Unknown line break style {} in generateRTF").format(lb)
                     )
 
             s += (
@@ -2165,27 +2165,27 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
             if ln.lt == CHARACTER:
                 if isLast and next and next not in (PAREN, DIALOGUE):
                     msg = _(
-                        "Element type '{}' can not follow type '{}'.".format(
-                            cfg.getType(next).ti.name, tcfg.ti.name
-                        )
+                        "Element type '{}' can not follow type '{}'."
+                    ).format(
+                        cfg.getType(next).ti.name, tcfg.ti.name
                     )
                     break
 
             if ln.lt == PAREN:
                 if isFirst and prev and prev not in (CHARACTER, DIALOGUE):
                     msg = _(
-                        "Element type '{}' can not follow type '{}'.".format(
-                            tcfg.ti.name, cfg.getType(prev).ti.name
-                        )
+                        "Element type '{}' can not follow type '{}'."
+                    ).format(
+                        tcfg.ti.name, cfg.getType(prev).ti.name
                     )
                     break
 
             if ln.lt == DIALOGUE:
                 if isFirst and prev and prev not in (CHARACTER, PAREN):
                     msg = _(
-                        "Element type '{}' can not follow type '{}'.".format(
-                            tcfg.ti.name, cfg.getType(prev).ti.name
-                        )
+                        "Element type '{}' can not follow type '{}'."
+                    ).format(
+                        tcfg.ti.name, cfg.getType(prev).ti.name
                     )
                     break
 

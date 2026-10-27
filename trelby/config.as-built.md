@@ -192,8 +192,6 @@ one-character file codes. All saved settings go through `mypickle.Vars`
 - `ConfigGlobal` setting `scriptDir` defaults to `misc.progPath`
   (`trelby/config.py:1270`), so `misc.init()` must have run before
   `ConfigGlobal.setupVars` (first instantiation).
-- `_("Text foreground for {}".format(t.name))` is formatted before
-  translation, so it is never translated (`trelby/config.py:1319`). Bug: [bugs/config-i18n/3](../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md).
 
 ## Tests
 

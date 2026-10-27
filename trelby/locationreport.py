@@ -91,14 +91,14 @@ class LocationReport:
 
             tf.addWrappedText(
                 _(
-                    "Lines: {} (%{} action, %{} of script), Scenes: {}, Pages: {} ({})".format(
-                        li.lines,
-                        util.pct(li.actionLines, li.lines),
-                        util.pct(li.lines, scriptLines),
-                        li.sceneCount,
-                        len(li.pages),
-                        li.pages,
-                    )
+                    "Lines: {} (%{} action, %{} of script), Scenes: {}, Pages: {} ({})"
+                ).format(
+                    li.lines,
+                    util.pct(li.actionLines, li.lines),
+                    util.pct(li.lines, scriptLines),
+                    li.sceneCount,
+                    len(li.pages),
+                    li.pages,
                 ),
                 "  ",
             )

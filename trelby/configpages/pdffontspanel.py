@@ -158,9 +158,9 @@ class PDFFontsPanel(wx.Panel):
         if not f.isOK():
             wx.MessageBox(
                 _(
-                    "File '{}'\ndoes not appear to be a valid TrueType font.".format(
-                        filename
-                    )
+                    "File '{}'\ndoes not appear to be a valid TrueType font."
+                ).format(
+                    filename
                 ),
                 _("Error"),
                 wx.OK,
@@ -172,9 +172,9 @@ class PDFFontsPanel(wx.Panel):
         if not f.allowsEmbedding():
             wx.MessageBox(
                 _(
-                    "Font '{}'\ndoes not allow embedding in its license terms.\nYou may encounter problems using this font embedded.".format(
-                        filename
-                    )
+                    "Font '{}'\ndoes not allow embedding in its license terms.\nYou may encounter problems using this font embedded."
+                ).format(
+                    filename
                 ),
                 _("Error"),
                 wx.OK,
