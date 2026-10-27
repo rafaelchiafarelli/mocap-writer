@@ -1,6 +1,6 @@
 ## 9. requirements.txt lacks pdfplumber
 
-- **Status:** Open
+- **Status:** Fixed (2026-10-26) — fixes/000086/one-line-crashes
 - **Symptom:** `requirements.txt` lists `wxPython`, `lxml`, `reportlab`, `pytest` but not `pdfplumber`, which `setup.cfg:22` and `docker/requirements.in:9` have; `tests/test_pdfimport.py` reaches `import pdfplumber` (`trelby/pdfimport.py:282`).
 - **Where:** `requirements.txt`
 - **Reproduce:** Found by reading the code while writing the root `CLAUDE.md` (2026-10-26).

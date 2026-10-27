@@ -82,3 +82,12 @@ def testEscapeStrings():
     for items, s in data:
         assert util.escapeStrings(items) == s
         assert util.unescapeStrings(s) == items
+
+
+def testLoadLatin1EncodedFile(tmp_path):
+    u.init()
+
+    path = tmp_path / "latin1.txt"
+    path.write_bytes(b"a\xe7\xe3o\n")
+
+    assert util.loadLatin1EncodedFile(str(path), None) == "a\xe7\xe3o\n"

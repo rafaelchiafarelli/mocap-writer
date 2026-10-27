@@ -89,7 +89,7 @@ Configuration
   default, min/max and a save name, serialized as `name:value` lines
   (`trelby/mypickle.py:69-85`). Used by every saved object.
 - `opts.py` — command-line options: `--test`, `--conf <file>`, script
-  names (`trelby/opts.py:8`).
+  names (`trelby/opts.py:5`).
 - `globaldata.py` — `GlobalData`: config file paths, MRU list, window
   geometry and view mode (saved to `state`), the three view-mode objects,
   the global spell-checker dictionary (`trelby/globaldata.py:17`).
@@ -136,9 +136,9 @@ Application and editor (wx)
   `showTempPDF` (temp file + viewer, `trelby/gutil.py:82`).
 - `util.py` — text and number helpers, the text-measuring DC,
   `eventKeyCode` (key code of a char event, `trelby/util.py:209`), `Key`
-  (keyboard shortcut ↔ int, `trelby/util.py:815`), file load/write
-  (`trelby/util.py:994-1080`), PDF viewer lookup and launch
-  (`trelby/util.py:1195-1256`).
+  (keyboard shortcut ↔ int, `trelby/util.py:820`), file load/write
+  (`trelby/util.py:994-1091`), PDF viewer lookup and launch
+  (`trelby/util.py:1206-1267`).
 - `error.py` — `TrelbyError`, `ConfigError`, `MiscError`.
 - `translations.py` — `trelby_translations_load()`: picks the gettext
   catalog in `locales/` from `$LANG` and installs `_` as a builtin
@@ -263,33 +263,12 @@ Data and folders
   `IndexError`: `FontMetrics.getTextWidth` indexes a 256-entry table with
   `ord(ch)` (`trelby/fontinfo.py:57-60`). Courier has no table, so script
   text is safe. Bug: [bugs/import-export/7](../initiatives/bugs/epics/import-export/tasks/7-non-latin1-title-pdf.md).
-- **Character map → Insert, Name database → Insert and Edit → Insert
-  non-breaking space are broken:** they call
-  `MyCtrl.OnKeyChar(util.MyKeyEvent(...))` (`trelby/charmapdlg.py:27`,
-  `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:995`), but
-  `OnKeyChar` → `util.eventKeyCode` calls `ev.GetUnicodeKey()`
-  (`trelby/trelbyctrl.py:1369`, `trelby/util.py:210`),
-  which `util.MyKeyEvent` does not have (`trelby/util.py:789-810`) →
-  `AttributeError`. Bug: [bugs/editor/1](../initiatives/bugs/epics/editor/tasks/1-insert-char-crash.md).
-- **`opts.py --conf` crashes:** `str(sys.argv[i + 1], "UTF-8", "ignore")`
-  (`trelby/opts.py:28`) raises `TypeError` on a `str` in Python 3. Bug: [bugs/config-i18n/1](../initiatives/bugs/epics/config-i18n/tasks/1-conf-option-crash.md).
-- **`globaldata.makeConfDir` has an invalid `except` clause**
-  `except OSError(os.errno, os.strerror)` (`trelby/globaldata.py:93`);
-  `misc.init` already creates `confPath` (`trelby/misc.py:72-73`), so it is
-  only reached if that failed. Bug: [bugs/config-i18n/5](../initiatives/bugs/epics/config-i18n/tasks/5-makeconfdir-except.md).
-- **`util.loadLatin1EncodedFile` reads bytes:** it passes `"ISO-8859-1"` as
-  the `binary` argument of `loadFile` (`trelby/util.py:1026`). On
-  `MemoryError`, `loadFile` returns an unbound `ret`
-  (`trelby/util.py:1003-1020`). Bug: [bugs/config-i18n/6](../initiatives/bugs/epics/config-i18n/tasks/6-loadlatin1-bytes.md).
 - **`Titles.sort()` does nothing**: it rebinds a local
   (`trelby/titles.py:60-61`), and its compare function has a typo
   `(a.x < a.y)` for `(a.x < b.x)` (`trelby/titles.py:58`). Bug: [bugs/editor/9](../initiatives/bugs/epics/editor/tasks/9-titles-sort-noop.md).
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
   branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1392-1397`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
-- **Help → Commands → Save** uses `wx.OVERWRITE_PROMPT`
-  (`trelby/commandsdlg.py:94`), which wxPython 4 calls
-  `wx.FD_OVERWRITE_PROMPT` → `AttributeError`. Bug: [bugs/editor/18](../initiatives/bugs/epics/editor/tasks/18-commands-save-overwrite-prompt.md).
 - The MRU list is saved under the **translated** key `_("Files")`
   (`trelby/globaldata.py:70`), so switching `$LANG` loses the recent-files
   list. Bug: [bugs/config-i18n/4](../initiatives/bugs/epics/config-i18n/tasks/4-mru-translated-key.md).

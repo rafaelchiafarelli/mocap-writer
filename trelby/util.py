@@ -798,6 +798,11 @@ class MyKeyEvent:
     def GetKeyCode(self):
         return self.kc
 
+    # what eventKeyCode reads first; for the codes the inserts pass
+    # (characters) it is the same as the key code
+    def GetUnicodeKey(self):
+        return self.kc
+
     def ControlDown(self):
         return self.controlDown
 
@@ -1004,6 +1009,7 @@ def loadFile(
             ret = f.read(maxSize)
         except MemoryError as error:
             print(_("File too large: {}".format(error)))
+            ret = None
         finally:
             f.close()
 
@@ -1023,7 +1029,12 @@ def loadFile(
 def loadLatin1EncodedFile(
     filename: str, frame: Optional[wx.Frame], maxSize: int = -1
 ) -> Optional[AnyStr]:
-    return loadFile(filename, frame, maxSize, "ISO-8859-1")
+    data = loadFile(filename, frame, maxSize, binary=True)
+
+    if data is None:
+        return None
+
+    return data.decode("ISO-8859-1")
 
 
 # like loadFile, but if file doesn't exist, tries to load a .gz compressed

@@ -158,11 +158,6 @@ Settings and dialogs
 - `importFile` dispatches on `fileName.endswith("fdx")` etc. — no dot, case
   sensitive (only `.pdf` is matched with the dot and in any case) (`trelby/trelbyctrl.py:200-214`); `SCRIPT.FDX` is read as plain
   text. Bug: [bugs/import-export/3](../initiatives/bugs/epics/import-export/tasks/3-import-extension-match.md).
-- `OnInsertNbsp` (`trelby/trelbyctrl.py:994`), the character map and the
-  name database feed `util.MyKeyEvent` into `OnKeyChar`, whose
-  `util.eventKeyCode` calls `ev.GetUnicodeKey()` (`trelby/trelbyctrl.py:1369`,
-  `trelby/util.py:210`); `MyKeyEvent` has only
-  `GetKeyCode` (`trelby/util.py:798`) → `AttributeError`. Bug: [bugs/editor/1](../initiatives/bugs/epics/editor/tasks/1-insert-char-crash.md).
 - `OnCopySystem` lays text out with a fresh default `Screenplay`, so the
   formatted copy uses default element widths, not the script's
   (`trelby/trelbyctrl.py:842-850`). Bug: [bugs/editor/6](../initiatives/bugs/epics/editor/tasks/6-copy-system-default-widths.md).

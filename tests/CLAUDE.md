@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 160 tests.
+objects directly and never create the wx GUI. 163 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -87,14 +87,17 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   wrap-around, elements outside the cycle, config round trip, `recalc`
   clean-up. Loads the translations itself.
 - `test_keycode.py` — `util.eventKeyCode`: arrows and other non-character
-  keys fall back to their `WXK_` code, characters keep their Unicode value.
+  keys fall back to their `WXK_` code, characters keep their Unicode value,
+  and the `util.MyKeyEvent` the insert commands send is read too.
+- `test_opts.py` — `opts.init()`: `--conf <file>` and the scripts to open.
 - `test_saveall.py` — `MyFrame.saveAll` on fake tabs: every modified tab
   is saved, and one left unsaved (Save As cancelled) calls the exit off.
 - `test_wxnames.py` — every `wx.<name>` used in `trelby/` exists in the
   installed wxPython (names removed in wxPython 4 fail only when their
-  dialog opens, bugs/editor/17); submodules and prefixes, and open bugs, are
-  listed as exceptions.
-- `test_util.py` — `util.replace`, `splitToWords`, `escapeStrings`; the file
+  dialog opens, bugs/editor/17); submodules and prefixes are exceptions,
+  and so would be an open bug's name (`KNOWN`, empty now).
+- `test_util.py` — `util.replace`, `splitToWords`, `escapeStrings`,
+  `loadLatin1EncodedFile`; the file
   itself is ISO-8859-1 encoded.
 - `execute_random_tests.py` — manual fuzzer: random command sequences on a
   `Screenplay`, saving failing sequences (and the script as `.fountain`) (`# ut:ignore`, not collected by
