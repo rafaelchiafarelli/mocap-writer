@@ -27,15 +27,17 @@
 - **Out of scope:** implementation
 - **Tests:** —
 
-### What the writer does today (2026-10-26)
-- **Act break** is an element (`@`, `trelby/screenplay.py:25`) that
-  **prints**: caps, bold, underlined (`trelby/config.py:495`), like a TV
-  `END OF ACT ONE`. Fountain export writes it as centered text `>…<`
-  (`trelby/screenplay.py:737`), which reads back as Action, so it does not
-  survive a round trip. fountain-native/io/1 already plans act break → `#`.
-- **Sections `#` and synopses `=`** are dropped on Fountain import, or
-  turned into notes if a checkbox is ticked (`trelby/myimport.py:638-704`).
-  The editor has no section element and no depth (`##`, `###`).
+### What the writer does today (2026-10-26, after native Fountain)
+- **Act break** is an element (`@`, `trelby/screenplay.py:25`). Native
+  Fountain opens and saves it as a level-1 section `# X`
+  (`trelby/fountain.py:176`, `trelby/fountain.as-built.md` table), so
+  acts already round-trip. It still **prints**: caps, bold, underlined
+  (`trelby/config.py:495`), like a TV `END OF ACT ONE`. File → Export →
+  Fountain and the PDF importer still use the old writer, which gives it
+  as centered text `>X<` (`trelby/screenplay.py:481`).
+- **Sections `##` and deeper, and synopses `=`**, are kept byte-identical
+  but hidden: the editor does not show them (`_isHidden`,
+  `trelby/fountain.py:95`). There is no section depth in the editor.
 - Pages are already counted per scene (`scenereport.py`), so a scene's
   page position is known: pacing needs no new data.
 
@@ -81,9 +83,9 @@ What the writer would show, whatever the model:
   and a list `{part: "catalyst", scene: "12"}`. The script is untouched,
   scene moves already rewrite records that name scenes (scenes/1). Other
   tools see nothing.
-- **S3. Acts in the script, the rest in records.** Act breaks become
-  non-printing `# ACT ONE` sections (what io/1 already plans for the act
-  break element); sequences and beats live in the `structure` record by
+- **S3. Acts in the script, the rest in records.** Act breaks are
+  `# ACT ONE` sections (native Fountain already reads and writes them),
+  made non-printing; sequences and beats live in the `structure` record by
   scene number. The script keeps one heading per act, which any tool shows;
   the fine structure is declared, not inferred.
 
@@ -91,15 +93,16 @@ A **deleted scene** carrying a beat keeps it on its `OMITTED` heading,
 listed to move by hand, as annotations do (notes/1).
 
 ### Options for Rafael
-- **A. Three acts only, S3.** Act break → `#` section, act bar and where-am-I
-  from the sections; no record, no new Harpia kind. Smallest: one task in
-  fountain-native (the section element) and one view task. No beats.
+- **A. Three acts only, S3.** Acts are the `#` act breaks the writer
+  already round-trips; act bar and where-am-I from them; no record, no new
+  Harpia kind. Smallest: make the act break non-printing, and one view
+  task. No beats.
 - **B. Models as templates, S3** (recommended). The four models above ship
   as **templates** (data: parts, order, targets), not code; a film picks
   one in its `structure` record, and a new model is a new template. Acts
   as `#` sections, beats and sequences by scene number in the record.
   Costs: a `structure` kind (and a `structure-template`) in `film.harpia`
-  in `mocap-contracts`, the section element, the record, the bar and the
+  in `mocap-contracts`, the record, the bar and the
   pacing report: about five tasks.
 - **C. Templates, S2.** As B but the acts are also in the record: the
   cleanest script, but other Fountain tools see no acts, and the writer's
