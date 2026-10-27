@@ -41,7 +41,7 @@ watermarks, the dialogue chart and script comparison all build PML and call
   (`trelby/pdf.py:234-247`).
 - `getFontForFlags(flags)` (`trelby/pdf.py:312`): if the script configured a
   custom font for that style (`doc.fonts`, filled from `Config.pdfFonts` by
-  `Screenplay.generatePML`, `trelby/screenplay.py:617-621`), registers the
+  `Screenplay.generatePML`, `trelby/screenplay.py:520-524`), registers the
   TTF with ReportLab once and returns its name; otherwise the core font.
   The underline bit is masked with `& 15`.
 - Screen layout and PDF use the same text widths: `fontinfo` gives core-font
@@ -63,7 +63,7 @@ watermarks, the dialogue chart and script comparison all build PML and call
 - `import trelby.pml as util` (`trelby/pdf.py:9`): `util` in this module is
   `pml`, not `trelby.util`; nothing uses it.
 - `doc.defPage` ("open PDF on current page", set by
-  `Screenplay.generatePML`, `trelby/screenplay.py:606-607`) is ignored: the
+  `Screenplay.generatePML`, `trelby/screenplay.py:509-510`) is ignored: the
   `/OpenAction` code is commented out (`trelby/pdf.py:266-269`). The
   `pdfOpenOnCurrentPage` setting therefore has no effect. Bug: [bugs/import-export/9](../initiatives/bugs/epics/import-export/tasks/9-pdf-open-on-page.md).
 - Rotated text (watermarks) goes through `addLiteral` with

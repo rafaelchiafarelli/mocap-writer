@@ -17,8 +17,9 @@ drawn by `viewmode`), the page language and PDF writer (`pml`, `pdf`), import
   GUI (what the tests use, through `tests/u.py`).
 - `myimport.import*(fileName, frame)` — one function per import format.
 - `python -m trelby.pdfimport import|probe ...` — PDF → `.fountain` from
-  the command line (`trelby/pdfimport.py:1061`).
-- `Screenplay.generate{PDF,RTF,FDX,Html,Fountain,Text}` — exports.
+  the command line (`trelby/pdfimport.py:1062`).
+- `Screenplay.generate{PDF,RTF,FDX,Html,Text}` — exports; Fountain export
+  is `fountain.generate`, the same writer as Save.
 
 **Inputs → Outputs:** `.fountain` scripts, imported `.fdx` / `.celtx` /
 `.astx` / `.fountain` / `.fadein` / text files, screenplay PDFs (with a
@@ -77,7 +78,7 @@ Model and file format
   Action lines, film-bible will reuse it for prop records. No wx.
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1392`).
+  (`trelby/trelbyctrl.py:1409`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -114,8 +115,8 @@ Application and editor (wx)
   hint when there is no act break. Own pixel fonts, so the zoom never
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
-  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:375`); repainted on a theme
-  change (`trelby/trelbyctrl.py:418`); `draw(dc, w, h)` does the drawing
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:388`); repainted on a theme
+  change (`trelby/trelbyctrl.py:431`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
@@ -166,7 +167,8 @@ Page language and PDF
 
 Import
 - `myimport.py` — importers for Adobe Story, Fade In, Celtx, Final Draft,
-  Fountain, indented plain text, and the GUI side of PDF import
+  indented plain text, and the GUI side of PDF import (a `.fountain` is
+  imported through `fountain.load`, `MyCtrl.importFile`)
   (`importPdf`: import report window, error box, trace). Detail:
   [myimport.as-built.md](myimport.as-built.md).
 - `pdfimport.py` — PDF import without wx: pdfplumber text lines →
@@ -248,7 +250,7 @@ Data and folders
   (`trelby/translations.py:26`); no module imports it. The tests get it
   from `tests/u.py:16`.
 - **`_("...".format(x))` formats before translating**, so the translated
-  string is never found for those messages (e.g. `trelby/trelbyctrl.py:947`,
+  string is never found for those messages (e.g. `trelby/trelbyctrl.py:960`,
   `trelby/config.py:1319`). Throughout the package. Bug: [bugs/config-i18n/3](../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md).
 - **`TRELBY_TESTING` env var** makes `config`, `misc`, `util` and `gutil`
   import a `Mock` instead of `wx` (`trelby/config.py:14-19`) and leaves
@@ -268,7 +270,7 @@ Data and folders
   `(a.x < a.y)` for `(a.x < b.x)` (`trelby/titles.py:58`). Bug: [bugs/editor/9](../initiatives/bugs/epics/editor/tasks/9-titles-sort-noop.md).
 - **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
   `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
-  branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1392-1397`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
+  branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1409-1414`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
 - The MRU list is saved under the **translated** key `_("Files")`
   (`trelby/globaldata.py:70`), so switching `$LANG` loses the recent-files
   list. Bug: [bugs/config-i18n/4](../initiatives/bugs/epics/config-i18n/tasks/4-mru-translated-key.md).
