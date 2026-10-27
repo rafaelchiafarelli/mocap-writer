@@ -1,6 +1,6 @@
 # film-bible — mocap-writer
 
-**Status:** Planned — not started. Needs `fountain-native/scenes` (scene
+**Status:** In progress — contract/1, the field catalog, approved 2026-10-26. Needs `fountain-native/scenes` (scene
 numbers) and `file-format/layout/1` (root index, ids). The file-format
 decision (option A, 2026-10-25) keeps the maps as folders.
 
