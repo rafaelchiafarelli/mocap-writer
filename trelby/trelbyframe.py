@@ -986,6 +986,23 @@ class MyFrame(wx.Frame):
     def OnToolBarMenu(self, event, menu):
         self.PopupMenu(menu)
 
+    # saves every modified script, showing its tab first so a Save As
+    # dialog says which script it is for. returns False as soon as one is
+    # still unsaved (Save As cancelled, or a write error), so the exit can
+    # be called off instead of losing it.
+    def saveAll(self):
+        for i in range(self.tabCtrl.getPageCount()):
+            ctrl = self.tabCtrl.getPage(i).ctrl
+
+            if ctrl.sp.isModified():
+                self.tabCtrl.selectPage(i)
+                ctrl.OnSave()
+
+                if ctrl.sp.isModified():
+                    return False
+
+        return True
+
     def OnCloseWindow(self, event):
         doExit = True
         if event.CanVeto() and self.isModifications():
@@ -998,7 +1015,7 @@ class MyFrame(wx.Frame):
             close_msg_box.SetYesNoLabels(wx.ID_SAVE, "(&D) " + _("Don't save"))
             response = close_msg_box.ShowModal()
             if response == wx.ID_YES:
-                self.OnSave()
+                doExit = self.saveAll()
             elif response == wx.ID_CANCEL:
                 doExit = False
 
