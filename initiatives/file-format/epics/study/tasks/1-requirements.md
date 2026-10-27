@@ -19,7 +19,8 @@
 - Fountain 1.1 text, open → save → open byte-identical, readable by other
   Fountain tools and by the mocap-previz parser (fountain-native/io/1).
 - Scene numbers: permanent, `12A` for inserts, not editable, written as
-  `#12A#` (fountain-native/scenes/1, 2026-10-25).
+  `#12A#` (fountain-native/scenes/1, 2026-10-25; the notation became
+  `12.A`, nested `12.A.1`, on 2026-10-26).
 - Notes on spans of text (fountain-native/notes/1, marker format open).
 - Title page.
 - Acts and beats: where a scene is in the story (story-structure, study).
