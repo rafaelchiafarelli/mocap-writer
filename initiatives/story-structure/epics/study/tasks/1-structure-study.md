@@ -1,6 +1,6 @@
 ## 1. Story structure study
 
-- **Status:** Done (2026-10-26) — options below; Rafael's choice pending
+- **Status:** Done (2026-10-26) — Rafael decided: an act is a marker only (below)
 
 - **Type:** study (no code)
 - **Depends on:** —
@@ -219,3 +219,16 @@ Under C: no `#` headings; the acts move into the record
 The models are ideas and are free to use. *Save the Cat!* is a registered
 trademark, so the template is named "15 beats (Snyder)", not after the
 book.
+
+### Decision (Rafael, 2026-10-26)
+**None of A, B or C for now: an act is a marker only.** The models,
+templates and beats aimed too far ahead; they are left for a later talk
+with an agent. What is built now (epic `acts`):
+- the marker is the existing **Act break** element, saved as `# X`; it
+  **does not print** (acts/1);
+- a **panel on the right** shows each act's size, **counted in scenes**,
+  and highlights the act the cursor is in; zoom does not change it and
+  scrolling does not move it (acts/2).
+
+The feature grows from there. Answers to the questions above: 3, the act
+break never prints; 1, 2 and 4 wait for that later talk.
