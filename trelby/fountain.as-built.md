@@ -90,7 +90,7 @@ block → no title page.
   empty Scene line (`trelby/fountain.py:457`).
 - `generate(sp)` → `Result(text, source, lost)`; the caller writes `text`
   (UTF-8) and stores `source` (`MyCtrl.saveFile`,
-  `trelby/trelbyctrl.py:166`).
+  `trelby/trelbyctrl.py:172`).
 
 ## Gotchas
 
@@ -113,14 +113,19 @@ block → no title page.
 - Only UTF-8 files open (`MyCtrl.loadFile` shows an error otherwise,
   `trelby/trelbyctrl.py:128`); the BOM and the line ending of the first line
   are kept, and new lines are written with that line ending.
-- Import → Fountain (`myimport.importFountain`) is the old one-way import
-  with its option dialog, and Export → Fountain is still
-  `Screenplay.generateFountain`; neither uses this module.
+- It is the program's only Fountain reader and writer (fountain-native/io/5):
+  Import → Fountain reads through `load` like Open (the tab stays
+  untitled), and Export → Fountain and the PDF import command line write
+  with `generate`. A screenplay with no `fountainSource` (an import, a new
+  script) is written all in canonical form.
 
 ## Touchpoints
 
-- Called by: `MyCtrl.loadFile` / `saveFile` (`trelby/trelbyctrl.py:128`,
-  `trelby/trelbyctrl.py:166`); `tests/test_fountain.py`.
+- Called by: `MyCtrl.readFountain` (Open and Import) / `saveFile` /
+  `OnExportScript` (`trelby/trelbyctrl.py:150`, `trelby/trelbyctrl.py:172`,
+  `trelby/trelbyctrl.py:1182-1188`); `pdfimport.main`
+  (`trelby/pdfimport.py:1137`); `tests/test_fountain.py`,
+  `tests/test_pdfimport.py`.
 - Uses: `screenplay` constants and `Screenplay`, `titles`, `pml`, `util`,
   `line.Line`; stdlib `difflib`, `re`.
 - Read by: the mocap-previz parser reads what this writes.
