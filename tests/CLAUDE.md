@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 163 tests.
+objects directly and never create the wx GUI. 166 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -47,7 +47,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - `test_pdfimport.py` — PDF import (`trelby/pdfimport.py`): draws its PDFs
   with ReportLab at test time (`makePdf`, US Letter, Courier 12; no PDF
   committed). With the profile `fixtures/pdf/letter-test.toml`: expected
-  Fountain with accented names, page furniture dropped, dialogue joined
+  Fountain (written by `fountain.generate`) with accented names, the
+  Fountain reading back to the same elements, page furniture dropped, dialogue joined
   across a page break, margin and typed scene numbers → `#n#`, dual
   dialogue → `^`, `strict` stops with page and line, lenient reading
   (nearest indent, columns as one line) with `IMPORT:` notes, a character
@@ -90,6 +91,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   keys fall back to their `WXK_` code, characters keep their Unicode value,
   and the `util.MyKeyEvent` the insert commands send is read too.
 - `test_opts.py` — `opts.init()`: `--conf <file>` and the scripts to open.
+- `test_importfountain.py` — `MyCtrl.importFile` on a fake control: a
+  `.fountain` (any case) is read by `readFountain` like Open and the tab
+  stays untitled and modified; an unreadable one changes nothing.
 - `test_saveall.py` — `MyFrame.saveAll` on fake tabs: every modified tab
   is saved, and one left unsaved (Save As cancelled) calls the exit off.
 - `test_wxnames.py` — every `wx.<name>` used in `trelby/` exists in the
@@ -118,8 +122,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - Not covered by any test: the wx GUI (`trelbyframe`, `trelbyctrl`,
   `viewmode`, dialogs; the Fountain open/save in `MyCtrl` was checked by
   hand through the real window, 2026-10-24 and 2026-10-25),
-  Fountain/FDX/HTML/RTF/text export, Fountain/FDX/Astx/Fade In import (the
-  native `.fountain` open/save is `test_fountain.py`), pagination results,
+  FDX/HTML/RTF/text export, FDX/Astx/Fade In import (Fountain is one
+  reader and writer for open, save, import and export: `test_fountain.py`,
+  `test_importfountain.py`), pagination results,
   undo/redo.
 - Every run shows about 76 `DeprecationWarning`s for `wx.NewId()` from
   `trelby/ids.py`, imported through `trelbyframe` by `test_saveall.py`;
