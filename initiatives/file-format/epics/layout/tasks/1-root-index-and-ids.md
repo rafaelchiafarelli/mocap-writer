@@ -24,8 +24,9 @@
     and then with a message, never a crash
   - Delivers: the library that opens a film root, validates `film.json`,
     tells a program which parts it owns, and hands out new ids
-- **Pre-work:** Rafael confirms the id form and the default part paths
-  (proposed below, to confirm); the `mocap-contracts` task above
+- **Pre-work:** Rafael confirms the default part paths (proposed below,
+  to confirm); the `mocap-contracts` task above. The id form is decided
+  (below, 2026-10-26)
 - **Out of scope:** the warning and the search for missing files
   (layout/3); history (layout/2); the contents of each part (their
   own tasks); moving to C (study/3: kept in mind, not built)
@@ -34,7 +35,19 @@
   invalid file names the broken field; a film with a part and a photo
   deleted opens and lists both problems
 
-### Proposal: id form and default part paths (session, 2026-10-25; Rafael to confirm)
+### Decided: id form (Rafael, 2026-10-26)
+
+Option A of the session's proposal (2026-10-25), with **one counter per
+kind** in each space. Not chosen: B (`<kind>-<n>`, one counter: only the
+writer could make ids and a second writer collides), C (3-letter tags,
+less readable), D (ULIDs, unreadable).
+
+The id is a **unique identifier, not an index** (Rafael, 2026-10-26):
+items are added to and removed from each list and moved from one link to
+another, and the id never follows a position. A removed item leaves a gap
+that is never filled; moving an item or changing what it is linked to
+never changes its id. A scene has no record id: it is named by its scene
+number (fountain-native/scenes/1).
 
 **Id form:** `<kind>-<space>-<n>`, e.g. `character-w-12`, `prop-pcp-3`.
 - **kind**, a readable word, not a 3-letter tag (study/1, ISOXML answer):
@@ -47,10 +60,12 @@
   A code is never reused, even after its agent leaves the film. A second
   writer later (team work) gets its own code (`w2`), so no records made
   apart ever collide.
-- **n**, a counter per space, shared by all kinds, starting at 1, with no
-  padding. It lives in `ids/<space>.json` (`next`), owned by that space's
-  owner. The counter goes up and is saved **before** the record is
-  written, so a crash leaves a gap, never a reused number.
+- **n**, a counter per kind in each space, starting at 1, with no
+  padding: the writer's first character is `character-w-1` and its first
+  prop is `prop-w-1`. The counters live in `ids/<space>.json` (`next`, one
+  entry per kind, e.g. `{"next": {"character": 13, "prop": 4}}`), owned
+  by that space's owner. The counter goes up and is saved **before** the
+  record is written, so a crash leaves a gap, never a reused number.
 - An id never changes: an accepted agent proposal keeps its agent's id, the
   way ISOXML keeps a terminal-made id negative, so the space always says
   who first made the record. A copy gets a new id (film-bible links/4).
@@ -59,6 +74,8 @@
 - **Not chosen:** UUIDs or ULIDs. They are unique with no counter and no
   spaces, but unreadable, and debugging by eye is why ISOXML was picked.
   Both forms move to C (a change log) the same way.
+
+### Proposal: default part paths (session, 2026-10-25; Rafael to confirm)
 
 **`film.json`** (a `film` message):
 - `format_version` (int, `1`); `origin`: `program` and `version` of the
@@ -97,9 +114,10 @@ film-bible contract/2 keeps `bible/` and gains the id form. Their task
 files are edited when this is confirmed, not before.
 
 **Questions for Rafael:**
-1. The id form `character-w-12` (recommended), or UUIDs?
-2. One counter per space (recommended: simpler, one file per owner), or
-   one per kind per space (`character-w-1`, `prop-w-1`)?
+1. ~~The id form `character-w-12`, or UUIDs?~~ Answered 2026-10-26:
+   `character-w-12` (above).
+2. ~~One counter per space, or one per kind per space?~~ Answered
+   2026-10-26: one per kind per space (above).
 3. Move the scene index and the sync snapshots out of `bible/` to
    `preprod/`?
 4. The `analysis/` folder that agents already write (brief, worklist,
