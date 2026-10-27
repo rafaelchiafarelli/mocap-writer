@@ -2,6 +2,7 @@
 import os
 
 import trelby.config as config
+import trelby.translations as translations
 import trelby.fountain as fountain
 import trelby.misc as misc
 import trelby.screenplay as screenplay
@@ -9,6 +10,10 @@ import trelby.util as util
 from trelby.line import Line
 
 initDone = False
+
+# installs the builtin _ that trelby's modules call, so any test file runs
+# on its own (bugs/tooling/1)
+translations.trelby_translations_load()
 
 
 def init():

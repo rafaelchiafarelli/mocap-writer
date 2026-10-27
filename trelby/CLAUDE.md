@@ -245,11 +245,8 @@ Data and folders
   the film root (fountain-native/settings/1, waits for file-format/layout/1). Shot is written as upper case + two trailing spaces,
   Trelby's own convention (`trelby/fountain.py:483`).
 - **`_` is a builtin installed by `translations.trelby_translations_load()`**
-  (`trelby/translations.py:26`); no module imports it. A test file run on its
-  own fails with `NameError: name '_' is not defined` unless something
-  imported `tests/test_validate.py`'s translation load first (seen running
-  `tests/test_cut.py tests/test_myimport.py` alone: 8 failures). The full
-  suite passes because collection imports `test_validate.py`. Bug: [bugs/tooling/1](../initiatives/bugs/epics/tooling/tasks/1-tests-underscore.md).
+  (`trelby/translations.py:26`); no module imports it. The tests get it
+  from `tests/u.py:16`.
 - **`_("...".format(x))` formats before translating**, so the translated
   string is never found for those messages (e.g. `trelby/trelbyctrl.py:947`,
   `trelby/config.py:1319`). Throughout the package. Bug: [bugs/config-i18n/3](../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md).
@@ -303,9 +300,6 @@ Data and folders
   are build products of `../Makefile`, not in git; Help → Manual opens
   `trelby/manual.html` (`trelby/trelbyframe.py:980`), which does not exist
   in a plain checkout. Bug: [bugs/editor/11](../initiatives/bugs/epics/editor/tasks/11-help-manual-missing.md).
-- Two invalid escape sequences in `titles.py`, `" \qc"` / `" \qr"`
-  (`trelby/titles.py:158-160`): `SyntaxWarning` in every test run, output
-  unchanged. Bug: [bugs/tooling/5](../initiatives/bugs/epics/tooling/tasks/5-titles-escapes.md).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
   Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:192`)
   and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:209-214`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
