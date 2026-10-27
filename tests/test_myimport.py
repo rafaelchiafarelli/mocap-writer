@@ -30,7 +30,8 @@ def testImportCeltx() -> None:
     importedScreenplay.lines = importedLines
     importedScreenplay.reformatAll()
 
-    expectedScreenplay = u.load()
+    # test.celtx holds the same script with test.trelby's old ending
+    expectedScreenplay = u.withOldEnding(u.load())
 
     for line, expectedLine in zip(importedScreenplay.lines, expectedScreenplay.lines):
         assert line == expectedLine
