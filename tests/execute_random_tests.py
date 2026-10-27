@@ -3,22 +3,17 @@
 
 # runs random operations on a Screenplay as a way of trying to find bugs.
 # note that this is not part of the normal test run, this has to be run
-# manually.
+# manually, from the repository root:
+#   python -m tests.execute_random_tests [file.ops]
 
-import os
 import random
 import sys
 import traceback
-
-# FIXME
 from typing import Optional
 
-location = os.path.dirname(__file__)
-sys.path.append(os.path.join(location, "../trelby"))
-
-import fountain
-import u
-from screenplay import Screenplay
+import tests.u as u  # first: trelby.util cannot be the first trelby module loaded
+import trelby.fountain as fountain
+from trelby.screenplay import Screenplay
 
 
 # generates, stores, saves, loads, and runs operations against a
