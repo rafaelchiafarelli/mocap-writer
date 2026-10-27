@@ -20,7 +20,8 @@
     highlighted, elements with annotations get a mark in the margin, and
     a note shows on hover.
   - **An annotation is never lost.** If its quoted text is deleted, it
-    moves to the whole element (Action line) it was in.
+    moves to the whole element (Action line) it was in; if that element is
+    deleted, it moves to the scene.
   - Replaces the same day's first decision, a marker in the text
     (`[[fx annotation-w-7: chuva forte]]corre pela rua[[/annotation-w-7]]`):
     with tens of annotations per scene the raw file looked like code to
@@ -32,16 +33,16 @@
     trip still holds); while editing in the writer, anchors follow the
     text as it is typed, moved or renumbered (a move rewrites the scene
     number, scenes/1); a deleted quote moves the annotation to its whole
-    element; on open, an anchor whose quote is no longer found (the script
+    element, and a deleted element moves its annotations to the scene; on
+    open, an anchor whose quote is no longer found (the script
     was edited in another tool) is re-found by its quote in the scene, and
     if not found it stays attached to its scene and is listed as
     **unattached** to re-attach by hand, never deleted (layout/1's
     "opening never breaks"); the show-annotations button
   - Delivers: add/edit/remove notes on spans and elements, the button, the
     anchors kept current
-- **Open (session's assumption, Rafael to confirm):** when the whole
-  element is deleted, the annotation moves up to its scene; when the scene
-  is deleted it stays on the scene's `OMITTED` heading.
+- **Open (session's assumption, Rafael to confirm):** when the scene is
+  deleted, its annotations stay on the scene's `OMITTED` heading.
 - **Touchpoint:** the mocap-previz parser reads the annotations from
   `annotations/`, not from the script text; its Fountain input stays plain.
 - **Pre-work:** the `annotation` message above
