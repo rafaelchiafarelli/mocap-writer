@@ -14,7 +14,7 @@
     wardrobe, annotation...) with a **separate id space per writer
     or agent**, so records made apart never collide (ISOXML's negative ids
     for terminal-made records); ids are never reused; a **scene has no
-    record id**: it is named by its permanent scene number (`12A`,
+    record id**: it is named by its permanent scene number (`12.A`,
     fountain-native/scenes/1, Rafael 2026-10-25); no record refers to
     another by path; a file that fails its Harpia message is refused with
     the path of the problem; **opening never breaks** (Rafael,
