@@ -1,5 +1,7 @@
 ## 4. Open film, New film
 
+- **Status:** Done (2026-10-28) — `MyFrame.OnNewFilm` / `OnOpenFilm`
+
 - **Type:** code
 - **Depends on:** layout/1
 - **Decision (Rafael, 2026-10-28):** opening a film is explicit: File →
