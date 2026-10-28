@@ -18,35 +18,6 @@ and its bullet in `CLAUDE.md`.
 
 ---
 
-## Lane B — spellcheck/study/1: the pt-BR dictionary study
-
-- **Repository / clone:** `mocap-writer`, a new clone of `dev`.
-- **Task file:** `initiatives/spellcheck/epics/study/tasks/1-dictionary-study.md`
-  (contract, options and measurements are all written there). Context:
-  `initiatives/spellcheck/spellcheck.md`.
-- **Chain:** `dev → features → spellcheck → epics → study → tasks →
-  1-dictionary-study`.
-- **Type:** a study. Measurements happen in a throwaway container (start
-  from the writer's image, `docker/CLAUDE.md`). Nothing changes in
-  `trelby/`, the Dockerfile or `docker/requirements.lock`.
-- **Licence rule:** commercial use must be allowed (MIT, Apache-2.0, BSD,
-  CC0, CC-BY; GPL-family for tools). Check the dictionary files' own
-  licence, not only the engine's. Anything else goes to Rafael with the
-  facts.
-- **Text samples:** neutral text only, never film material
-  (`tests/fixtures/fountain/sample_ptbr.fountain` plus a longer neutral
-  text).
-- **Delivers:** the options table and a recommendation, written into the
-  task file, with the commands that reproduce every measurement. Then stop:
-  Rafael decides, the decision is written in the task file, and only then
-  is `pt-br/1` planned and implemented.
-- **Done:** the study is merged up to `dev` with the task marked done
-  (the gate is Rafael's decision). Remove its line under "Ready to
-  implement" in `initiatives/open-points.md`, and update the spellcheck
-  status lines.
-
----
-
 ## Lane C — mocap-contracts: the `film` message (`film.harpia`)
 
 - **Repository / clone:** `mocap-contracts` (another repository), a new
