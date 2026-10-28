@@ -16,7 +16,8 @@ pytest result.
 ## Files
 - `Dockerfile` — `ubuntu:24.04@sha256:…`; apt installs Python, GTK3 and the
   libraries the prebuilt wxPython wheel links against, DejaVu and Liberation
-  fonts; `/opt/venv` from `requirements.lock` with `--require-hashes`,
+  fonts, `evince` (GPL-2.0+; the PDF viewer for Print and reports) and
+  `docbook-xsl` (permissive DocBook XSL licence; Help → Manual); `/opt/venv` from `requirements.lock` with `--require-hashes`,
   wxPython from the `extras.wxpython.org` Ubuntu 24.04 wheels;
   `XDG_CONFIG_HOME=/config`, `GSETTINGS_BACKEND=memory`, user `ubuntu`,
   default command `python /app/trelby.py` (`docker/Dockerfile:5-25`).
@@ -32,7 +33,7 @@ pytest result.
   https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-24.04/`
   (the header omits it because of `--no-emit-find-links`); existing pins
   are kept.
-- `run.sh` — builds the image if it does not exist, then runs it as the host
+- `run.sh` — rebuilds the image quietly (cached, as `test.sh`), then runs it as the host
   user with the repo at `/app:ro`, `~/.config/mocap-writer` at `/config`,
   X11 or WSLg display sockets, every Windows drive `/mnt/<letter>`, the
   host home `$HOME` and the work dir **at their own paths**
@@ -52,9 +53,12 @@ pytest result.
   `python -m pytest -p no:cacheprovider` in `/app` (`docker/test.sh:6-12`).
 
 ## Key facts / gotchas
-- `run.sh` builds only when the image is missing
-  (`docker/run.sh:22-24`): after a lockfile change, run `test.sh` once (it
-  always builds) or `docker build` by hand, or `run.sh` keeps the old image.
+- Every script rebuilds the image on start; Docker's cache makes that
+  instant unless `docker/` changed (`docker/run.sh:22-24`).
+- The container has no desktop to hand files to: PDFs open in `evince`
+  through WSLg / X11 (`util.getPDFViewer`, `trelby/util.py:1217-1222`), and
+  the manual is shown inside the editor (`trelby/manual.py`). The 2026-10-27
+  image is about 1.5 GB.
 - The repository is mounted read-only, so the program cannot write next to
   its code; Trelby writes only to `$XDG_CONFIG_HOME/trelby` (`/config`),
   the work dir, the host home, the Windows drives and temp files.
@@ -68,8 +72,9 @@ pytest result.
 - The container sees the whole host home read-write (as the host user):
   the editor can open and save anywhere under it, like a native program.
 - `-p no:cacheprovider` because `/app` is read-only.
-- The image has no DocBook toolchain, so `trelby/manual.html` is never
-  built in it.
+- `trelby/manual.html` is still never built in the image (the repo is
+  read-only); Help → Manual makes the page from `doc/manual.xml` with lxml
+  and `docbook-xsl` each time it opens (`trelby/manual.py`).
 - Upstream's `../requirements.txt` and the GitHub workflow still install
   unpinned packages; the lockfile here is what Mocap Studio uses.
 

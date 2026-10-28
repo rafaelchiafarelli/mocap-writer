@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 177 tests.
+objects directly and never create the wx GUI. 181 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -42,6 +42,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   custom TTF; an unusable custom font (not a font file, or no file) is an
   `error.MiscError`; non-Latin-1 widths in Helvetica; a printed PDF's
   `/OpenAction` goes to the cursor's page, an export has none.
+- `test_manual.py` — `manual.build`: from `doc/` with the DocBook XSL
+  stylesheets (skipped without `docbook-xsl`), a prebuilt page wins, a
+  missing source is a `ManualError`.
 - `test_myimport.py` — `importCeltx` (against `test.fountain` with the old
   ending) and `importTextFile` (against `test.fountain`); the real `wx`,
   with only `myimport.ImportDlg` patched to answer OK
@@ -112,7 +115,7 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   dialog opens, bugs/editor/17); submodules and prefixes are exceptions,
   and so would be an open bug's name (`KNOWN`, empty now).
 - `test_util.py` — `util.replace`, `splitToWords`, `escapeStrings`,
-  `loadLatin1EncodedFile`; the file
+  `loadLatin1EncodedFile`, `getPDFViewer` on Linux (xdg-open, else evince); the file
   itself is ISO-8859-1 encoded.
 - `execute_random_tests.py` — manual fuzzer: random command sequences on a
   `Screenplay`, saving failing sequences (and the script as `.fountain`)

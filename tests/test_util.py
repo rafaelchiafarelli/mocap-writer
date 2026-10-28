@@ -91,3 +91,20 @@ def testLoadLatin1EncodedFile(tmp_path):
     path.write_bytes(b"a\xe7\xe3o\n")
 
     assert util.loadLatin1EncodedFile(str(path), None) == "a\xe7\xe3o\n"
+
+
+def testPdfViewerLookupOnLinux(monkeypatch):
+    u.init()
+
+    monkeypatch.setattr(util.misc, "isMac", False)
+    monkeypatch.setattr(util.misc, "isUnix", True)
+    monkeypatch.setattr(util.misc, "isWindows", False)
+
+    # no xdg-open (the Docker image): evince from PATH (bugs/editor/11)
+    monkeypatch.setattr(util, "fileExists", lambda name: False)
+    monkeypatch.setattr(util, "findFileInPath", lambda name: "/usr/bin/" + name)
+    assert util.getPDFViewer() == ("/usr/bin/evince", "")
+
+    # a desktop: xdg-open, without the old trailing slash
+    monkeypatch.setattr(util, "fileExists", lambda name: name == "/usr/bin/xdg-open")
+    assert util.getPDFViewer() == ("/usr/bin/xdg-open", "")

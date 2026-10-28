@@ -4,7 +4,6 @@ import copy
 import os
 import os.path
 import signal
-import webbrowser
 from functools import partial
 
 import wx
@@ -14,6 +13,7 @@ import trelby
 import trelby.charmapdlg as charmapdlg
 import trelby.commandsdlg as commandsdlg
 import trelby.config as config
+import trelby.manual as manual
 import trelby.misc as misc
 import trelby.namesdlg as namesdlg
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
@@ -977,7 +977,7 @@ class MyFrame(wx.Frame):
         dlg.Show()
 
     def OnHelpManual(self, event=None):
-        webbrowser.open("file://" + misc.getFullPath("trelby/manual.html"))
+        manual.show(self)
 
     def OnAbout(self, event=None):
         win = splash.SplashWindow(self, -1)

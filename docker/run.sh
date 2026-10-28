@@ -19,9 +19,9 @@ image="mocap-writer:dev"
 config="$HOME/.config/mocap-writer"
 mkdir -p "$config"
 
-if ! docker image inspect "$image" >/dev/null 2>&1; then
-    docker build -t "$image" -f "$repo/docker/Dockerfile" "$repo/docker"
-fi
+# build on every start, as test.sh does: cached, so it only takes time after
+# docker/ changed, and an old image never runs without its new packages
+docker build -q -t "$image" -f "$repo/docker/Dockerfile" "$repo/docker" >/dev/null
 
 display_args=(-e DISPLAY="${DISPLAY:-:0}" -v /tmp/.X11-unix:/tmp/.X11-unix)
 if [ -d /mnt/wslg ]; then

@@ -1215,7 +1215,9 @@ def getPDFViewer():
         # Need to check for Mac before Unix as macOS is a Unix
         progs = [("/System/Applications/Preview.app", "")]
     elif misc.isUnix:
-        progs = [("/usr/bin/xdg-open/", "")]
+        # xdg-open on a desktop; evince in the Docker image, which has no
+        # desktop to hand files to
+        progs = [("/usr/bin/xdg-open", ""), ("evince", "")]
     elif misc.isWindows:
         # get value via registry if possible, or fallback to old method.
         viewer = _getWindowsPDFViewer()
@@ -1287,7 +1289,9 @@ def showPDF(
 
         regPDF, regArgs = getPDFViewer()
 
-        if regPDF:
+        # a viewer that was set and is gone is worth a warning; none set at
+        # all (no viewer was found when the config was made) is not
+        if regPDF and pdfProgram:
             wx.MessageBox(
                 _(
                     "Currently set PDF viewer ({}) was not found.\nChange this in File/Settings/Change/Misc.\n\nUsing the default PDF viewer instead:\n{}"
@@ -1299,6 +1303,7 @@ def showPDF(
                 frame,
             )
 
+        if regPDF:
             pdfProgram = regPDF
             pdfArgs = regArgs
 
