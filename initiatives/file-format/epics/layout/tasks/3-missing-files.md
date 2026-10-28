@@ -1,5 +1,10 @@
 ## 3. Missing files: warn and search
 
+- **Status:** Done (2026-10-28) — `trelby/relink.py`, `trelby/relinkdlg.py`;
+  the fixture is built in `tests/test_relink.py` (`movedFilm`). Part
+  paths are relinked now; a record's own files (bible photos) get their
+  `Ref` from the bible reader (film-bible contract/2)
+
 - **Type:** code
 - **Depends on:** layout/1 (the list of problems on open)
 - **Decision (Rafael, 2026-10-25):** the opener must not break. If it does
