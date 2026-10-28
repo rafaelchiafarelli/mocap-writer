@@ -119,7 +119,11 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   plural `s` ignored, ticked) and new props (unticked); speaking
   characters, bible characters and the film's "not a prop" words are
   skipped, and the run being typed is left out; the runs not made can then
-  be marked "not a prop" for the whole film (`bible/not-props.json`). A
+  be marked "not a prop" for the whole film (`bible/not-props.json`). From
+  script → Find characters (film-bible/links/5) lists the speakers of the
+  numbered scenes (no extension such as `(V.O.)`, no `^`): links to known
+  characters (by name or alias, ticked) and new characters, named as the
+  script writes them, with their scenes (unticked). A
   wardrobe item's form has Worn by: a character, then the scenes it wears
   it in (film-bible/links/3); From script → Wardrobe gaps lists, per
   numbered scene, the bible characters who speak there with no wardrobe
