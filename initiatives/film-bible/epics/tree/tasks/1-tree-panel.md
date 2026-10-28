@@ -1,5 +1,7 @@
 ## 1. Tree panel
 
+- **Status:** Done (2026-10-28) — `trelby/biblepanel.py`
+
 - **Type:** code
 - **Decided (Rafael, 2026-10-28):** a **left side panel**, beside the
   script in a splitter, shown and hidden with View → Bible; the selected

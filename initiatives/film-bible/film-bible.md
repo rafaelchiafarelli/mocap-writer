@@ -1,9 +1,9 @@
 # film-bible — mocap-writer
 
-**Status:** In progress — contract/1, the field catalog, approved 2026-10-26;
-contract/2's shape, the panel and the folder names decided 2026-10-28. Needs `fountain-native/scenes` (scene
-numbers) and `file-format/layout/1` (root index, ids). The file-format
-decision (option A, 2026-10-25) keeps the maps as folders.
+**Status:** Implemented (2026-10-28) — every task done (contract, tree,
+maps, links); the initiative gate waits for Rafael (below). The maps are
+folders in the film's `bible/` part, read and written through
+`mocap-contracts` `v0.5.0` (`bible.harpia`, `catalog/bible-v1.json`).
 
 **Goal:** the writer keeps the film's maps (sets, characters, props,
 wardrobe) next to the script, as a tree like Windows Explorer: every item is a

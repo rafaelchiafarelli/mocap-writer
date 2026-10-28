@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 275 tests.
+objects directly and never create the wx GUI. 340 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -48,6 +48,30 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   each log one `Change` line, an unchanged write none, bookkeeping and the
   script none; revert of one author's changes, logged; a broken line is a
   problem.
+- `test_bible.py` — film-bible/contract/2: round trip per map, child
+  items, unknown field and wrong values refused, an item found by id after
+  its folder was renamed by hand, rename / move / delete, slug clashes,
+  files copied in and a missing one relinked, approving a proposal,
+  links, invalid and misplaced items as problems, the `mocap-contracts`
+  `bible-v1` fixture, the change log. The bible panel needs a display:
+  checked through the real window (tree, New, Rename, move, View → Bible,
+  2026-10-28).
+- `test_bibleedit.py` — film-bible/maps/1-4: every catalog field of each
+  map is in the form; edit → save → reopen per map (text, number, choice,
+  list), an unchanged value not saved again, a bad number refused,
+  approving a proposal changes its state only, TBD needs its trigger,
+  per-scene values, links shown by name keep their notes, files added and
+  removed. The `BibleForm` needs a display: checked through the real
+  window (2026-10-28).
+- `test_biblelinks.py` — film-bible/links: heading locations, a new
+  location offered and never made, a known one linked, made sets linked,
+  rename keeps the link, aliases, a set with no scene; the scene at a line
+  and its items; props as runs offered never made, known props linked,
+  made props linked, "not a prop" remembered, bible characters skipped,
+  the run being typed left out; wardrobe links, gaps and unlink, wardrobe
+  with no character; copy (files and children, new ids, original keeps its
+  scenes), cross-film copy without scenes or item links, the warning's
+  scenes.
 - `test_acts.py` — acts (story-structure/acts): the Act break is not in
   the PDF, the text after it moves up, the pagination still counts it,
   the screen page still shows it; `acts.actsOf` / `actAt` (no act break,
@@ -141,7 +165,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   numbered `1, 2`, a heading being typed shows `(3)` and gets `3` on
   Enter).
 - `test_propwords.py` — `propwords.find_prop_words`: positions, accents,
-  one-letter words, punctuation, mixed case and digits, an all-caps line.
+  a multi-word run is one prop, punctuation ends a run, one-letter words
+  inside a run but never at its ends, hyphen and apostrophe, mixed case and
+  digits, an all-caps line, a run being typed not offered yet.
 - `test_taborder.py` — `ConfigGlobal.tabOrder`: the default cycle and its
   wrap-around, elements outside the cycle, config round trip, `recalc`
   clean-up. Loads the translations itself.
