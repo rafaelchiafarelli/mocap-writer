@@ -92,11 +92,13 @@ Painting
   endless page (draft, `dpages` empty) or a rectangle + shadow per
   `DisplayPage`; per `TextString`: note box, selection, show-formatting
   marks, page-break lines (draft only, by `cfgGl.pbi`), cursor; then
-  underlines and text; then `drawAutoComp` (`trelby/trelbyctrl.py:1801`).
-- Props: in an Action line, each word `propwords.find_prop_words` finds
+  underlines and text; then `drawAutoComp` (`trelby/trelbyctrl.py:1804`).
+- Props: in an Action line, each run `propwords.find_prop_words` finds
+  (with the cursor's column on the cursor's line, so a run being typed is
+  not underlined yet)
   in the line's own text (not the screen text, which is all caps when the
   Action style is) gets an underline of the text pen; display only
-  (`trelby/trelbyctrl.py:1772-1781`). A line already underlined by its
+  (`trelby/trelbyctrl.py:1772-1784`). A line already underlined by its
   style gets no extra underline.
 - Text color: `cfgGui.textColor`, or the per-type color when
   `useCustomElemColors`; header/continued texts (line −1) use

@@ -1,5 +1,11 @@
 ## 2. Prop detection
 
+- **Status:** Done (2026-10-28) — `propwords.find_prop_words` as runs,
+  `biblelinks.propPlan`, From script → Find props. Read as: a one-letter
+  word inside a run, never at its start or end (`A TV` is `TV`); a hyphen
+  or apostrophe joins a word (`WALKIE-TALKIE`, `O'BRIEN`); a plural `s` on
+  a word of 4+ letters is ignored when matching
+
 - **Type:** code
 - **Depends on:** maps/3; editor-ux/typing/2 (`find_prop_words`)
 - **Contract:**

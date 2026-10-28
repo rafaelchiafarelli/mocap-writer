@@ -113,7 +113,13 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   location (no INT./EXT., no time of day) and lists the links to the sets
   named so (by name or alias, case and accents ignored, ticked) and a new
   set per unknown location (unticked: never made silently); scenes with
-  no number yet are left out until a save numbers them.
+  no number yet are left out until a save numbers them. From script → Find
+  props (film-bible/links/2) lists, per numbered scene, the runs of
+  capitalized words in Action: links to known props (by name or alias, a
+  plural `s` ignored, ticked) and new props (unticked); speaking
+  characters, bible characters and the film's "not a prop" words are
+  skipped, and the run being typed is left out; the runs not made can then
+  be marked "not a prop" for the whole film (`bible/not-props.json`).
 - `createEmptySp()` (`trelby/trelbyctrl.py:103`) starts a script with the
   default title page and header (`trelby/titles.py:13`,
   `trelby/headers.py:16`).
@@ -269,9 +275,10 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 - Screen fonts are the four global `font*` settings (`trelby/config.py:1264`)
   turned into `wx.Font`s by `ConfigGui` (`trelby/config.py:1655-1706`); the
   element's screen style (caps/bold/italic/underline) comes from the script's
-  `Type.screen` (`trelby/config.py:191`). In Action lines, words written
-  fully in capitals (2+ letters, accents included) are underlined as props,
-  on screen only (`propwords.find_prop_words`, `trelby/trelbyctrl.py:1772-1781`). **Zoom** (50–300 % in steps of
+  `Type.screen` (`trelby/config.py:191`). In Action lines, runs of words
+  written fully in capitals (accents included; a one-letter word only
+  inside a run) are underlined as props, each run as one, on screen only;
+  the run being typed at the cursor waits until something ends it (`propwords.find_prop_words`, `trelby/trelbyctrl.py:1772-1784`). **Zoom** (50–300 % in steps of
   10, Ctrl `+` / `-` / `0`, Ctrl + wheel, the status control) scales those
   fonts and the draft row height only; it is a global setting and never
   touches the PDF (`trelby/config.py:1697-1709`, `trelby/trelbyctrl.py:540`). Colors are the global `*Color`

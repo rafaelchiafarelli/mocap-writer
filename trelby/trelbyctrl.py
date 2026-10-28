@@ -1769,12 +1769,15 @@ class MyCtrl(wx.Control):
 
                     uli.append((t.x, y + lineh - 1, len(t.text) * fx - 1))
 
-                # capitalized words in Action lines are props: underline
-                # them, on screen only. the line's own text, not t.text,
-                # which is all caps if the Action style is.
+                # runs of capitalized words in Action lines are props:
+                # underline them, on screen only; the run being typed at
+                # the cursor waits until something ends it. the line's own
+                # text, not t.text, which is all caps if the Action style is.
                 elif (t.line != -1) and (ls[t.line].lt == screenplay.ACTION):
+                    typing = self.sp.column if t.line == self.sp.line else None
+
                     for start, end, word in propwords.find_prop_words(
-                        ls[t.line].text
+                        ls[t.line].text, typing
                     ):
                         ulines.append(
                             (t.x + start * fx, y + lineh - 1, (end - start) * fx - 1)

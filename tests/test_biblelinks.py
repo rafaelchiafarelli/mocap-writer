@@ -124,3 +124,54 @@ def test_the_scene_at_a_line_and_its_items(tmp_path):
     assert [biblelinks.sceneAt(sp, i) for i in (0, 2, len(sp.lines) - 1)] == ["1", "1", "3"]
     assert biblelinks.itemsInScene(b, "3") == {"set": [sala]}
     assert biblelinks.itemsInScene(b, "2") == {}
+
+
+def test_props_are_runs_offered_never_made(tmp_path):
+    b = newBible(tmp_path)
+    links, new = biblelinks.propPlan(b, script())
+
+    # ANA and BIA speak, so they are characters, not props; XÍCARAS is
+    # the plural of XÍCARA
+    assert links == []
+    assert new == {"XÍCARA AZUL": ["1", "2"], "CAIXA DE FÓSFORO": ["1"], "TV": ["2"]}
+    assert b.items == {}
+
+
+def test_a_known_prop_links_its_scenes(tmp_path):
+    b = newBible(tmp_path)
+    cup = b.create("prop", "Xícara Azul")
+    links, new = biblelinks.propPlan(b, script())
+
+    assert [(it.id, n) for it, n in links] == [(cup.id, "1"), (cup.id, "2")]
+    assert "XÍCARA AZUL" not in new
+
+
+def test_made_props_link_their_scenes(tmp_path):
+    b = newBible(tmp_path)
+    (made,) = biblelinks.createProps(b, {"TV": ["2"]})
+
+    assert (made.name, b.scenes(made)) == ("TV", {"2"})
+
+
+def test_not_a_prop_is_remembered_for_the_film(tmp_path):
+    b = newBible(tmp_path)
+    biblelinks.markNotProps(b, ["TV"])
+    c = reopen(b)
+
+    assert "TV" not in biblelinks.propPlan(c, script())[1]
+
+
+def test_a_bible_character_is_not_a_prop(tmp_path):
+    b = newBible(tmp_path)
+    b.create("character", "Caixa de Fósforo")
+
+    assert "CAIXA DE FÓSFORO" not in biblelinks.propPlan(b, script())[1]
+
+
+def test_the_run_being_typed_is_not_offered(tmp_path):
+    sp = u.loadString("INT. ROOM #1#\n\nShe takes the BLUE CU\n")
+    line = [i for i, l in enumerate(sp.lines) if "BLUE" in l.text][0]
+    b = newBible(tmp_path)
+
+    assert biblelinks.propPlan(b, sp, line, len(sp.lines[line].text))[1] == {}
+    assert biblelinks.propPlan(b, sp)[1] == {"BLUE CU": ["1"]}

@@ -103,10 +103,16 @@ Model and file format
   warning on a click on a number, skipped for 5 clicks after "do not show
   this again"; `check(nums) -> [Problem]` (duplicate, order, foreign,
   missing, `trelby/scenenumbers.py:170`).
-- `propwords.py` — `find_prop_words(line) -> [(start, end, word)]`
-  (`trelby/propwords.py:15`): runs of 2+ letters, accents included, that are
-  fully upper case (`trelby/propwords.py:9`); the editor underlines them in
-  Action lines, film-bible will reuse it for prop records. No wx.
+- `propwords.py` — `find_prop_words(line, typingAt) -> [(start, end,
+  run)]` (`trelby/propwords.py:23`): the props of a line, each a run of
+  consecutive fully capitalized words (accents included; a hyphen or
+  apostrophe joins a word, `trelby/propwords.py:10`) separated by spaces
+  only, so punctuation, a digit or a word not fully capitalized ends it; a
+  one-letter word sits inside a run but never starts or ends one; with
+  `typingAt` (the cursor), a run reaching the end of the line with the
+  cursor after it is left out until something ends it (film-bible/links/2,
+  rule of 2026-10-25). The editor underlines them in Action lines;
+  `biblelinks.propPlan` makes prop records from them. No wx.
 - `film.py` — a film root (file-format/layout/1), no wx except the
   version in `_origin` (`trelby/film.py:457`): `Film.open(root, owner)`
   reads `film.json` through `mocap_contracts` and lists what is missing or
@@ -190,8 +196,13 @@ Model and file format
   scenes only), `sceneAt(sp, line)`, `itemsInScene(b, scene)`; links/1:
   `setPlan(b, sp)` → links for known locations and `{location: [scenes]}`
   for unknown ones (`trelby/biblelinks.py:109`), `applyLinks`,
-  `createSets` (named as the script writes the location); the props,
-  wardrobe and copy helpers of links/2–4 (`trelby/biblelinks.py:155-357`).
+  `createSets` (named as the script writes the location); links/2:
+  `propPlan(b, sp, cursorLine, cursorCol)` → links for known props and
+  `{run: [scenes]}` for runs that are no speaking or bible character, no
+  known prop and not marked "not a prop" (`trelby/biblelinks.py:188`),
+  compared by `propKey` (no case, accents, or plural `s` on a word),
+  `createProps`, `markNotProps`; the wardrobe and copy helpers of
+  links/3–4 (`trelby/biblelinks.py:252-357`).
 - `relink.py` — missing files of a film (file-format/layout/3), no wx:
   `Ref(what, rel, kind, apply)` (`trelby/relink.py:24`); `kindOk` by
   extension (`KINDS`) or folder; `check(root, ref, path)` → the new film
@@ -243,17 +254,20 @@ Application and editor (wx)
   Rename / Delete buttons, a `wx.TreeCtrl` with one branch per map
   (`refresh` rebuilds it from `Bible.children`, keeping the selection and
   what was expanded, `trelby/biblepanel.py:122`), a right-click menu
-  (`menuItems`, `trelby/biblepanel.py:314`), drag and drop to change an
-  item's parent (`OnEndDrag`, `trelby/biblepanel.py:344`); under the tree
+  (`menuItems`, `trelby/biblepanel.py:315`), drag and drop to change an
+  item's parent (`OnEndDrag`, `trelby/biblepanel.py:345`); under the tree
   in a splitter, the selected item's `BibleForm` (`makeForm` / `showItem`).
   Errors the film refuses are shown, never raised (`guard`). A line under
   the buttons names the cursor's scene and the bible items linked to it
   (`showScene`, called from `MyCtrl.updateCommon`,
-  `trelby/biblepanel.py:446`). From script… opens the links commands
-  (`OnScriptMenu`, `trelby/biblepanel.py:369`): each shows its plan in a
+  `trelby/biblepanel.py:450`). From script… opens the links commands
+  (`OnScriptMenu`, `trelby/biblepanel.py:370`): each shows its plan in a
   checklist (`choose`) and does only what is checked; Link scenes to sets
   ticks the links to known sets and leaves new sets unticked
-  (`OnLinkSets`, `trelby/biblepanel.py:414`).
+  (`OnLinkSets`, `trelby/biblepanel.py:418`); Find props lists links to
+  known props (ticked) and new props (unticked), then offers to mark the
+  ones not made as not a prop for the film (`OnFindProps`,
+  `trelby/biblepanel.py:477`).
 - `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
   wide, one row per act with its name, `n scenes` and a bar as long as its
   scene count against the largest act; the cursor's act highlighted; a
@@ -452,6 +466,9 @@ Data and folders
   (`trelby/bibleform.py:90-96`).
 - A link's note (e.g. the kind of a relationship) is kept and shown in the
   state button's tooltip, but the form has no control to type one.
+- The editor underlines every run of capitals, character names and "not a
+  prop" words included: the underline knows nothing of the bible; Find
+  props skips them.
 - The change log holds text only: `film.json`, the id counters, the
   script (saved by `MyCtrl.saveFile`, not through `Film`) and binary files
   are not logged; an agent's own writes are not logged either (it does
