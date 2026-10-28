@@ -23,16 +23,6 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 
 ## Decisions for Rafael
 
-- **Scene numbering, choices made while implementing (2026-10-27)** — to
-  confirm or overturn: a number is given on save, not while typing (a new
-  scene shows `(12.A)` until then); nothing fits before scene 1 or next
-  to another tool's form (`1A`); a deleted scene's `OMITTED` goes right
-  before the next higher number; Renumber all removes the `OMITTED`
-  headings; Enter at the start of a heading leaves the number on the
-  empty first part
-  ([scenes/1](fountain-native/epics/scenes/tasks/1-numbering-rule.md),
-  [scenes/3](fountain-native/epics/scenes/tasks/3-numbers-on-save.md)).
-
 - **How the film keeps its history** — a study to run, then Rafael decides
   ([layout/2](file-format/epics/layout/tasks/2-history.md)).
 - **How agents write proposals** — (a) they write `item.json` and the
@@ -79,7 +69,9 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 ## Gates left to a film session or to Rafael
 
 - fountain-native: one real scene survives open → save → open
-  byte-identical; Rafael approves the numbering behavior.
+  byte-identical. The numbering behavior was approved on 2026-10-27
+  (rules and choices, with the number now given when a heading is
+  finished, scenes/6); Rafael tries it in the editor.
 - pdf-import (done): the import of a real script was left to a film
   session.
 

@@ -119,3 +119,10 @@ def testCheck():
         P(sn.PROBLEM_MISSING, 1, ""),
         P(sn.PROBLEM_MISSING, 2, ""),
     ]
+
+
+def testBeforeFirstNumberAboveOne():
+    # fountain-native/scenes/6: before a first number above 1 there is room
+    assert sn.assign([None, "2", "3"]) == (["1", "2", "3"], [])
+    assert sn.assign([None, None, "3"]) == (["1", "1.A", "3"], [])
+    assert sn.assign([None, "1.A"]) == (["1", "1.A"], [])
