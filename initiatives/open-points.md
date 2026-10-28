@@ -65,8 +65,9 @@ numbered `S1`, `S2` per scene; "needs review" not stored
   (preprod-link/contract/1), `change_set` (preprod-link/contract/2).
 - **fountain-native/scenes/5** (a move and Renumber all rewrite the
   records that name scenes) waits for the first such records.
-- **file-format/layout/1** can pin `mocap-contracts` `v0.4.0` once it is
-  pushed; **layout/3** (missing files: warn and search) waits for layout/1.
+- **file-format/layout/1** can pin `mocap-contracts` `v0.4.0` (pushed,
+  checked 2026-10-27); it waits for Rafael on the five rules the `film`
+  task left open (above); **layout/3** (missing files: warn and search) waits for layout/1.
 - **fountain-native/settings/1** waits for layout/1 and `script_settings`.
 - **fountain-native/notes/1** waits for `annotation` (scenes/1–4 done
   2026-10-27).
