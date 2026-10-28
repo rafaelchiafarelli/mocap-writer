@@ -23,6 +23,9 @@ RUN python3 -m venv /opt/venv \
 # Trelby keeps its settings under $XDG_CONFIG_HOME/trelby; run.sh mounts /config.
 # GTK settings in memory: the container has no D-Bus session for dconf.
 ENV XDG_CONFIG_HOME=/config GSETTINGS_BACKEND=memory NO_AT_BRIDGE=1
+# mocap-contracts from its submodule in the mounted repository (pinned to a tag there;
+# a hashed lock can't hold a git+ URL); its generated packages ship top-level in gen/python.
+ENV PYTHONPATH=/app/third_party/mocap-contracts:/app/third_party/mocap-contracts/gen/python
 USER ubuntu
 WORKDIR /work
 CMD ["/opt/venv/bin/python", "/app/trelby.py"]

@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 61 modules: the
+**Role:** All of Trelby's code. One flat package of 62 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -107,6 +107,22 @@ Model and file format
   (`trelby/propwords.py:15`): runs of 2+ letters, accents included, that are
   fully upper case (`trelby/propwords.py:9`); the editor underlines them in
   Action lines, film-bible will reuse it for prop records. No wx.
+- `film.py` — a film root (file-format/layout/1), no wx except the
+  version in `_origin` (`trelby/film.py:296`): `Film.open(root, owner)`
+  reads `film.json` through `mocap_contracts` and lists what is missing or
+  invalid as `Problem(what, where, why)` in `film.problems`
+  (`trelby/film.py:73`); only a missing or invalid `film.json` raises
+  `FilmError`, naming the path and the broken field. `Film.create(root,
+  scriptText)` writes `film.json` with `DEFAULT_PARTS`, the `w` space,
+  `ids/w.json` and the folder parts (`trelby/film.py:112`).
+  `partOf` / `ownerOf` (prefix by segment, `film.json` → writer,
+  `ids/<code>.json` → its space's owner, `trelby/film.py:158-188`);
+  `writeText` (atomic, through a temp file) and `deleteFile` refuse with
+  `OwnerError` a path this program does not own (`checkWrite`,
+  `trelby/film.py:194`); `newId(kind, space)` saves the counter before it
+  returns the id (`trelby/film.py:238`); `addSpace(code, owner, path)`
+  adds an agent's space and its `proposals-<code>` part, checked by the
+  contract before anything is written (`trelby/film.py:273`).
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
   (`trelby/trelbyctrl.py:1559`).
@@ -316,10 +332,15 @@ Data and folders
   and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:212-217`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
+- A missing file part other than the script (the settings record) is not
+  a problem on open: it was not written yet (`trelby/film.py:79-84`).
+  Missing folder parts, the script and the writer's `ids/w.json` are; with
+  `ids/w.json` lost, `newId` refuses rather than start again at 1.
 
 ## Touchpoints
 - Called by: `../trelby.py`; `../tests/` (through `tests/u.py`).
 - Depends on: wxPython 4 (GUI), lxml (HTML/FDX export, XML imports),
-  ReportLab (PDF), pdfplumber (PDF import), stdlib `tomllib` (profiles,
+  ReportLab (PDF), pdfplumber (PDF import), `mocap_contracts` (film
+  root formats, `../third_party/mocap-contracts`, with protobuf), stdlib `tomllib` (profiles,
   Python ≥ 3.11), stdlib `gettext`, `zipfile`, `zlib`, `difflib`.
   Versions: `../docker/requirements.lock`.

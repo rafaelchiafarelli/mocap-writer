@@ -30,7 +30,9 @@ Chocolatey from `choco/`).
 - `Makefile` — `dist` gzips `trelby/names.txt` and `trelby/dict_en.dat` and
   builds `trelby/manual.html` and `trelby/trelby.1.gz` through `doc/`
   (`Makefile:3-16`); `clean`; `test` runs `pytest` (`Makefile:22-23`).
-- `pyproject.toml` — setuptools build backend.
+- `pyproject.toml` — setuptools build backend; pytest collects `tests/`
+  only (the submodule has its own suite).
+- `.gitmodules` — `third_party/mocap-contracts`.
 - `setup.cfg` — PyPI metadata: name `trelby`, version `2.4.16.2`
   (`setup.cfg:3`), Python `>=3.11`, dependencies `wxPython`, `lxml`,
   `reportlab`, `pdfplumber` (`setup.cfg:16-22`), console script `trelby`
@@ -62,6 +64,11 @@ Chocolatey from `choco/`).
 - `resources_mac/` — macOS icon (`resources_mac/CLAUDE.md`).
 - `choco/`, `debian/` — upstream packaging (their `CLAUDE.md`).
 - `.github/` — holds only `workflows/` (`.github/workflows/CLAUDE.md`).
+- `third_party/mocap-contracts/` — git submodule pinned to a tag
+  (`v0.5.0`): the film root formats (`film.harpia`, `bible.harpia`,
+  `change.harpia`); on `PYTHONPATH` in the image (`docker/Dockerfile`), not
+  installed, since a hashed lock can't hold a `git+` URL. Its own docs
+  are inside it.
 - `initiatives/` — planning: initiatives, epics, tasks, the bug backlog
   (`initiatives/README.md`).
 - `.claude/skills/mocap-workflow/` — the Mocap Studio process skill, a copy
