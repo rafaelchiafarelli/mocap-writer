@@ -22,6 +22,7 @@ import trelby.misc as misc
 import trelby.myimport as myimport
 import trelby.opts as opts
 import trelby.pml as pml
+import trelby.clicks as clicks
 import trelby.propwords as propwords
 import trelby.reports as reports
 import trelby.scenenumbers as scenenumbers
@@ -63,7 +64,7 @@ class MyCtrl(wx.Control):
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
-        self.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDown)
+        self.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
         self.Bind(wx.EVT_MOTION, self.OnMotion)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
@@ -90,6 +91,10 @@ class MyCtrl(wx.Control):
 
     def clearVars(self):
         self.mouseSelectActive = False
+
+        # counts clicks: two select the word, three the element
+        # (bugs/editor/14-16)
+        self.clicks = clicks.ClickCounter()
 
         # find dialog stored settings
         self.findDlgFindText = ""
@@ -665,7 +670,33 @@ class MyCtrl(wx.Control):
 
         if line is not None:
             self.sp.gotoPos(line, col, mark)
+
+            if not mark:
+                self.multiClick(line, col, False)
+
             self.updateScreen()
+
+    def OnLeftDClick(self, event):
+        self.SetFocus()
+        pos = event.GetPosition()
+        line, col = self.gd.vm.pos2linecol(self, pos.x, pos.y)
+
+        if line is not None:
+            self.multiClick(line, col, True)
+            self.updateScreen()
+
+    # a second click selects the word under the pointer, a third and more
+    # the whole element
+    def multiClick(self, line, col, isDouble):
+        n = self.clicks.click(time.monotonic(), line, isDouble)
+
+        if n == 2:
+            self.sp.gotoPos(line, col)
+
+            if not self.sp.selectWordAt(line, col):
+                self.sp.selectElementAt(line)
+        elif n >= 3:
+            self.sp.selectElementAt(line)
 
     def sceneNumberWarning(self):
         if not scenenumbers.clickWarning.click():

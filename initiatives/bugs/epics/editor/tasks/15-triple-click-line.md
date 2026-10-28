@@ -1,6 +1,6 @@
 ## 15. Triple click does not select the line
 
-- **Status:** Open
+- **Status:** Fixed (2026-10-28) — fixes/00009f/multi-click — three clicks select the element, not the line (Rafael, 2026-10-28)
 - **Symptom:** A triple click does nothing more than a single click; in current text editors it selects the line.
 - **Where:** no multi-click handling: `OnLeftDown` (`trelby/trelbyctrl.py:633`) handles every click the same; wx reports no triple click, so clicks must be counted by time and position.
 - **Reproduce:** triple-click a line of Action.

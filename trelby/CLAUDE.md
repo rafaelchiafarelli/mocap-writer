@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 69 modules: the
+**Role:** All of Trelby's code. One flat package of 70 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -226,9 +226,12 @@ Model and file format
   (`trelby/relink.py:84`), `applyPattern`, `suggest(root, pat, refs)` →
   the refs the pattern finds at an existing path of the right kind
   (`trelby/relink.py:122`).
+- `clicks.py` — `ClickCounter` (`trelby/clicks.py:5`), no wx: counts
+  mouse presses on the same line within 0.5 s, the double-click event wx
+  sends with a second press not counted twice (bugs/editor/14-16).
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1565`).
+  (`trelby/trelbyctrl.py:1596`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -295,8 +298,8 @@ Application and editor (wx)
   hint when there is no act break. Own pixel fonts, so the zoom never
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
-  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:472`); repainted on a theme
-  change (`trelby/trelbyctrl.py:521`); `draw(dc, w, h)` does the drawing
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:477`); repainted on a theme
+  change (`trelby/trelbyctrl.py:526`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key

@@ -2778,6 +2778,44 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
         self.line = l2
         self.column = len(self.lines[l2].text)
 
+    # select the word at (line, col): mark at its first letter, cursor on
+    # its last (bugs/editor/14). a click just after a word selects it; on a
+    # space or punctuation, nothing is selected and False is returned.
+    def selectWordAt(self, line, col):
+        s = self.lines[line].text
+        col = min(col, len(s))
+
+        if (col == len(s) or util.isWordBoundary(s[col])) and col > 0 and not util.isWordBoundary(s[col - 1]):
+            col -= 1
+
+        if col >= len(s) or util.isWordBoundary(s[col]):
+            return False
+
+        start = col
+        end = col
+
+        while start > 0 and not util.isWordBoundary(s[start - 1]):
+            start -= 1
+
+        while end + 1 < len(s) and not util.isWordBoundary(s[end + 1]):
+            end += 1
+
+        self.clearAutoComp()
+        self.setMark(line, start)
+        self.line = line
+        self.column = end
+
+        return True
+
+    # select the whole element holding line (bugs/editor/15-16): mark at its
+    # start, cursor at its end
+    def selectElementAt(self, line):
+        first, last = self.getElemIndexesFromLine(line)
+        self.clearAutoComp()
+        self.setMark(first, 0)
+        self.line = last
+        self.column = len(self.lines[last].text)
+
     # select all text of the screenplay. sets mark at beginning and moves
     # cursor to the end.
     def selectAllCmd(self, cs):

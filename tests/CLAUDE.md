@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 349 tests.
+objects directly and never create the wx GUI. 354 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -73,6 +73,10 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   known names and aliases linked, made ones linked); copy (files and children, new ids, original keeps its
   scenes), cross-film copy without scenes or item links, the warning's
   scenes.
+- `test_clicks.py` — bugs/editor/14-16: the click counter (wxGTK's
+  double-click after the second press), the word and the element a double
+  and a triple click select. The real clicks checked through the window
+  (2026-10-28).
 - `test_acts.py` — acts (story-structure/acts): the Act break is not in
   the PDF, the text after it moves up, the pagination still counts it,
   the screen page still shows it; `acts.actsOf` / `actAt` (no act break,
