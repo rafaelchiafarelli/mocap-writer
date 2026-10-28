@@ -90,7 +90,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   the acts, their sizes in scenes and the cursor's act, untouched by zoom
   and scrolling (story-structure/acts/2). `MyCtrl` owns one `Screenplay` (`self.sp`) and binds paint,
   mouse and key events (`trelby/trelbyctrl.py:61-70`).
-- The **bible panel** (film-bible/tree/1, `trelby/biblepanel.py:21`) sits
+- The **bible panel** (film-bible/tree/1, `trelby/biblepanel.py:23`) sits
   left of the tabs in a splitter (`MyFrame.splitter`,
   `trelby/trelbyframe.py:293`), unsplit while hidden; View → Bible
   (Ctrl+Shift+B) shows or hides it (`showBible`,

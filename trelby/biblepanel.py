@@ -1,3 +1,5 @@
+import os
+
 import wx
 
 import trelby.bible as bible
@@ -314,6 +316,8 @@ class BiblePanel(wx.Panel):
                 (_("New child item"), self.OnNewChild),
                 (_("Rename"), self.OnRename),
                 (_("Move to the top level"), self.OnMoveTop),
+                (_("Copy"), self.OnCopy),
+                (_("Copy to another film..."), self.OnCopyToFilm),
                 (None, None),
                 (_("Delete"), self.OnDelete),
             ]
@@ -538,3 +542,77 @@ class BiblePanel(wx.Panel):
 
         text += self.noteUnnumbered(sp)
         misc.showText(self, text, _("Wardrobe gaps"))
+
+    # links/4: a copy next to the item, named "<name> copy" so the script's
+    # links never mistake it for the original; it gets a new id and no
+    # scenes, and the creator is told where the original is used
+    def OnCopy(self, event=None):
+        it = self.selectedItem()
+
+        if it is None:
+            return
+
+        parent = self.bible.get(it.parent) if it.parent else None
+        copy = self.guard(
+            biblelinks.copyItem, self.bible, it, self.bible, parent, "creator",
+            _("%s copy") % it.name,
+        )
+
+        if copy:
+            self.warnUnlinked(it, copy)
+            self.changed()
+            self.refresh(copy.id)
+
+    # links/4: copy the item, its files and children, into another film's
+    # bible; scene numbers name scenes only in their own film, so the copy
+    # has none
+    def OnCopyToFilm(self, event=None):
+        import trelby.film as film
+
+        it = self.selectedItem()
+
+        if it is None:
+            return
+
+        dlg = wx.DirDialog(self, _("Film to copy %s into") % it.name)
+        root = dlg.GetPath() if dlg.ShowModal() == wx.ID_OK else None
+        dlg.Destroy()
+
+        if root is None:
+            return
+
+        try:
+            other = bible.Bible(film.Film.open(root))
+        except Exception as e:
+            wx.MessageBox(str(e), _("Bible"), wx.OK, self)
+
+            return
+
+        if os.path.realpath(other.film.root) == os.path.realpath(self.bible.film.root):
+            self.OnCopy()
+
+            return
+
+        copy = self.guard(biblelinks.copyItem, self.bible, it, other, None, "creator")
+
+        if copy:
+            wx.MessageBox(
+                _("%s was copied to %s as %s, with its files and child items, "
+                  "and without its scenes.") % (it.name, root, copy.id),
+                _("Bible"),
+                wx.OK,
+                self,
+            )
+
+    def warnUnlinked(self, it, copy):
+        scenes = biblelinks.usedIn(self.bible, it)
+
+        if scenes:
+            wx.MessageBox(
+                _("%s is in no scene. %s, the original, is used in scenes %s: "
+                  "link the copy to the ones it replaces it in.")
+                % (copy.name, it.name, ", ".join(scenes)),
+                _("Bible"),
+                wx.OK,
+                self,
+            )
