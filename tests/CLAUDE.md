@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 294 tests.
+objects directly and never create the wx GUI. 310 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -56,6 +56,13 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `bible-v1` fixture, the change log. The bible panel needs a display:
   checked through the real window (tree, New, Rename, move, View → Bible,
   2026-10-28).
+- `test_bibleedit.py` — film-bible/maps/1-4: every catalog field of each
+  map is in the form; edit → save → reopen per map (text, number, choice,
+  list), an unchanged value not saved again, a bad number refused,
+  approving a proposal changes its state only, TBD needs its trigger,
+  per-scene values, links shown by name keep their notes, files added and
+  removed. The `BibleForm` needs a display: checked through the real
+  window (2026-10-28).
 - `test_acts.py` — acts (story-structure/acts): the Act break is not in
   the PDF, the text after it moves up, the pagination still counts it,
   the screen page still shows it; `acts.actsOf` / `actAt` (no act break,
