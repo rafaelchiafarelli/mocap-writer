@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 64 modules: the
+**Role:** All of Trelby's code. One flat package of 65 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -135,6 +135,26 @@ Model and file format
   a missing part's `Problem` carries a `relink.Ref` (`partRef`,
   `trelby/film.py:152`) whose `apply` saves the new path in `film.json`
   (`setPartPath`, `trelby/film.py:173`).
+- `bible.py` — the film bible (film-bible/contract/2), no wx: `Bible(film)`
+  reads every `bible/<map folder>/<slug>/item.json` (children nested in
+  their parent's folder) through `mocap_contracts`; an invalid item, one
+  in the wrong map folder, a duplicate id or a parent that does not match
+  its folder is a film problem (`load` / `loadFolder`,
+  `trelby/bible.py:96-161`); a file value that points at nothing is a
+  problem with a `relink.Ref` (`checkFiles`, `trelby/bible.py:164`).
+  `Item(msg, folder)`; items by id (`get`), `children(map, parentId)` by
+  name; `create` (id from `film.newId`, folder `freeSlug`: the ASCII slug,
+  `-2`, `-3` on a clash, never a file folder name inside an item,
+  `trelby/bible.py:211-246`); `rename` and `move` move the folder and keep
+  the id (`trelby/bible.py:253-296`); `delete` with children; `addFile`
+  copies a file into the item's `photos/`, `plans/`... and returns its
+  path relative to the item (`trelby/bible.py:309`); `setValues(item,
+  field, values, state, source, by, scene, ...)` replaces a field's values
+  for a scene key, the department from the catalog, and puts the item back
+  if the contract refuses it (`trelby/bible.py:340`); `approve` changes a
+  value's state only; `link` / `unlink` scenes (wardrobe: with the
+  character); `scenes(item)`; `notProps` and `saveNotProps`. Every write
+  goes through `Film.writeText`, so ownership is checked and it is logged.
 - `relink.py` — missing files of a film (file-format/layout/3), no wx:
   `Ref(what, rel, kind, apply)` (`trelby/relink.py:24`); `kindOk` by
   extension (`KINDS`) or folder; `check(root, ref, path)` → the new film
@@ -365,6 +385,10 @@ Data and folders
   a problem on open: it was not written yet (`trelby/film.py:85-89`).
   Missing folder parts, the script and the writer's `ids/w.json` are; with
   `ids/w.json` lost, `newId` refuses rather than start again at 1.
+- A bible item's rename or move is logged as its old `item.json` deleted
+  and the new one created; the files that moved with the folder are not
+  logged, so a revert puts the `item.json` back but not the files
+  (`Bible.moveFolder`, `trelby/bible.py:283`).
 - The change log holds text only: `film.json`, the id counters, the
   script (saved by `MyCtrl.saveFile`, not through `Film`) and binary files
   are not logged; an agent's own writes are not logged either (it does
