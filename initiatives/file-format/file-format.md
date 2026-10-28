@@ -8,7 +8,7 @@ records with typed stable ids linked by id only, one owner per part,
 binaries beside the records, strict validation on read. **Keep C in
 mind**, a change log in SQLite, for scale and team sync later: A is built
 so that moving to C is a migration, not a redesign
-(`epics/study/tasks/3-options.md`).
+(study/3, options; history: git log -- initiatives/file-format/epics/study).
 
 **Decided (Rafael, 2026-10-25): opening a film never breaks.** A file that
 is missing or moved is reported with a warning, the rest of the film
@@ -31,7 +31,7 @@ then the layout every part uses: the root index, the id scheme, history.
 fountain-native tasks); building option C; the capture pipeline's own
 files (`session.json`, `mocap_data.json`, ...), except as touchpoints.
 
-**Decisions the study weighed** (outcome in `epics/study/tasks/3-options.md`):
+**Decisions the study weighed** (outcome in study/3, options, in git history):
 - film-bible: "the maps are **folders in the film root**
   (`<film-root>/bible/`), with their format defined as a Harpia contract"
   (2026-10-23);

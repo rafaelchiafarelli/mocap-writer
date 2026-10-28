@@ -5,7 +5,7 @@
   contract/2 (bible links), fountain-native/notes/1 (annotations),
   preprod-link contract/1 (scene index). **Not ready:** no such record
   exists yet, so there is nothing to rewrite.
-- **Decided (Rafael, 2026-10-26, in task 1):** a move (cut and paste)
+- **Decided (Rafael, 2026-10-26, in task 1, now in git history):** a move (cut and paste)
   rewrites every record that named the old number to the new one, as one
   undoable change; Renumber all rewrites every record that names a scene;
   a copy carries no links.

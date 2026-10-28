@@ -31,8 +31,8 @@ numbered `S1`, `S2` per scene; "needs review" not stored
   ([preprod-link](preprod-link/preprod-link.md)).
 - **Story structure** — study done 2026-10-26: an act is a marker only,
   with a panel of act sizes (epic `acts`); models and beats wait for a
-  later talk with an agent
-  ([study/1](story-structure/epics/study/tasks/1-structure-study.md)).
+  later talk with an agent (story-structure study/1, in git history:
+  git log -- initiatives/story-structure).
 - **Across repositories** — mocap-previz decision D8, where the Fountain
   parser lives, is open there. Proposal to bring to it:
   `trelby/fountain.py` already is that parser (no wx; accents, dual
@@ -72,6 +72,8 @@ numbered `S1`, `S2` per scene; "needs review" not stored
   byte-identical. The numbering behavior was approved on 2026-10-27
   (rules and choices, with the number now given when a heading is
   finished, scenes/6); Rafael tries it in the editor.
+- story-structure (done 2026-10-26, its folder removed 2026-10-28): Rafael
+  uses the act panel on a script and says it does what he wanted.
 - pdf-import (done): the import of a real script was left to a film
   session.
 
