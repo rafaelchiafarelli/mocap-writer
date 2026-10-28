@@ -1,6 +1,10 @@
+import os
+
 import wx
 
 import trelby.bible as bible
+import trelby.misc as misc
+import trelby.biblelinks as biblelinks
 import trelby.bibleform as bibleform
 
 # the bible panel (film-bible/tree/1): left of the script, one tree per map
@@ -38,11 +42,20 @@ class BiblePanel(wx.Panel):
         self.childBtn = wx.Button(self, -1, _("New child"), style=wx.BU_EXACTFIT)
         self.renameBtn = wx.Button(self, -1, _("Rename"), style=wx.BU_EXACTFIT)
         self.deleteBtn = wx.Button(self, -1, _("Delete"), style=wx.BU_EXACTFIT)
+        self.scriptBtn = wx.Button(self, -1, _("From script..."), style=wx.BU_EXACTFIT)
+        self.scriptBtn.SetToolTip(_("Link the script's scenes to the bible"))
 
-        for b in (self.newBtn, self.childBtn, self.renameBtn, self.deleteBtn):
+        for b in (self.newBtn, self.childBtn, self.renameBtn, self.deleteBtn, self.scriptBtn):
             hsizer.Add(b, 0, wx.RIGHT, 4)
 
         vsizer.Add(hsizer, 0, wx.ALL, 4)
+
+        # what the bible links to the cursor's scene (film-bible/links/1)
+        self.sceneText = wx.StaticText(self, -1, "")
+        vsizer.Add(self.sceneText, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 6)
+
+        # (scene, text) last shown, so a cursor move repaints nothing
+        self.sceneShown = None
 
         self.splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
         self.splitter.SetMinimumPaneSize(80)
@@ -72,6 +85,7 @@ class BiblePanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnNewChild, id=self.childBtn.GetId())
         self.Bind(wx.EVT_BUTTON, self.OnRename, id=self.renameBtn.GetId())
         self.Bind(wx.EVT_BUTTON, self.OnDelete, id=self.deleteBtn.GetId())
+        self.Bind(wx.EVT_BUTTON, self.OnScriptMenu, id=self.scriptBtn.GetId())
         self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnSelChanged)
         self.tree.Bind(wx.EVT_TREE_ITEM_MENU, self.OnItemMenu)
         self.tree.Bind(wx.EVT_TREE_BEGIN_DRAG, self.OnBeginDrag)
@@ -93,7 +107,7 @@ class BiblePanel(wx.Panel):
         self.splitter.Show(b is not None)
         self.empty.Show(b is None)
 
-        for btn in (self.newBtn, self.childBtn, self.renameBtn, self.deleteBtn):
+        for btn in (self.newBtn, self.childBtn, self.renameBtn, self.deleteBtn, self.scriptBtn):
             btn.Show(b is not None)
 
         self.refresh()
@@ -141,8 +155,9 @@ class BiblePanel(wx.Panel):
                     if it.id == selectId:
                         toSelect = n
 
+        # the maps are always open; an item as it was
         for n, key in self.nodes.items():
-            if expanded is None or key in expanded:
+            if expanded is None or key in expanded or key[0] == "map":
                 if self.tree.ItemHasChildren(n):
                     self.tree.Expand(n)
 
@@ -301,6 +316,8 @@ class BiblePanel(wx.Panel):
                 (_("New child item"), self.OnNewChild),
                 (_("Rename"), self.OnRename),
                 (_("Move to the top level"), self.OnMoveTop),
+                (_("Copy"), self.OnCopy),
+                (_("Copy to another film..."), self.OnCopyToFilm),
                 (None, None),
                 (_("Delete"), self.OnDelete),
             ]
@@ -346,3 +363,256 @@ class BiblePanel(wx.Panel):
 
         self.guard(self.bible.move, it, parent, "creator")
         self.refresh(it.id)
+
+    # the open script's Screenplay, and the cursor
+    def script(self):
+        ctrl = self.frame.panel.ctrl
+
+        return ctrl.sp
+
+    # the script's links to the bible (film-bible/links): each command
+    # shows what it would do, and does only what the creator checks
+    def OnScriptMenu(self, event=None):
+        menu = wx.Menu()
+
+        for label, fn in self.scriptMenuItems():
+            mi = menu.Append(-1, label)
+            self.Bind(wx.EVT_MENU, fn, id=mi.GetId())
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def scriptMenuItems(self):
+        return [
+            (_("Link scenes to sets..."), self.OnLinkSets),
+            (_("Find props..."), self.OnFindProps),
+            (_("Wardrobe gaps..."), self.OnWardrobeGaps),
+        ]
+
+    # warn if the script has scenes with no number yet: those are left out
+    # until a save numbers them
+    def unnumbered(self, sp):
+        import trelby.scenenumbers as scenenumbers
+
+        return sum(1 for _l, n in scenenumbers.scenesOf(sp) if not n)
+
+    # ask which of choices (labels) to do, those in checked ticked; the
+    # indexes chosen, or None if cancelled
+    def choose(self, title, text, choices, checked):
+        if not choices:
+            wx.MessageBox(_("Nothing to do: the bible already matches the script."), title, wx.OK, self)
+
+            return None
+
+        dlg = wx.MultiChoiceDialog(self, text, title, choices)
+        dlg.SetSelections(checked)
+        ret = dlg.GetSelections() if dlg.ShowModal() == wx.ID_OK else None
+        dlg.Destroy()
+
+        return ret
+
+    def noteUnnumbered(self, sp):
+        n = self.unnumbered(sp)
+
+        return (
+            "\n" + _("%d scenes have no number yet and are left out: save the script first.") % n
+            if n
+            else ""
+        )
+
+    # links/1: scene headings -> sets
+    def OnLinkSets(self, event=None):
+        sp = self.script()
+        links, unknown = biblelinks.setPlan(self.bible, sp)
+        choices = [_("Link scene %s to %s") % (n, it.name) for it, n in links]
+        news = list(unknown.items())
+        choices += [
+            _("New set %s (scenes %s)") % (loc, ", ".join(nums)) for loc, nums in news
+        ]
+        sel = self.choose(
+            _("Link scenes to sets"),
+            _("From the scene headings. A new set is made only if you check it.")
+            + self.noteUnnumbered(sp),
+            choices,
+            list(range(len(links))),
+        )
+
+        if sel is None:
+            return
+
+        chosenLinks = [links[i] for i in sel if i < len(links)]
+        chosenNew = dict(news[i - len(links)] for i in sel if i >= len(links))
+        self.guard(biblelinks.applyLinks, self.bible, chosenLinks)
+        self.guard(biblelinks.createSets, self.bible, chosenNew)
+        self.changed()
+
+    # the bible changed under the tree: rebuild it and the scene line
+    def changed(self):
+        self.refresh()
+        self.sceneShown = None
+        self.showScene(self.script())
+
+    # show the bible's items in the scene holding sp's cursor
+    def showScene(self, sp):
+        if self.bible is None or not self.IsShown():
+            return
+
+        num = biblelinks.sceneAt(sp, sp.line)
+        text = ""
+
+        if num:
+            parts = []
+
+            for map_ in bible.MAPS:
+                items = biblelinks.itemsInScene(self.bible, num).get(map_)
+
+                if items:
+                    parts.append(
+                        "%s: %s" % (_(MAP_LABELS[map_]), ", ".join(it.name for it in items))
+                    )
+
+            text = _("Scene %s") % num + (" - " + "; ".join(parts) if parts else "")
+
+        if (num, text) != self.sceneShown:
+            self.sceneShown = (num, text)
+            self.sceneText.SetLabel(text)
+            self.sceneText.Wrap(max(self.GetSize().width - 12, 100))
+            self.Layout()
+
+    # links/2: runs of capitalized words in Action -> props
+    def OnFindProps(self, event=None):
+        sp = self.script()
+        links, new = biblelinks.propPlan(self.bible, sp, sp.line, sp.column)
+        news = list(new.items())
+        choices = [_("Link %s in scene %s") % (it.name, n) for it, n in links]
+        choices += [
+            _("New prop %s (scenes %s)") % (run, ", ".join(nums)) for run, nums in news
+        ]
+        sel = self.choose(
+            _("Find props"),
+            _("Capitalized words in Action. A new prop is made only if you check it.")
+            + self.noteUnnumbered(sp),
+            choices,
+            list(range(len(links))),
+        )
+
+        if sel is None:
+            return
+
+        chosenLinks = [links[i] for i in sel if i < len(links)]
+        chosenNew = dict(news[i - len(links)] for i in sel if i >= len(links))
+        self.guard(biblelinks.applyLinks, self.bible, chosenLinks)
+        self.guard(biblelinks.createProps, self.bible, chosenNew)
+
+        # the ones not made can be marked "not a prop" once for the film
+        rest = [run for run, _n in news if run not in chosenNew]
+
+        if rest:
+            dlg = wx.MultiChoiceDialog(
+                self,
+                _("Mark any of these as not a prop, for the whole film?"),
+                _("Find props"),
+                rest,
+            )
+
+            if dlg.ShowModal() == wx.ID_OK and dlg.GetSelections():
+                words = [rest[i] for i in dlg.GetSelections()]
+                self.guard(biblelinks.markNotProps, self.bible, words)
+
+            dlg.Destroy()
+
+        self.changed()
+
+    # links/3: characters in a scene with no wardrobe linked to them there
+    def OnWardrobeGaps(self, event=None):
+        sp = self.script()
+        gaps = biblelinks.wardrobeGaps(self.bible, sp)
+
+        if gaps:
+            lines = [
+                _("Scene %s: %s") % (n, self.bible.get(cid).name) for n, cid in gaps
+            ]
+            text = (
+                _("These characters have no wardrobe in these scenes (a gap, not an error):")
+                + "\n\n"
+                + "\n".join(lines)
+            )
+        else:
+            text = _("Every character the bible knows has wardrobe in every scene.")
+
+        text += self.noteUnnumbered(sp)
+        misc.showText(self, text, _("Wardrobe gaps"))
+
+    # links/4: a copy next to the item, named "<name> copy" so the script's
+    # links never mistake it for the original; it gets a new id and no
+    # scenes, and the creator is told where the original is used
+    def OnCopy(self, event=None):
+        it = self.selectedItem()
+
+        if it is None:
+            return
+
+        parent = self.bible.get(it.parent) if it.parent else None
+        copy = self.guard(
+            biblelinks.copyItem, self.bible, it, self.bible, parent, "creator",
+            _("%s copy") % it.name,
+        )
+
+        if copy:
+            self.warnUnlinked(it, copy)
+            self.changed()
+            self.refresh(copy.id)
+
+    # links/4: copy the item, its files and children, into another film's
+    # bible; scene numbers name scenes only in their own film, so the copy
+    # has none
+    def OnCopyToFilm(self, event=None):
+        import trelby.film as film
+
+        it = self.selectedItem()
+
+        if it is None:
+            return
+
+        dlg = wx.DirDialog(self, _("Film to copy %s into") % it.name)
+        root = dlg.GetPath() if dlg.ShowModal() == wx.ID_OK else None
+        dlg.Destroy()
+
+        if root is None:
+            return
+
+        try:
+            other = bible.Bible(film.Film.open(root))
+        except Exception as e:
+            wx.MessageBox(str(e), _("Bible"), wx.OK, self)
+
+            return
+
+        if os.path.realpath(other.film.root) == os.path.realpath(self.bible.film.root):
+            self.OnCopy()
+
+            return
+
+        copy = self.guard(biblelinks.copyItem, self.bible, it, other, None, "creator")
+
+        if copy:
+            wx.MessageBox(
+                _("%s was copied to %s as %s, with its files and child items, "
+                  "and without its scenes.") % (it.name, root, copy.id),
+                _("Bible"),
+                wx.OK,
+                self,
+            )
+
+    def warnUnlinked(self, it, copy):
+        scenes = biblelinks.usedIn(self.bible, it)
+
+        if scenes:
+            wx.MessageBox(
+                _("%s is in no scene. %s, the original, is used in scenes %s: "
+                  "link the copy to the ones it replaces it in.")
+                % (copy.name, it.name, ", ".join(scenes)),
+                _("Bible"),
+                wx.OK,
+                self,
+            )
