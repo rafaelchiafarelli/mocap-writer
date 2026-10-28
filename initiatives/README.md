@@ -12,7 +12,7 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 1. **pdf-import** — Rafael's existing PDF scripts open in the writer and come out as Fountain (done 2026-10-24; the gate's real-script import is left to a film session, Rafael's call; history: `git log -- initiatives/pdf-import`)
 2. **editor-ux** — zoom, dark theme, Tab order, capitalized words in Action (done 2026-10-24; history: `git log -- initiatives/editor-ux`)
 3. **fountain-native** — open/save Fountain as the native format (done); permanent scene numbers (done 2026-10-27, gate waits for Rafael); notes on text spans
-4. **file-format** — the one format that holds the script, the bible, notes, links and the rest: study done 2026-10-25, option A (a folder of Harpia JSON records, ISOXML-style; C, a change log in SQLite, kept in mind); next the root index and ids
+4. **file-format** — the one format that holds the script, the bible, notes, links and the rest: a folder of Harpia JSON records (option A, `mocap-contracts` `film`/`bible`/`change`), the root index and ids, missing files, Open/New film, the change log (done 2026-10-28; history: git log -- initiatives/file-format)
 5. **film-bible** — the maps (sets, characters, props, wardrobe) as folders in the film root
 6. **preprod-link** — feed the mocap-preprod agents: scene index, Sync to spec (script-to-spec on every change), review of proposals
 7. **story-structure** — where we are in the story: an act is a marker (no print) and a panel shows act sizes (done 2026-10-26; the gate, Rafael using the act panel on a script, is in `open-points.md`; models and beats later; history: git log -- initiatives/story-structure)
