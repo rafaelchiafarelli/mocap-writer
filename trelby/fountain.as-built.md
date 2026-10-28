@@ -133,7 +133,7 @@ block → no title page.
 
 - Called by: `MyCtrl.readFountain` (Open and Import) / `saveFile` /
   `OnExportScript` (`trelby/trelbyctrl.py:164`, `trelby/trelbyctrl.py:186`,
-  `trelby/trelbyctrl.py:1316-1322`); `pdfimport.main`
+  `trelby/trelbyctrl.py:1319-1325`); `pdfimport.main`
   (`trelby/pdfimport.py:1151`); `tests/test_fountain.py`,
   `tests/test_pdfimport.py`.
 - Uses: `screenplay` constants and `Screenplay`, `titles`, `pml`, `util`,

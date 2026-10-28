@@ -439,6 +439,9 @@ class MyCtrl(wx.Control):
             return True
 
     def updateScreen(self, redraw=True, setCommon=True):
+        # a finished scene heading gets its number (fountain-native/scenes/6)
+        scenenumbers.numberFinished(self.sp)
+
         self.adjustScrollBar()
 
         if setCommon:

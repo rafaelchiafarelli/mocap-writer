@@ -13,7 +13,7 @@
   `fountain.generate` writes, nothing else changed in them.
 - **Why:** Open and Save use `fountain.load` / `fountain.generate`, but three
   paths still use upstream's one-way Fountain code: Export → Fountain
-  (`Screenplay.generateFountain`, `trelby/trelbyctrl.py:1299`), the PDF
+  (`Screenplay.generateFountain`, `trelby/trelbyctrl.py:1302`), the PDF
   import command line (`trelby/pdfimport.py:1151`, how existing PDF scripts
   become Fountain) and Import → Fountain (`myimport.importFountain`,
   `trelby/trelbyctrl.py:285`). That code carries five open bugs:
