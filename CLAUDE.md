@@ -18,8 +18,6 @@ Chocolatey from `choco/`).
 ## Files
 - `CLAUDE.md` — this file.
 - `trelby.process.md` — stage-by-stage spec of the program.
-- `PARALLEL-LANES.md` — hand-off of work lanes to parallel sessions in
-  other clones (2026-10-27); each lane removes its section when done.
 - `trelby.py` — launcher run from the source tree.
 - `README.md` — why the fork exists, how to run it with Docker, then
   upstream's README.
