@@ -84,28 +84,32 @@ Model and file format
   noRoom)` gives every scene without a number one by the rule (a fresh
   script `1..n`; at the end the next whole number; else the next sibling
   when the next number is outside the parent, else the first child; no
-  room between a scene and its child, before the first numbered scene or
-  next to another tool's form, `trelby/scenenumbers.py:111`);
+  room between a scene and its child, before scene `1` or next to another
+  tool's form; before a first number above `1`, `1`,
+  `trelby/scenenumbers.py:111`); `numberFinished(sp)` gives every
+  finished heading (with text, cursor not in it; in a script with no
+  number at all, every heading) its number, changing only `Line.num`, no
+  undo step (`trelby/scenenumbers.py:284`, fountain-native/scenes/6);
   `scenesOf(sp) -> [(line, num)]` (non-empty headings),
   `report(sp)` (the problems as text, shown on open); `prepareSave(sp)`
   (before a save: `OMITTED` headings for numbers given before and gone,
   numbers for new scenes, one undo step; or the reasons the save must
-  wait, `trelby/scenenumbers.py:354`); `renumberAll(sp)`
-  (`trelby/scenenumbers.py:420`); `labels(sp) -> {line: label}` (the number
-  shown for each heading: its number, or the one a save would give in
+  wait, `trelby/scenenumbers.py:393`); `renumberAll(sp)`
+  (`trelby/scenenumbers.py:459`); `labels(sp) -> {line: label}` (the number
+  shown for each heading: its number, or the one it will get in
   parentheses, `(12.A)`, or `?` when none fits; the same plan as
-  `prepareSave`, `trelby/scenenumbers.py:324`), `labelAt(labs, line)`;
-  `clickWarning`, a `ClickWarning` (`trelby/scenenumbers.py:461`): the
+  `prepareSave`, `trelby/scenenumbers.py:363`), `labelAt(labs, line)`;
+  `clickWarning`, a `ClickWarning` (`trelby/scenenumbers.py:500`): the
   warning on a click on a number, skipped for 5 clicks after "do not show
   this again"; `check(nums) -> [Problem]` (duplicate, order, foreign,
-  missing, `trelby/scenenumbers.py:165`).
+  missing, `trelby/scenenumbers.py:170`).
 - `propwords.py` — `find_prop_words(line) -> [(start, end, word)]`
   (`trelby/propwords.py:15`): runs of 2+ letters, accents included, that are
   fully upper case (`trelby/propwords.py:9`); the editor underlines them in
   Action lines, film-bible will reuse it for prop records. No wx.
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1556`).
+  (`trelby/trelbyctrl.py:1559`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -142,8 +146,8 @@ Application and editor (wx)
   hint when there is no act break. Own pixel fonts, so the zoom never
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
-  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:469`); repainted on a theme
-  change (`trelby/trelbyctrl.py:512`); `draw(dc, w, h)` does the drawing
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:472`); repainted on a theme
+  change (`trelby/trelbyctrl.py:515`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
