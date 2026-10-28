@@ -1704,6 +1704,15 @@ class MyCtrl(wx.Control):
             if i != -1:
                 l = ls[i]
 
+                # scene headings get a hatch behind them, on screen only,
+                # so a scene's start stands out from Action
+                if l.lt == screenplay.SCENE:
+                    dc.SetPen(wx.TRANSPARENT_PEN)
+                    dc.SetBrush(self.gd.cfgGui.sceneHatchBrush)
+                    dc.DrawRectangle(
+                        t.x - 5, y, self.sp.cfg.getType(l.lt).width * fx + 10, lineh
+                    )
+
                 if l.lt == screenplay.NOTE:
                     dc.SetPen(self.gd.cfgGui.notePen)
                     dc.SetBrush(self.gd.cfgGui.noteBrush)

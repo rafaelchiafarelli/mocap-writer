@@ -455,7 +455,7 @@ Data and folders
   not kept in step, so a changed message is simply untranslated there.
 - **`TRELBY_TESTING` env var** makes `config`, `misc`, `util` and `gutil`
   import a `Mock` instead of `wx` (`trelby/config.py:14-19`) and leaves
-  `ConfigGlobal.commands` empty (`trelby/config.py:740-743`).
+  `ConfigGlobal.commands` empty (`trelby/config.py:741-744`).
 - **Text input is Latin-1 only when typed**: `util.isValidInputChar`
   accepts codes 32–255 (`trelby/util.py:219`), but paste, import and
   find/replace do not filter (`util.toInputStr` only removes form feeds and
