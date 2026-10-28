@@ -29,6 +29,11 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 
 ## Decisions for Rafael
 
+- **import-to-film** — new items ticked by default in the import's review
+  or not; new items named as the script writes them or capitalized;
+  whether File → Import into an open film also offers the bible
+  ([import-to-film](import-to-film/import-to-film.md)).
+
 - **How agents write proposals** — (a) they write `item.json` and the
   writer refuses an invalid file, or (b) a validating `bible propose`
   command; deferred to the mocap-preprod planning
