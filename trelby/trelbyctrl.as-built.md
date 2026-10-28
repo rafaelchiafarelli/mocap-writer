@@ -95,19 +95,20 @@ Mouse and scrolling
 Painting
 - `OnPaint` (`trelby/trelbyctrl.py:1636`): workspace fill, then either one
   endless page (draft, `dpages` empty) or a rectangle + shadow per
-  `DisplayPage`; per `TextString`: note box, selection, show-formatting
+  `DisplayPage`; per `TextString`: a scene heading's hatch
+  (`cfgGui.sceneHatchBrush`, `trelby/trelbyctrl.py:1709`), note box, selection, show-formatting
   marks, page-break lines (draft only, by `cfgGl.pbi`), cursor; then
-  underlines and text; then `drawAutoComp` (`trelby/trelbyctrl.py:1835`).
+  underlines and text; then `drawAutoComp` (`trelby/trelbyctrl.py:1844`).
 - Props: in an Action line, each run `propwords.find_prop_words` finds
   (with the cursor's column on the cursor's line, so a run being typed is
   not underlined yet)
   in the line's own text (not the screen text, which is all caps when the
   Action style is) gets an underline of the text pen; display only
-  (`trelby/trelbyctrl.py:1803-1815`). A line already underlined by its
+  (`trelby/trelbyctrl.py:1812-1824`). A line already underlined by its
   style gets no extra underline.
 - Text color: `cfgGui.textColor`, or the per-type color when
   `useCustomElemColors`; header/continued texts (line −1) use
-  `textHdrColor` (`trelby/trelbyctrl.py:1787-1793`).
+  `textHdrColor` (`trelby/trelbyctrl.py:1796-1802`).
 - `updateScreen` / `updateCommon` (`trelby/trelbyctrl.py:446-498`): first
   `scenenumbers.numberFinished` (`trelby/trelbyctrl.py:448`; a finished
   scene heading gets its number, fountain-native/scenes/6), then scroll
@@ -185,7 +186,7 @@ Settings and dialogs
   already wrapped by the script.
 - `OnPaint` keys its per-font text batches by testing
   `fi.font not in texts`, where `texts` is a list of `(font, data)` tuples
-  (`trelby/trelbyctrl.py:1780-1783`); the test is always true, so every
+  (`trelby/trelbyctrl.py:1789-1792`); the test is always true, so every
   string gets its own `DrawTextList` call. Output is correct, just slower.
 - Test-mode hotkeys (with `--test`): `å` loads `trelby/sample.fountain`,
   `¤` runs `cmdTest`, `½` `cmdSpeedTest`; written as `\xe5` / `\xa4` /

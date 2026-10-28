@@ -114,6 +114,7 @@ DARK_COLORS = {
     "autoCompFgColor": (235, 235, 235),
     "autoCompBgColor": (92, 76, 20),
     "noteColor": (66, 52, 38),
+    "sceneHatchColor": (78, 88, 110),
     "pagebreakColor": (70, 70, 70),
     "pagebreakNoAdjustColor": (70, 70, 70),
     "tabTextColor": (220, 220, 220),
@@ -1292,6 +1293,11 @@ class ConfigGlobal:
             _("Auto-completion background"),
         )
         v.addColor("note", 255, 237, 223, "ScriptNote", _("Script note"))
+        # the hatch behind scene headings on screen, so a scene's start
+        # stands out from Action (Rafael, 2026-10-28)
+        v.addColor(
+            "sceneHatch", 160, 176, 210, "SceneHeadingHatch", _("Scene heading hatch")
+        )
         v.addColor("pagebreak", 221, 221, 221, "PageBreakLine", _("Page-break line"))
         v.addColor(
             "pagebreakNoAdjust",
@@ -1627,6 +1633,10 @@ class ConfigGui:
 
         self.cursorBrush = wx.Brush(self.cursorColor)
         self.cursorPen = wx.Pen(self.cursorColor)
+
+        self.sceneHatchBrush = wx.Brush(
+            self.sceneHatchColor, wx.BRUSHSTYLE_BDIAGONAL_HATCH
+        )
 
         self.noteBrush = wx.Brush(self.noteColor)
         self.notePen = wx.Pen(self.noteColor)

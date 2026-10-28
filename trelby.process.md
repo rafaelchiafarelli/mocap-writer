@@ -59,11 +59,11 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   5. **config load**: `ConfigGlobal()` + `setDefaults()`
      (`trelby/trelby.py:82-84`; `setDefaults` checks that the command list is
      alphabetical, picks the platform screen fonts and looks for a PDF
-     viewer, `trelby/config.py:1532`). If `default.conf` exists it is loaded
+     viewer, `trelby/config.py:1538`). If `default.conf` exists it is loaded
      (`trelby/trelby.py:90`), otherwise the defaults are written out
      (`trelby/trelby.py:94`). `ConfigGui(cfgGl)` turns colors and font names
      into wx pens, brushes and fonts (`trelby/trelby.py:97`,
-     `trelby/config.py:1592`). The file dialogs start in the config's
+     `trelby/config.py:1598`). The file dialogs start in the config's
      `scriptDir`, or in `$MOCAP_WRITER_WORK_DIR` when that is a directory
      (set by `docker/run.sh`, `trelby/trelby.py:102-108`);
   6. window state and view mode (`trelby/trelby.py:114-116`) and the global
@@ -73,7 +73,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
      `openScript` (`trelby/trelby.py:129`);
   8. `checkFonts()` warns if a screen font is not fixed-width
      (`trelby/trelby.py:138`, `trelby/trelbyframe.py:571`);
-  9. **splash**: if `splashTime > 0` (default 3 s, `trelby/config.py:1205`) a
+  9. **splash**: if `splashTime > 0` (default 3 s, `trelby/config.py:1206`) a
      `SplashWindow` is shown and closes itself on a one-shot timer
      (`trelby/trelby.py:141`, `trelby/splash.py:61-64`, `trelby/splash.py:106`).
 
@@ -157,7 +157,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 - **Line types** (`trelby/screenplay.py:17-25`): `SCENE`, `ACTION`,
   `CHARACTER`, `DIALOGUE`, `PAREN`, `TRANSITION`, `SHOT`, `NOTE`, `ACTBREAK`.
   Each has a one-character code and a name in `config._init`
-  (`trelby/config.py:1766`).
+  (`trelby/config.py:1776`).
 - **Line breaks** (`trelby/screenplay.py:6-14`): `LB_SPACE` (soft wrap at a
   space), `LB_NONE` (soft wrap inside a word), `LB_FORCED` (hard line break
   inside an element), `LB_LAST` (end of element). `LB_SPACE2` exists only to
@@ -176,7 +176,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   Vertical space is counted in tenths of a line: each line is 10, plus the
   type's `beforeSpacing` / `intraSpacing`. Page capacity is
   `cfg.linesOnPage`, derived from paper height, margins and font size
-  (`trelby/config.py:650-653`), minus header lines, `CONTINUED:` and
+  (`trelby/config.py:651-654`), minus header lines, `CONTINUED:` and
   `(cont'd)` lines. Breaks are moved back so that scene headings, shots and
   characters are not left at the bottom of a page and at least
   `pbActionLines` / `pbDialogueLines` lines of action / dialogue stay
@@ -200,7 +200,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
     `Screenplay.addCharCmd` (`trelby/trelbyctrl.py:1577-1603`).
   - Anything else is looked up in `MyFrame.kbdCommands`
     (`trelby/trelbyframe.py:531-549`, built from `cfgGl.commands`,
-    `trelby/config.py:740`). Menu commands call `MyFrame.On<Name>`; the rest
+    `trelby/config.py:741`). Menu commands call `MyFrame.On<Name>`; the rest
     call `MyCtrl.cmd<Name>` (`trelby/trelbyctrl.py:1610-1616`), which mostly
     forward to `Screenplay.<name>Cmd`.
   - After every command: `cmdPost` fixes the column and refreshes
@@ -208,12 +208,12 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
     if `paginateInterval` seconds (default 1) have passed
     (`trelby/trelbyctrl.py:1623-1629`); the cursor line is scrolled into view
     and the screen is redrawn (`trelby/trelbyctrl.py:1631-1634`).
-- **Enter** (`NewElement`, `trelby/config.py:996`) →
+- **Enter** (`NewElement`, `trelby/config.py:997`) →
   `Screenplay.splitElementCmd` (`trelby/screenplay.py:2838`): splits the
   element at the cursor and gives the new element the current type's
   `newTypeEnter`. If an auto-completion list is open, the selected item
   replaces the line first (`trelby/screenplay.py:1511-1516`).
-- **Tab** (`trelby/config.py:1138`) → `Screenplay.tabCmd`
+- **Tab** (`trelby/config.py:1139`) → `Screenplay.tabCmd`
   (`trelby/screenplay.py:2847`): at the end of a non-empty element (or before
   the closing `)` of a parenthetical) it creates a new element of type
   `newTypeTab` (`tabMakesNew`, `trelby/screenplay.py:1695`); otherwise it
@@ -221,10 +221,10 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   **Shift-Tab** converts to the previous one (`trelby/screenplay.py:2861`).
   The cycle is `ConfigGlobal.tabOrder`, Scene → Action → Character →
   Dialogue → Scene by default; an element outside it converts to Action
-  both ways (`ConfigGlobal.nextTypeTab`, `trelby/config.py:1428-1444`).
+  both ways (`ConfigGlobal.nextTypeTab`, `trelby/config.py:1434-1450`).
 - The Enter/Tab table and the cycle are **global**, not per script:
-  `ConfigGlobal.types` (`trelby/config.py:691-737`), one `TypeGlobal` per
-  line type (`trelby/config.py:228`), editable in Settings → Elements; the
+  `ConfigGlobal.types` (`trelby/config.py:692-738`), one `TypeGlobal` per
+  line type (`trelby/config.py:229`), editable in Settings → Elements; the
   cycle only in the config file (`TabOrder`).
 
   | current     | Enter      | Tab (new)  | Tab (convert) | Shift-Tab  |
@@ -249,7 +249,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   - typing `(` as the only text of a Dialogue or Character element turns it
     into a Parenthetical `()` (`trelby/screenplay.py:2957-2963`).
 - Element type changes: Alt+letter shortcuts (e.g. Alt+A Action,
-  `trelby/config.py:764`) and the right-click menu call `convertTypeTo` (`trelby/screenplay.py:1394`, `trelby/trelbyctrl.py:79`).
+  `trelby/config.py:765`) and the right-click menu call `convertTypeTo` (`trelby/screenplay.py:1394`, `trelby/trelbyctrl.py:79`).
 - **Undo**: each edit records an `undo.*` object (`trelby/undo.py`) on a
   doubly linked list; consecutive typing and deleting are merged into word
   steps; history is trimmed past ~5 MB (`addUndo`,
@@ -267,7 +267,10 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   (`gd.vm`, `trelby/globaldata.py:106`) for `getScreen(ctrl, True, True)` →
   `(texts, dpages)`: positioned `TextString`s and, outside draft mode, page
   rectangles (`trelby/viewmode.py:90`). It then paints the workspace, pages,
-  note boxes, selection, page-break lines, cursor, the text (one font per
+  scene-heading hatches (a diagonal hatch in the Scene heading hatch
+  color behind every scene heading line, so a scene's start stands out
+  from Action; screen only, Rafael 2026-10-28), note boxes, selection,
+  page-break lines, cursor, the text (one font per
   `TextString`) and the auto-completion popup.
 - **Draft** (`ViewModeDraft`, `trelby/viewmode.py:225`): one endless page;
   each line is `fontYdelta` pixels (default 18) below the previous one plus
@@ -287,22 +290,22 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   heading's text; a click on one shows a warning that numbers are
   permanent instead of placing the cursor in it
   (`MyCtrl.sceneNumberWarning`, fountain-native/scenes/4).
-- Screen fonts are the four global `font*` settings (`trelby/config.py:1264`)
-  turned into `wx.Font`s by `ConfigGui` (`trelby/config.py:1655-1706`); the
+- Screen fonts are the four global `font*` settings (`trelby/config.py:1265`)
+  turned into `wx.Font`s by `ConfigGui` (`trelby/config.py:1665-1716`); the
   element's screen style (caps/bold/italic/underline) comes from the script's
-  `Type.screen` (`trelby/config.py:191`). In Action lines, runs of words
+  `Type.screen` (`trelby/config.py:192`). In Action lines, runs of words
   written fully in capitals (accents included; a one-letter word only
   inside a run) are underlined as props, each run as one, on screen only;
-  the run being typed at the cursor waits until something ends it (`propwords.find_prop_words`, `trelby/trelbyctrl.py:1803-1815`). **Zoom** (50–300 % in steps of
+  the run being typed at the cursor waits until something ends it (`propwords.find_prop_words`, `trelby/trelbyctrl.py:1812-1824`). **Zoom** (50–300 % in steps of
   10, Ctrl `+` / `-` / `0`, Ctrl + wheel, the status control) scales those
   fonts and the draft row height only; it is a global setting and never
-  touches the PDF (`trelby/config.py:1697-1709`, `trelby/trelbyctrl.py:545`). Colors are the global `*Color`
-  settings (`trelby/config.py:1273-1320`) of the chosen theme, Light or Dark
+  touches the PDF (`trelby/config.py:1707-1719`, `trelby/trelbyctrl.py:545`). Colors are the global `*Color`
+  settings (`trelby/config.py:1274-1326`) of the chosen theme, Light or Dark
   (Settings → Colors, or the View → Dark theme check item, which switches
   at once and saves the config: `MyFrame.OnDarkTheme`,
   `trelby/trelbyframe.py:942-949`, `MyCtrl.OnDarkTheme`,
   `trelby/trelbyctrl.py:570-583`); each theme keeps its own colors
-  (`trelby/config.py:1382-1411`). Under Docker, Dark also starts GTK's dark
+  (`trelby/config.py:1388-1417`). Under Docker, Dark also starts GTK's dark
   variant (`docker/run.sh:34-39`).
 
 ## Stage 5 — save / open (`.fountain`)

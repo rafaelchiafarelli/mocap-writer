@@ -14,7 +14,7 @@ run.
 - Line types (`trelby/screenplay.py:17-25`): `SCENE` 1, `ACTION` 2,
   `CHARACTER` 3, `DIALOGUE` 4, `PAREN` 5, `TRANSITION` 6, `SHOT` 7, `NOTE` 8,
   `ACTBREAK` 9. The values are written nowhere: files use the one-character
-  codes from `config._init` (`trelby/config.py:1766-1785`).
+  codes from `config._init` (`trelby/config.py:1776-1795`).
 - The constants are defined **before** the imports
   (`trelby/screenplay.py:4-47`) because `config` and `line` import
   `screenplay` back (circular import).
@@ -166,10 +166,10 @@ Export
 
 - **Element types.** A new type needs: a constant here
   (`trelby/screenplay.py:17-25`); a code character and name in
-  `config._init` (`trelby/config.py:1766`); per-script defaults in
-  `Config.__init__` (`trelby/config.py:445-512`); an Enter/Tab row in
-  `ConfigGlobal.__init__` (`trelby/config.py:693-737`); a `ChangeTo<Type>`
-  command in the alphabetical command list (`trelby/config.py:740`), a
+  `config._init` (`trelby/config.py:1776`); per-script defaults in
+  `Config.__init__` (`trelby/config.py:446-513`); an Enter/Tab row in
+  `ConfigGlobal.__init__` (`trelby/config.py:694-738`); a `ChangeTo<Type>`
+  command in the alphabetical command list (`trelby/config.py:741`), a
   `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1413-1441`) and a
   `to<Type>Cmd` here (`trelby/screenplay.py:2976-3001`); a menu id in
   `trelby/ids.py:76-96` and the right-click menu
@@ -183,7 +183,7 @@ Export
   `cfgGl.nextTypeTab(lt)` / `prevTypeTab(lt)`, the `tabOrder` cycle
   (`trelby/screenplay.py:2839`, `trelby/screenplay.py:2853-2858`,
   `trelby/screenplay.py:2867-2868`); the table is in
-  `trelby/config.py:693-737`. `tabMakesNew` decides "new element vs.
+  `trelby/config.py:694-738`. `tabMakesNew` decides "new element vs.
   convert" (`trelby/screenplay.py:1695`).
 - **Typing rules** (auto-capitalize, `INT.`/`EXT.` → Scene, `(` → Paren) are
   hard-coded in `addCharCmd` (`trelby/screenplay.py:2926-2963`) and
