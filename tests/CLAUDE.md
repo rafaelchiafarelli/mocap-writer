@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 334 tests.
+objects directly and never create the wx GUI. 336 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -68,7 +68,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   rename keeps the link, aliases, a set with no scene; the scene at a line
   and its items; props as runs offered never made, known props linked,
   made props linked, "not a prop" remembered, bible characters skipped,
-  the run being typed left out.
+  the run being typed left out; wardrobe links, gaps and unlink, wardrobe
+  with no character.
 - `test_acts.py` — acts (story-structure/acts): the Act break is not in
   the PDF, the text after it moves up, the pagination still counts it,
   the screen page still shows it; `acts.actsOf` / `actAt` (no act break,

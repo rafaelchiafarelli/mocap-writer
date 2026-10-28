@@ -90,7 +90,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   the acts, their sizes in scenes and the cursor's act, untouched by zoom
   and scrolling (story-structure/acts/2). `MyCtrl` owns one `Screenplay` (`self.sp`) and binds paint,
   mouse and key events (`trelby/trelbyctrl.py:61-70`).
-- The **bible panel** (film-bible/tree/1, `trelby/biblepanel.py:19`) sits
+- The **bible panel** (film-bible/tree/1, `trelby/biblepanel.py:21`) sits
   left of the tabs in a splitter (`MyFrame.splitter`,
   `trelby/trelbyframe.py:293`), unsplit while hidden; View → Bible
   (Ctrl+Shift+B) shows or hides it (`showBible`,
@@ -119,7 +119,12 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   plural `s` ignored, ticked) and new props (unticked); speaking
   characters, bible characters and the film's "not a prop" words are
   skipped, and the run being typed is left out; the runs not made can then
-  be marked "not a prop" for the whole film (`bible/not-props.json`).
+  be marked "not a prop" for the whole film (`bible/not-props.json`). A
+  wardrobe item's form has Worn by: a character, then the scenes it wears
+  it in (film-bible/links/3); From script → Wardrobe gaps lists, per
+  numbered scene, the bible characters who speak there with no wardrobe
+  linked to them there: a gap, not an error. A wardrobe item with no
+  character is allowed.
 - `createEmptySp()` (`trelby/trelbyctrl.py:103`) starts a script with the
   default title page and header (`trelby/titles.py:13`,
   `trelby/headers.py:16`).

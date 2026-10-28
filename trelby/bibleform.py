@@ -125,6 +125,21 @@ class BibleForm(wx.ScrolledWindow):
         grid.Add(wx.StaticText(self, -1, ", ".join(scenes) or _("none yet")))
         grid.Add((1, 1))
 
+        if it.map == "wardrobe":
+            # who wears it in which scenes (film-bible/links/3)
+            box = wx.BoxSizer(wx.HORIZONTAL)
+            self.worn = wx.TextCtrl(
+                self, -1, bibleedit.wornText(self.bible, it), style=wx.TE_READONLY
+            )
+            self.worn.SetMinSize(wx.Size(self.FromDIP(40), -1))
+            btn = wx.Button(self, -1, "...", style=wx.BU_EXACTFIT)
+            btn.Bind(wx.EVT_BUTTON, self.OnWorn)
+            box.Add(self.worn, 1, wx.EXPAND)
+            box.Add(btn, 0, wx.LEFT, 3)
+            grid.Add(self.label(_("Worn by")), 0, wx.ALIGN_CENTER_VERTICAL)
+            grid.Add(box, 1, wx.EXPAND)
+            grid.Add((1, 1))
+
         for g in bibleedit.groups(it.map):
             self.addGroup(sizer, g)
 
@@ -409,5 +424,51 @@ class BibleForm(wx.ScrolledWindow):
                 rels[dlg.GetSelection()], self.sceneOf(name),
             )
             self.refreshRow(name)
+
+        dlg.Destroy()
+
+    # link the wardrobe item to a character in scenes: pick the character,
+    # then tick the scenes it is worn in
+    def OnWorn(self, event=None):
+        chars = sorted(
+            (c for c in self.bible.items.values() if c.map == "character"),
+            key=lambda c: c.name.lower(),
+        )
+
+        if not chars:
+            wx.MessageBox(_("There are no characters in the bible yet."), _("Bible"), wx.OK, self)
+
+            return
+
+        dlg = wx.SingleChoiceDialog(
+            self, _("Worn by which character?"), _("Bible"), [c.name for c in chars]
+        )
+        char = chars[dlg.GetSelection()] if dlg.ShowModal() == wx.ID_OK else None
+        dlg.Destroy()
+
+        if char is None:
+            return
+
+        scenes = bibleedit.sceneChoices(self.bible, self.item, self.script())
+        worn = bibleedit.wornScenes(self.item, char.id)
+
+        for s in worn:
+            if s not in scenes:
+                scenes.append(s)
+
+        if not scenes:
+            wx.MessageBox(_("The script has no numbered scenes yet."), _("Bible"), wx.OK, self)
+
+            return
+
+        dlg = wx.MultiChoiceDialog(
+            self, _("Scenes %s wears it in:") % char.name, _("Bible"), scenes
+        )
+        dlg.SetSelections([i for i, s in enumerate(scenes) if s in worn])
+
+        if dlg.ShowModal() == wx.ID_OK:
+            chosen = [scenes[i] for i in dlg.GetSelections()]
+            self.guard(bibleedit.setWorn, self.bible, self.item, char, chosen)
+            wx.CallAfter(self.build)
 
         dlg.Destroy()

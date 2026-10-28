@@ -175,3 +175,36 @@ def test_the_run_being_typed_is_not_offered(tmp_path):
 
     assert biblelinks.propPlan(b, sp, line, len(sp.lines[line].text))[1] == {}
     assert biblelinks.propPlan(b, sp)[1] == {"BLUE CU": ["1"]}
+
+
+def test_wardrobe_links_and_gaps(tmp_path):
+    import trelby.bibleedit as bibleedit
+
+    b = newBible(tmp_path)
+    ana = b.create("character", "Ana")
+    bia = b.create("character", "Bia")
+    coat = b.create("wardrobe", "Coat")
+    sp = script()
+
+    assert biblelinks.charactersByScene(b, sp) == {"1": {ana.id}, "2": {bia.id}}
+    assert biblelinks.wardrobeGaps(b, sp) == [("1", ana.id), ("2", bia.id)]
+
+    biblelinks.linkWardrobe(b, coat, ana, "1")
+
+    assert biblelinks.wardrobeGaps(b, sp) == [("2", bia.id)]
+    assert bibleedit.wornText(b, coat) == "Ana in 1"
+
+    bibleedit.setWorn(b, coat, ana, ["2"])
+
+    assert bibleedit.wornScenes(reopen(b).get(coat.id), ana.id) == ["2"]
+
+    biblelinks.unlinkWardrobe(b, coat, ana, "2")
+
+    assert reopen(b).get(coat.id).msg.links == []
+
+
+def test_wardrobe_with_no_character_is_allowed(tmp_path):
+    b = newBible(tmp_path)
+    b.create("wardrobe", "Spare Coat")
+
+    assert reopen(b).get("wardrobe-w-1").msg.links == []
