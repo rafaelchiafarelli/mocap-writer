@@ -53,7 +53,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   its folder was renamed by hand, rename / move / delete, slug clashes,
   files copied in and a missing one relinked, approving a proposal,
   links, invalid and misplaced items as problems, the `mocap-contracts`
-  `bible-v1` fixture, the change log.
+  `bible-v1` fixture, the change log. The bible panel needs a display:
+  checked through the real window (tree, New, Rename, move, View → Bible,
+  2026-10-28).
 - `test_acts.py` — acts (story-structure/acts): the Act break is not in
   the PDF, the text after it moves up, the pagination still counts it,
   the screen page still shows it; `acts.actsOf` / `actAt` (no act break,

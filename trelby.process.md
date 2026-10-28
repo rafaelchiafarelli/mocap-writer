@@ -72,34 +72,46 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
      (`trelby/trelby.py:124-126`); each command-line script is opened with
      `openScript` (`trelby/trelby.py:129`);
   8. `checkFonts()` warns if a screen font is not fixed-width
-     (`trelby/trelby.py:138`, `trelby/trelbyframe.py:556`);
+     (`trelby/trelby.py:138`, `trelby/trelbyframe.py:571`);
   9. **splash**: if `splashTime > 0` (default 3 s, `trelby/config.py:1205`) a
      `SplashWindow` is shown and closes itself on a one-shot timer
      (`trelby/trelby.py:141`, `trelby/splash.py:61-64`, `trelby/splash.py:106`).
 
 ## Stage 1 — main window and editor
 
-- `MyFrame.__init__` (`trelby/trelbyframe.py:30`) builds the menus
-  (`trelby/trelbyframe.py:58-205`), the vertical toolbar from the SVG icons in `trelby/resources/`
-  (recolored for dark system themes, `trelby/trelbyframe.py:209-257`), the tab bar
+- `MyFrame.__init__` (`trelby/trelbyframe.py:32`) builds the menus
+  (`trelby/trelbyframe.py:63-211`), the vertical toolbar from the SVG icons in `trelby/resources/`
+  (recolored for dark system themes, `trelby/trelbyframe.py:215-263`), the tab bar
   (`misc.MyTabCtrl`), the status area (`misc.MyStatus`) and the right-click
-  menus (`trelby/trelbyframe.py:297-320`).
+  menus (`trelby/trelbyframe.py:311-334`).
 - Each open script is one tab: a `MyPanel` (`trelby/trelbypanel.py:7`)
   holding a `MyCtrl` editor widget (`trelby/trelbyctrl.py:52`), a vertical
   scroll bar and, at the right, the act panel (`trelby/actpanel.py:12`):
   the acts, their sizes in scenes and the cursor's act, untouched by zoom
   and scrolling (story-structure/acts/2). `MyCtrl` owns one `Screenplay` (`self.sp`) and binds paint,
   mouse and key events (`trelby/trelbyctrl.py:61-70`).
+- The **bible panel** (film-bible/tree/1, `trelby/biblepanel.py:18`) sits
+  left of the tabs in a splitter (`MyFrame.splitter`,
+  `trelby/trelbyframe.py:293`), unsplit while hidden; View → Bible
+  (Ctrl+Shift+B) shows or hides it (`showBible`,
+  `trelby/trelbyframe.py:745`), and opening or making a film shows it with
+  that film's `bible.Bible` (`setFilm`, `trelby/trelbyframe.py:665`). One
+  tree per map (Sets, Characters, Props, Wardrobe), child items nested;
+  New, New child, Rename, Delete (with confirmation, naming the child
+  items and the scenes that use it), drag an item onto another item of its
+  map to make it a child or onto the map to move it to the top level; every
+  change is written to the film at once, as made by `creator`. The
+  selected item's form is under the tree.
 - `createEmptySp()` (`trelby/trelbyctrl.py:103`) starts a script with the
   default title page and header (`trelby/titles.py:13`,
   `trelby/headers.py:16`).
 - Menu commands go to `MyFrame.On<Name>`, which mostly forwards to the
-  current tab's `MyCtrl.On<Name>` (e.g. `trelby/trelbyframe.py:723-727`).
+  current tab's `MyCtrl.On<Name>` (e.g. `trelby/trelbyframe.py:759-763`).
 - Status area: page `x / y`, current element type, and what Tab and Enter
   will produce next (`MyCtrl.updateCommon`, `trelby/trelbyctrl.py:454`), and
   the zoom control `- 100 % +` (`trelby/misc.py:209-214`). The status area
   passes the keyboard focus back to the script when a click gives it focus
-  (`MyFrame.OnStatusFocus`, `trelby/trelbyframe.py:955`).
+  (`MyFrame.OnStatusFocus`, `trelby/trelbyframe.py:991`).
 
 ## Stage 2 — the screenplay model
 
@@ -154,7 +166,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
     selection if `overwriteSelectionOnInsert` and is inserted with
     `Screenplay.addCharCmd` (`trelby/trelbyctrl.py:1540-1566`).
   - Anything else is looked up in `MyFrame.kbdCommands`
-    (`trelby/trelbyframe.py:516-534`, built from `cfgGl.commands`,
+    (`trelby/trelbyframe.py:531-549`, built from `cfgGl.commands`,
     `trelby/config.py:740`). Menu commands call `MyFrame.On<Name>`; the rest
     call `MyCtrl.cmd<Name>` (`trelby/trelbyctrl.py:1573-1579`), which mostly
     forward to `Screenplay.<name>Cmd`.
@@ -254,7 +266,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   settings (`trelby/config.py:1273-1320`) of the chosen theme, Light or Dark
   (Settings → Colors, or the View → Dark theme check item, which switches
   at once and saves the config: `MyFrame.OnDarkTheme`,
-  `trelby/trelbyframe.py:906-913`, `MyCtrl.OnDarkTheme`,
+  `trelby/trelbyframe.py:942-949`, `MyCtrl.OnDarkTheme`,
   `trelby/trelbyctrl.py:559-572`); each theme keeps its own colors
   (`trelby/config.py:1382-1411`). Under Docker, Dark also starts GTK's dark
   variant (`docker/run.sh:34-39`).
@@ -262,7 +274,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 ## Stage 5 — save / open (`.fountain`)
 
 - **Fountain only** (fountain-native/io/3, 2026-10-25): Open and Save As
-  offer Fountain and All files (`trelby/trelbyframe.py:622-635`,
+  offer Fountain and All files (`trelby/trelbyframe.py:637-650`,
   `trelby/trelbyctrl.py:1264-1283`); every file opened is read as
   Fountain, except a name ending in `.trelby`, which is refused with a
   message (`MyCtrl.loadFile`, `trelby/trelbyctrl.py:130-137`); Save adds
@@ -297,7 +309,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   `trelby/trelbyctrl.py:270`). Per-script settings are not written; page
   setup and styles can be kept with Script → Settings → Save as / Load.
   Detail: `trelby/fountain.as-built.md`.
-- **Open**: `MyFrame.openScript` (`trelby/trelbyframe.py:538`) reuses the
+- **Open**: `MyFrame.openScript` (`trelby/trelbyframe.py:553`) reuses the
   current tab if it is untouched, else opens a new one, and calls
   `MyCtrl.loadFile`: `readFountain` reads the file as bytes, decodes it as
   UTF-8 (else an error box, `trelby/trelbyctrl.py:164-174`) and builds it by
@@ -312,29 +324,31 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 - **Film** (file-format/layout/4): File → New film… picks a folder, makes
   it a film root (`film.Film.create`: `film.json`, `ids/w.json`, the folder
   parts) and saves the current tab as its `script.fountain`
-  (`MyFrame.OnNewFilm`, `trelby/trelbyframe.py:659`); File → Open film…
+  (`MyFrame.OnNewFilm`, `trelby/trelbyframe.py:677`); File → Open film…
   picks a folder, opens `film.json` (`film.Film.open`), shows the script
   part in its tab (an already open tab is selected, `showScript`,
-  `trelby/trelbyframe.py:547`) and lists the film's problems in one
+  `trelby/trelbyframe.py:562`) and lists the film's problems in one
   warning, `RelinkDlg` (file-format/layout/3): each missing file can be
   searched for or skipped, and the move a found file shows is offered for
   the others; accepted paths are saved in `film.json`, and a script found
   there is opened after the dialog; a folder with no or an invalid
-  `film.json` gives a message, never a crash (`MyFrame.openFilm`,
-  `trelby/trelbyframe.py:692`). The open film is `MyFrame.film`; the title
+  `film.json` gives a message, never a crash; the bible is read before the
+  warning, so its invalid items and missing files are in it, and read again
+  after it (`MyFrame.openFilm`,
+  `trelby/trelbyframe.py:710`). The open film is `MyFrame.film`; the title
   bar names it; `MyFrame.filmListeners` are called when it changes
-  (`setFilm`, `trelby/trelbyframe.py:650`). A `.fountain` opened with File
+  (`setFilm`, `trelby/trelbyframe.py:665`). A `.fountain` opened with File
   → Open never loads a film (Rafael, 2026-10-28).
 - **Revert** reloads from disk (`trelby/trelbyctrl.py:931`). **Close** asks
   before discarding changes (`trelby/trelbyctrl.py:892`). **Exit** with
   unsaved changes asks once; Save saves every modified tab, showing each
-  (`MyFrame.saveAll`, `trelby/trelbyframe.py:1114`), and calls the exit off
+  (`MyFrame.saveAll`, `trelby/trelbyframe.py:1150`), and calls the exit off
   if one stays unsaved; then it writes the window state and removes
-  temporary files (`trelby/trelbyframe.py:1127`).
+  temporary files (`trelby/trelbyframe.py:1163`).
 
 ## Stage 6 — import (`myimport`)
 
-- `MyFrame.OnImportScript` (`trelby/trelbyframe.py:729`) picks a file, reuses
+- `MyFrame.OnImportScript` (`trelby/trelbyframe.py:765`) picks a file, reuses
   the tab if it is untouched, and calls `MyCtrl.importFile`
   (`trelby/trelbyctrl.py:283`), which dispatches **on the file name's
   ending**:
