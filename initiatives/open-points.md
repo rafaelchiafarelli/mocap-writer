@@ -16,6 +16,10 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 
 ## Ready to implement
 
+- **spellcheck/study/1** — pt-BR dictionary: licence, flat list or
+  Hunspell engine, measured; then Rafael decides
+  ([study/1](spellcheck/epics/study/tasks/1-dictionary-study.md)).
+
 - **fountain-native/scenes/1** — permanent scene numbers
   ([scenes/1](fountain-native/epics/scenes/tasks/1-scene-ids-and-numbering.md)).
 
