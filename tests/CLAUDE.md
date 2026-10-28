@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 181 tests.
+objects directly and never create the wx GUI. 235 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -54,7 +54,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   committed). With the profile `fixtures/pdf/letter-test.toml`: expected
   Fountain (written by `fountain.generate`) with accented names, the
   Fountain reading back to the same elements, page furniture dropped, dialogue joined
-  across a page break, margin and typed scene numbers → `#n#`, dual
+  across a page break, margin and typed scene numbers → `Line.num`
+  written as `#n#`, dual
   dialogue → `^`, `strict` stops with page and line, lenient reading
   (nearest indent, columns as one line) with `IMPORT:` notes, a character
   with no speech → issue and note, profile errors, every profile in
@@ -87,6 +88,33 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   delete, forced `.` / `!` / `@` / `>` only when needed, lost elements
   reported, the shared fixture saved back unchanged, the old `test.trelby`
   ending reported lost. Loads the translations itself.
+- `test_scenenumbers.py` — the numbering rule (fountain-native/scenes/1):
+  `parse`/`fmt`/`key` order, a fresh script, append, inserts after a whole
+  number and a letter, nesting, after `Z`, several in a row, no room,
+  numbers never change, `check`.
+- `test_scenes_model.py` — the scene number in the model and the file
+  (fountain-native/scenes/2): `#n#` read into `Line.num`, round trip
+  byte-identical, an edited heading keeps its number and spacing, a
+  changed / added / removed number written, `str` / `fromStr`, wrapping,
+  undo/redo of typing, join, split, type change, cut; cut and copy carry
+  no number, a pasted scene has none, pasting at a heading's start,
+  `report`, `deepcopy`.
+- `test_scenes_save.py` — numbers given on save (fountain-native/scenes/3,
+  `scenenumbers.prepareSave` / `renumberAll`): a new script `1..n`, no
+  undo when nothing changes, append, insert, delete → `.OMITTED #n#` (and
+  read back), a heading turned into Action, a scene made and removed
+  between saves, cut and paste, copy, no room and duplicates stop the
+  save, one undo step with `sceneNumbersIssued`, Renumber all and its
+  undo, the cursor in a removed `OMITTED`.
+- `test_scenes_screen.py` — scene numbers shown (fountain-native/scenes/4):
+  `labels` / `labelAt` (`(1.A)` for a scene not numbered yet, `?` with no
+  room), the PDF's numbers left and right of each heading and none when
+  off, the screen page always numbered with `sceneLine` tags, the TOC, Go
+  to scene's list, the scene report, the 5-click counter. The click and
+  the dialogs need a display (checked through the real window on
+  2026-10-27: numbers drawn at their headings in draft and layout, a click
+  on each hits its heading, a click on the text does not, the save gives
+  `2.A`).
 - `test_propwords.py` — `propwords.find_prop_words`: positions, accents,
   one-letter words, punctuation, mixed case and digits, an all-caps line.
 - `test_taborder.py` — `ConfigGlobal.tabOrder`: the default cycle and its
@@ -140,12 +168,12 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   reader and writer for open, save, import and export: `test_fountain.py`,
   `test_importfountain.py`), pagination results,
   undo/redo.
-- Every run shows about 76 `DeprecationWarning`s for `wx.NewId()` from
+- Every run shows about 77 `DeprecationWarning`s for `wx.NewId()` from
   `trelby/ids.py`, imported through `trelbyframe` by `test_saveall.py`;
   harmless, the ids still work.
 
 ## Touchpoints
-- Tests: `trelby/screenplay.py`, `trelby/config.py`, `trelby/myimport.py`,
+- Tests: `trelby/scenenumbers.py`, `trelby/screenplay.py`, `trelby/config.py`, `trelby/myimport.py`,
   `trelby/pdfimport.py`, `trelby/fountain.py`, `trelby/pdf.py`,
   the report modules, `trelby/locations.py`, `trelby/pagelist.py`,
   `trelby/util.py`.

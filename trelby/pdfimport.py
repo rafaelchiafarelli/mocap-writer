@@ -787,6 +787,15 @@ def _items(pages, profile, trace, skipPages, strict):
     return items
 
 
+# a scene heading's lines without the " #12#" added to its last one, and
+# the number ("" if none): the number is the line's num, not its text
+def _splitSceneNumber(texts):
+    m = fountain.SCENE_NUMBER_RE.search(texts[-1])
+    if not m:
+        return texts, ""
+    return texts[:-1] + [texts[-1][: m.start()]], fountain.sceneNum(m.group(0))
+
+
 def _stripSuffixes(name, profile):
     changed = True
     while changed:
@@ -952,8 +961,13 @@ def importPdf(path, profile=None, trace=None, skipPages=None, issues=None,
         if notes:
             for iss in here:
                 addNote(iss)
+        num = ""
+        if lt == screenplay.SCENE and texts:
+            texts, num = _splitSceneNumber(texts)
+        first = len(ret)
         for t in texts:
             ret.append(Line(screenplay.LB_SPACE, lt, t))
+        ret[first].num = num
         ret[-1].lb = screenplay.LB_LAST
 
     if not any(ln.lt != screenplay.NOTE for ln in ret):

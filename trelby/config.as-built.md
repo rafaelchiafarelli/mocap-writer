@@ -150,7 +150,7 @@ one-character file codes. All saved settings go through `mypickle.Vars`
   `text` → `cfgGl.textColor` and `cfgGui.textColor`. The settings page lists
   every color var automatically (`trelby/configpages/colorspanel.py:8`).
   Per-element text colors `text<Name>Color` exist for each type but are used
-  only when `useCustomElemColors` is on (`trelby/trelbyctrl.py:1619-1622`).
+  only when `useCustomElemColors` is on (`trelby/trelbyctrl.py:1748-1751`).
   A new color also needs its dark value in `DARK_COLORS`
   (`tests/test_theme.py` fails otherwise).
 - **Themes** — `theme` (`THEME_LIGHT` 0 / `THEME_DARK` 1,
@@ -170,7 +170,7 @@ one-character file codes. All saved settings go through `mypickle.Vars`
   (`trelby/config.py:1264-1267`) are `wx.NativeFontInfo` strings; draft
   line spacing is `fontYdelta` (`trelby/config.py:1208`). Layout modes scale
   page millimeters to pixels from the normal font's character width
-  (`trelby/viewmode.py:405-408`), so scaling the fonts is the zoom: the
+  (`trelby/viewmode.py:430-433`), so scaling the fonts is the zoom: the
   `zoom` setting scales the `wx.Font`s and `fontYdelta` in `ConfigGui`
   only, never `cfgGl`'s strings or the script's PDF `fontSize`.
 - **New setting** — add a `v.add*` line in the right `setupVars`; load,
