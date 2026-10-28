@@ -1,5 +1,9 @@
 ## 4. Numbers on screen, in the PDF and in Go to scene; the click warning
 
+- **Status:** Done (2026-10-27). As built: the number is right-aligned
+  left of the heading (it was a fixed 6 characters), so long numbers
+  (`12.A.1.A`) do not run into the text.
+
 - **Type:** code
 - **Depends on:** 2, 3
 - **Contract:**

@@ -3,6 +3,7 @@
 import trelby.config as config
 import trelby.mypager as mypager
 import trelby.pml as pml
+import trelby.scenenumbers as scenenumbers
 import trelby.util as util
 
 # Number of lines the smooth scroll will try to search. 15-20 is a good
@@ -15,7 +16,7 @@ SBS_PAGE_GAP = 10
 
 # a piece of text on screen.
 class TextString:
-    def __init__(self, line, text, x, y, fi, isUnderlined):
+    def __init__(self, line, text, x, y, fi, isUnderlined, sceneLine=-1):
 
         # if this object is a screenplay line, this is the index of the
         # corresponding line in the Screenplay.lines list. otherwise this
@@ -30,6 +31,10 @@ class TextString:
         self.text = text
         self.fi = fi
         self.isUnderlined = isUnderlined
+
+        # if this is a scene heading's number, the heading's line; -1
+        # otherwise (fountain-native/scenes/4)
+        self.sceneLine = sceneLine
 
 
 # a page shown on screen.
@@ -115,6 +120,21 @@ class ViewMode:
     # to be off. cs = CommandState. texts and dpages are the usual.
     def pageCmd(self, ctrl, cs, dir, texts, dpages):
         raise Exception("pageCmd " + _("not implemented"))
+
+    # the line of the scene heading whose number is at position (x, y)
+    # (screen coordinates), or None (fountain-native/scenes/4)
+    def sceneNumberAt(self, ctrl, x, y):
+        lineh = self.getLineHeight(ctrl)
+
+        for t in self.getScreen(ctrl, True)[0]:
+            if (
+                t.sceneLine >= 0
+                and t.x <= x < t.x + len(t.text) * t.fi.fx
+                and t.y <= y < t.y + lineh
+            ):
+                return t.sceneLine
+
+        return None
 
     # semi-generic implementation, for use by Draft and Layout modes.
     def pos2linecolGeneric(self, ctrl, x, y):
@@ -220,6 +240,9 @@ class ViewModeDraft(ViewMode):
 
         texts = []
 
+        # scene numbers, left of their headings (fountain-native/scenes/4)
+        labs = scenenumbers.labels(ctrl.sp) if doExtra else {}
+
         while (y < height) and (i < length):
             y += int((ctrl.sp.getSpacingBefore(i) / 10.0) * fyd)
 
@@ -240,17 +263,15 @@ class ViewModeDraft(ViewMode):
             fi = cfgGui.tt2fi(tcfg.screen)
 
             extraIndent = 1 if ctrl.sp.needsExtraParenIndent(i) else 0
+            x = cox + marginLeft + (tcfg.indent + extraIndent) * fi.fx
 
-            texts.append(
-                TextString(
-                    i,
-                    text,
-                    cox + marginLeft + (tcfg.indent + extraIndent) * fi.fx,
-                    y,
-                    fi,
-                    tcfg.screen.isUnderlined,
+            texts.append(TextString(i, text, x, y, fi, tcfg.screen.isUnderlined))
+
+            if i in labs:
+                lab = labs[i]
+                texts.append(
+                    TextString(-1, lab, x - (len(lab) + 2) * fi.fx, y, fi, False, i)
                 )
-            )
 
             y += fyd
             i += 1
@@ -304,8 +325,11 @@ class ViewModeLayout(ViewMode):
         topLine = ctrl.sp.getTopLine()
         pageNr = ctrl.sp.line2page(topLine)
 
-        if doExtra and ctrl.sp.cfg.pdfShowSceneNumbers:
-            pager.scene = ctrl.sp.getSceneNumber(ctrl.sp.page2lines(pageNr)[0] - 1)
+        if doExtra:
+            pager.sceneLabels = scenenumbers.labels(ctrl.sp)
+            pager.scene = scenenumbers.labelAt(
+                pager.sceneLabels, ctrl.sp.page2lines(pageNr)[0] - 1
+            )
 
         # find out starting place (if something bugs, generatePMLPage
         # below could return None, but it shouldn't happen...)
@@ -380,6 +404,7 @@ class ViewModeLayout(ViewMode):
                         ypos,
                         cfgGui.fonts[op.flags & 3],
                         op.flags & pml.UNDERLINED,
+                        getattr(op, "sceneLine", -1),
                     )
                 )
 
@@ -443,8 +468,11 @@ class ViewModeSideBySide(ViewMode):
         topLine = ctrl.sp.getTopLine()
         pageNr = ctrl.sp.line2page(topLine)
 
-        if doExtra and ctrl.sp.cfg.pdfShowSceneNumbers:
-            pager.scene = ctrl.sp.getSceneNumber(ctrl.sp.page2lines(pageNr)[0] - 1)
+        if doExtra:
+            pager.sceneLabels = scenenumbers.labels(ctrl.sp)
+            pager.scene = scenenumbers.labelAt(
+                pager.sceneLabels, ctrl.sp.page2lines(pageNr)[0] - 1
+            )
 
         pagesDone = 0
 
@@ -480,6 +508,7 @@ class ViewModeSideBySide(ViewMode):
                         int(sy + op.y * mm2p),
                         cfgGui.fonts[op.flags & 3],
                         op.flags & pml.UNDERLINED,
+                        getattr(op, "sceneLine", -1),
                     )
                 )
 

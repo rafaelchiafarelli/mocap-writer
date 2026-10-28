@@ -1,5 +1,7 @@
 ## 1. The numbering rule
 
+- **Status:** Done (2026-10-27)
+
 The decisions below cover the whole `scenes` epic (tasks 1–5); this task
 delivers the rule itself, without wx and without the editor.
 

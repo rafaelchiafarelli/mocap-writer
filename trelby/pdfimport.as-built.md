@@ -21,13 +21,13 @@ rule covers.
 - In: a PDF path; optional `profile` (`None` = detect), `trace`, `issues`
   and `layout` lists, `skipPages` (default: detected / the profile's),
   `notes` (default on), `strict` (default off) — `importPdf`
-  (`trelby/pdfimport.py:922`).
+  (`trelby/pdfimport.py:931`).
 - Out: `list[Line]` meeting the importer contract of `myimport.as-built.md`:
   every line `LB_SPACE`, the last line of each element `LB_LAST`, notes as
   one-line `NOTE` elements, so the caller's `reformatAll` re-wraps them.
 - Errors (`PdfImportError`, `.page` / `.lineNo`,
   `trelby/pdfimport.py:72`): the file cannot be opened, no text at all
-  (`trelby/pdfimport.py:960`), a bad profile; with `strict`, also every
+  (`trelby/pdfimport.py:974`), a bad profile; with `strict`, also every
   case listed under "Lenient reading" below.
 
 ## Stages
@@ -76,24 +76,25 @@ rule covers.
    the column rules; otherwise one segment classified by the indent rules
    (`_classify`, `trelby/pdfimport.py:631`), first match wins; a scene
    heading gets ` #n#` appended, the margin number winning over the typed
-   one (`trelby/pdfimport.py:781`).
-4. **Elements** (`_elements`, `trelby/pdfimport.py:803`): a new element
+   one, and `importPdf` moves it to the first line's `num`
+   (`_splitSceneNumber`; fountain-native/scenes/2) (`trelby/pdfimport.py:781`).
+4. **Elements** (`_elements`, `trelby/pdfimport.py:812`): a new element
    starts on a type change, a column/block change, every character and
    transition line, a parenthetical line starting with `(`, a vertical gap
    above `paragraph_gap`, or a new page unless the line is dialogue
-   (`startsNew`, `trelby/pdfimport.py:811-822`). Character names lose their
+   (`startsNew`, `trelby/pdfimport.py:820-831`). Character names lose their
    suffixes (`(CONT'D)`, …); a cue at the top of a page repeating the speaker
    of the speech that ended the previous page is dropped, so the speech goes
-   on (`trelby/pdfimport.py:832-839`). Each dual column continues from its
-   own previous item (`trelby/pdfimport.py:809`); the right column's cue
-   gets ` ^` (`trelby/pdfimport.py:865`) and its elements move after the
-   left column's (`trelby/pdfimport.py:873`).
-5. **Checks** (`_checkElements`, `trelby/pdfimport.py:896`): a character
+   on (`trelby/pdfimport.py:841-848`). Each dual column continues from its
+   own previous item (`trelby/pdfimport.py:818`); the right column's cue
+   gets ` ^` (`trelby/pdfimport.py:874`) and its elements move after the
+   left column's (`trelby/pdfimport.py:882`).
+5. **Checks** (`_checkElements`, `trelby/pdfimport.py:905`): a character
    cue with no parenthetical or dialogue after it (usually a speech typed at
    the action indent) is an issue on that cue.
 6. **Out** (`importPdf`): layout issues first, then each element preceded
    by its items' issues as `NOTE` lines (`_noteText`,
-   `trelby/pdfimport.py:908`); issues also go to `issues` and, as `ISSUE`
+   `trelby/pdfimport.py:917`); issues also go to `issues` and, as `ISSUE`
    rows, to the trace.
 
 ## Lenient reading (each an issue and a note; a stop with `strict`)
@@ -109,31 +110,31 @@ rule covers.
 
 ## Other entry points
 
-- `probe(path, skipPages, segmentGap)` (`trelby/pdfimport.py:974`): one row
+- `probe(path, skipPages, segmentGap)` (`trelby/pdfimport.py:988`): one row
   per (x0, column) with count, right-edge range and three sample lines,
   then the detected layout and its issues.
-- `report(path, layout, issues)` (`trelby/pdfimport.py:1026`): the text of
+- `report(path, layout, issues)` (`trelby/pdfimport.py:1040`): the text of
   the GUI's import report.
-- `writeTrace(trace, path)` (`trelby/pdfimport.py:1016`): TSV, columns
+- `writeTrace(trace, path)` (`trelby/pdfimport.py:1030`): TSV, columns
   `page line top x0 x1 decision rule text`. Decisions: an element name,
   `<element> (nearest)`, `dual left|right <element>`, `dropped`,
   `scene number`, `skipped page`, `UNKNOWN INDENT` (strict stop), `ISSUE`.
-- `toScreenplay(lines)` (`trelby/pdfimport.py:1045`): a `Screenplay` with
-  **no title pages** (`trelby/pdfimport.py:1055`), reformatted and
+- `toScreenplay(lines)` (`trelby/pdfimport.py:1059`): a `Screenplay` with
+  **no title pages** (`trelby/pdfimport.py:1069`), reformatted and
   paginated, for `fountain.generate`.
-- `main(argv)` (`trelby/pdfimport.py:1062`), `python -m trelby.pdfimport`:
+- `main(argv)` (`trelby/pdfimport.py:1076`), `python -m trelby.pdfimport`:
   `import <pdf>... --out <dir> [--profile <toml>] [--skip-pages N]
   [--strict] [--no-notes] [--trace]` writes `<name>.fountain` (notes as
   `[[IMPORT: …]]`) with `fountain.generate` and `<name>.trace.tsv`, prints
-  the layout, each issue on stderr (`trelby/pdfimport.py:1130`), each element
+  the layout, each issue on stderr (`trelby/pdfimport.py:1144`), each element
   the writer could not keep as `lost: <file>: <text>` on stderr
-  (`trelby/pdfimport.py:1137-1144`) and the element counts; exit 1 if any
+  (`trelby/pdfimport.py:1151-1158`) and the element counts; exit 1 if any
   PDF failed. `probe <pdf> [--skip-pages N] [--segment-gap G]`.
 
 ## Gotchas
 
 - **Action cut by a page break becomes two paragraphs:** only dialogue
-  continues across pages (`trelby/pdfimport.py:821-822`).
+  continues across pages (`trelby/pdfimport.py:830-831`).
 - Lines are rejoined with single spaces: multiple spaces collapse, a word
   cut over two lines gets a space inside it, and a hyphen at a line end
   stays (`bem- vindo`).
@@ -142,9 +143,10 @@ rule covers.
   no issue.
 - Detection needs some material: a PDF with no character cue gets an issue
   and every line right of the action indent is read by its nearest rule.
-- Trelby has no dual-dialogue or scene-number fields: `^` and `#n#` stay in
-  the element text in the editor; in the Fountain export they are valid
-  Fountain markup.
+- Trelby has no dual-dialogue field: `^` stays in the element text in the
+  editor; in the Fountain export it is valid Fountain markup. A scene
+  number is the heading line's `num` (written as `#n#`); a number not in
+  the writer's form (`7A`) is kept and reported when the script is opened.
 - Fixed 2 pt tolerance for grouping words into a line
   (`trelby/pdfimport.py:299`), not a profile key.
 - The title page is not imported; the CLI output has no Fountain title
