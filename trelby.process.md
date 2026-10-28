@@ -124,7 +124,13 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   it in (film-bible/links/3); From script → Wardrobe gaps lists, per
   numbered scene, the bible characters who speak there with no wardrobe
   linked to them there: a gap, not an error. A wardrobe item with no
-  character is allowed.
+  character is allowed. An item's right-click menu has Copy (a copy named
+  `<name> copy` beside it, new ids, no scenes; the creator is told the
+  scenes the original is used in) and Copy to another film… (a folder
+  with a film: the item, its files and child items go into that film's
+  bible with its ids, without scenes and without links to items of this
+  film), film-bible/links/4. Delete names the scenes that still use the
+  item before asking.
 - `createEmptySp()` (`trelby/trelbyctrl.py:103`) starts a script with the
   default title page and header (`trelby/titles.py:13`,
   `trelby/headers.py:16`).

@@ -281,7 +281,10 @@ Application and editor (wx)
   ones not made as not a prop for the film (`OnFindProps`,
   `trelby/biblepanel.py:483`); Wardrobe gaps lists the characters in a
   scene with no wardrobe there (`OnWardrobeGaps`,
-  `trelby/biblepanel.py:527`).
+  `trelby/biblepanel.py:527`). The item menu's Copy makes `<name> copy`
+  next to it and names the scenes the original is used in (`OnCopy`,
+  `trelby/biblepanel.py:549`); Copy to another film… opens that film's
+  bible and copies into it (`OnCopyToFilm`, `trelby/biblepanel.py:569`).
 - `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
   wide, one row per act with its name, `n scenes` and a bar as long as its
   scene count against the largest act; the cursor's act highlighted; a
