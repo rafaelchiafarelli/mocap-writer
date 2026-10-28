@@ -151,15 +151,71 @@ def applyLinks(b, links, by="creator"):
         b.link(it, num, None, by)
 
 
+# the name a Character element speaks as: no extension ("ANA (V.O.)",
+# "ANA (CONT'D)") and no dual-dialogue "^"
+def speaker(text):
+    return re.sub(r"\(.*?\)", "", text).strip().rstrip("^").strip()
+
+
 # the names of the characters who speak in sp, normalized
 def characterNames(sp):
     names = set()
 
     for i, l in enumerate(sp.lines):
         if l.lt == screenplay.CHARACTER and sp.isFirstLineOfElem(i):
-            names.add(norm(re.sub(r"\(.*?\)", "", l.text)))
+            names.add(norm(speaker(l.text)))
 
     return names
+
+
+# links/5: the speakers of sp's numbered scenes. returns (links, new):
+# links is [(character item, scene)] for known characters not linked to
+# that scene yet; new is {name: [scenes]} for names the bible does not
+# know, as the script first writes them
+def characterPlan(b, sp):
+    links = []
+    new = {}
+
+    for num, first, last in scenesWithLines(sp):
+        for i in range(first, last + 1):
+            l = sp.lines[i]
+
+            if l.lt != screenplay.CHARACTER or not sp.isFirstLineOfElem(i):
+                continue
+
+            name = speaker(l.text)
+
+            if not name:
+                continue
+
+            it = findItem(b, "character", name)
+
+            if it is None:
+                for key in new:
+                    if norm(key) == norm(name):
+                        name = key
+
+                if num not in new.setdefault(name, []):
+                    new[name].append(num)
+            elif num not in {x.scene for x in it.msg.links} and (it, num) not in links:
+                links.append((it, num))
+
+    return (links, new)
+
+
+# make a character for each name and link its scenes
+def createCharacters(b, names, by="creator"):
+    made = []
+
+    for name, nums in names.items():
+        it = b.create("character", name, None, by)
+
+        for n in nums:
+            b.link(it, n, None, by)
+
+        made.append(it)
+
+    return made
 
 
 # a prop as compared: also without a plural "s" on its words ("XÍCARAS
@@ -257,7 +313,7 @@ def charactersByScene(b, sp):
             l = sp.lines[i]
 
             if l.lt == screenplay.CHARACTER and sp.isFirstLineOfElem(i):
-                it = findItem(b, "character", re.sub(r"\(.*?\)", "", l.text).strip())
+                it = findItem(b, "character", speaker(l.text))
 
                 if it:
                     out.setdefault(num, set()).add(it.id)

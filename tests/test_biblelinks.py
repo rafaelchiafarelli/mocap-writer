@@ -272,3 +272,58 @@ def test_the_warning_lists_the_scenes(tmp_path):
     room, _t, _a = roomWithFiles(b, tmp_path)
 
     assert biblelinks.usedIn(b, room) == ["1", "3"]
+
+
+@pytest.mark.parametrize("text, name", [
+    ("ANA", "ANA"), ("ANA (V.O.)", "ANA"), ("ANA (CONT'D)", "ANA"), ("ANA ^", "ANA"),
+    ("ANA (O.S.) ^", "ANA"), ("DR. SILVA", "DR. SILVA"),
+])
+def test_the_speaker_of_a_character_element(text, name):
+    assert biblelinks.speaker(text) == name
+
+
+CAST = """\
+INT. SALA - NOITE #1#
+
+ANA
+Oi.
+
+BIA (V.O.)
+Oi.
+
+EXT. RUA - DIA #2#
+
+ANA (CONT'D)
+Tchau.
+"""
+
+
+def test_characters_are_offered_never_made(tmp_path):
+    b = newBible(tmp_path)
+    links, new = biblelinks.characterPlan(b, u.loadString(CAST))
+
+    assert links == [] and new == {"ANA": ["1", "2"], "BIA": ["1"]}
+    assert b.items == {}
+
+
+def test_a_known_character_or_alias_is_linked(tmp_path):
+    b = newBible(tmp_path)
+    ana = b.create("character", "Ana")
+    bia = b.create("character", "Beatriz")
+    bia.msg.aliases.append("Bia")
+    b.save(bia)
+    links, new = biblelinks.characterPlan(b, u.loadString(CAST))
+
+    assert [(it.id, n) for it, n in links] == [(ana.id, "1"), (bia.id, "1"), (ana.id, "2")]
+    assert new == {}
+
+    biblelinks.applyLinks(b, links)
+
+    assert biblelinks.characterPlan(b, u.loadString(CAST)) == ([], {})
+
+
+def test_made_characters_are_linked_to_their_scenes(tmp_path):
+    b = newBible(tmp_path)
+    (ana,) = biblelinks.createCharacters(b, {"ANA": ["1", "2"]})
+
+    assert (ana.name, reopen(b).scenes(reopen(b).get(ana.id))) == ("ANA", {"1", "2"})
