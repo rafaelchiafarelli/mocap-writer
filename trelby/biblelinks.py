@@ -301,7 +301,7 @@ def wardrobeGaps(b, sp):
 # film, and a copy is unlinked by default. per-scene values are dropped for
 # the same reason; links to other items are dropped when copying to
 # another film. returns the copy.
-def copyItem(src, item, dst, parent=None, by="creator"):
+def copyItem(src, item, dst, parent=None, by="creator", name=None):
     sameFilm = os.path.realpath(src.film.root) == os.path.realpath(dst.film.root)
     msg = mc.BibleItem()
     msg.CopyFrom(item.msg)
@@ -319,8 +319,9 @@ def copyItem(src, item, dst, parent=None, by="creator"):
     del msg.values[:]
     msg.values.extend(keep)
 
-    copy = dst.create(item.map, item.name, parent, by)
+    copy = dst.create(item.map, name or item.name, parent, by)
     msg.id = copy.id
+    msg.name = copy.name
 
     if parent is not None:
         msg.parent = parent.id

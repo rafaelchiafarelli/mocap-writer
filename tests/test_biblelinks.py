@@ -208,3 +208,67 @@ def test_wardrobe_with_no_character_is_allowed(tmp_path):
     b.create("wardrobe", "Spare Coat")
 
     assert reopen(b).get("wardrobe-w-1").msg.links == []
+
+
+def roomWithFiles(b, tmp_path):
+    room = b.create("set", "Room")
+    table = b.create("set", "Table", parent=room)
+    ana = b.create("character", "Ana")
+    (tmp_path / "plan.png").write_bytes(b"png")
+    b.setValues(room, "size.floor_plan", [b.addFile(room, tmp_path / "plan.png", "plans")],
+                "creator-approved", "decision", "creator")
+    b.setValues(room, "continuity.changes", ["broken"], "script-stated", "1", "writer", scene="1")
+    b.setValues(table, "dressing.state", ["dirty"], "script-stated", "1", "writer")
+    b.link(room, "1")
+    b.link(room, "3")
+
+    return room, table, ana
+
+
+def test_copy_keeps_files_and_children_with_new_ids(tmp_path):
+    b = newBible(tmp_path / "f")
+    room, table, _ana = roomWithFiles(b, tmp_path)
+    copy = biblelinks.copyItem(b, room, b, None, name="Room copy")
+    c = reopen(b)
+    got = c.get(copy.id)
+    (kid,) = c.children("set", copy.id)
+
+    assert copy.id not in (room.id, table.id) and kid.id not in (room.id, table.id)
+    assert got.name == "Room copy" and got.msg.links == []
+    assert (tmp_path / "f" / got.folder / "plans" / "plan.png").read_bytes() == b"png"
+    assert c.film.problems == []
+    assert [v.field for v in got.msg.values] == ["size.floor_plan"]
+    assert c.values(kid, "dressing.state")[0].text == "dirty"
+    assert c.get(room.id).msg.links  # the original keeps its scenes
+
+
+def test_cross_film_copy_drops_the_scene_links(tmp_path):
+    a = newBible(tmp_path / "a")
+    room, _table, _ana = roomWithFiles(a, tmp_path)
+    b = newBible(tmp_path / "b")
+    b.create("set", "Other")
+    copy = biblelinks.copyItem(a, room, b)
+    c = reopen(b)
+
+    assert copy.id == "set-w-2"
+    assert c.get(copy.id).msg.links == [] and c.scenes(c.get(copy.id)) == set()
+    assert len(c.children("set", copy.id)) == 1
+    assert (tmp_path / "b" / c.get(copy.id).folder / "plans" / "plan.png").exists()
+
+
+def test_cross_film_copy_drops_links_to_other_items(tmp_path):
+    a = newBible(tmp_path / "a")
+    cup = a.create("prop", "Cup")
+    ana = a.create("character", "Ana")
+    a.setValues(cup, "ownership.owner", [ana.id], "creator-approved", "x", "creator")
+    b = newBible(tmp_path / "b")
+
+    assert biblelinks.copyItem(a, cup, b).msg.values == []
+    assert biblelinks.copyItem(a, cup, a).msg.values[0].text == ana.id
+
+
+def test_the_warning_lists_the_scenes(tmp_path):
+    b = newBible(tmp_path / "f")
+    room, _t, _a = roomWithFiles(b, tmp_path)
+
+    assert biblelinks.usedIn(b, room) == ["1", "3"]

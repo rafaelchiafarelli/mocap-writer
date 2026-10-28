@@ -208,8 +208,13 @@ Model and file format
   `createProps`, `markNotProps`; links/3: `charactersByScene` (the bible
   characters who speak in each numbered scene, `trelby/biblelinks.py:252`),
   `linkWardrobe` / `unlinkWardrobe`, `wardrobeGaps` → `[(scene, character
-  id)]` with no wardrobe linked there (`trelby/biblelinks.py:279`); the
-  copy helpers of links/4 (`trelby/biblelinks.py:304-357`).
+  id)]` with no wardrobe linked there (`trelby/biblelinks.py:279`);
+  links/4: `copyItem(src, item, dst, parent, by, name)` copies an item with
+  its file folders and child items into `dst` (the same bible or another
+  film's), each with a new id of `dst`'s film, no scene links and no
+  per-scene values, and, into another film, no links to other items
+  (`trelby/biblelinks.py:304`); `usedIn(b, item)` → its scenes, for the
+  warnings (`trelby/biblelinks.py:355`).
 - `relink.py` — missing files of a film (file-format/layout/3), no wx:
   `Ref(what, rel, kind, apply)` (`trelby/relink.py:24`); `kindOk` by
   extension (`KINDS`) or folder; `check(root, ref, path)` → the new film
@@ -256,27 +261,27 @@ Application and editor (wx)
   + `ActPanel` at the right (`trelby/trelbypanel.py:7`); the act panel is
   made before `MyCtrl`, whose constructor already updates it
   (`trelby/trelbypanel.py:28`).
-- `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:21`): the bible
+- `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:23`): the bible
   panel (film-bible/tree/1) over `MyFrame.bible`: New / New child /
   Rename / Delete buttons, a `wx.TreeCtrl` with one branch per map
   (`refresh` rebuilds it from `Bible.children`, keeping the selection and
-  what was expanded, `trelby/biblepanel.py:116`), a right-click menu
-  (`menuItems`, `trelby/biblepanel.py:309`), drag and drop to change an
-  item's parent (`OnEndDrag`, `trelby/biblepanel.py:339`); under the tree
+  what was expanded, `trelby/biblepanel.py:118`), a right-click menu
+  (`menuItems`, `trelby/biblepanel.py:311`), drag and drop to change an
+  item's parent (`OnEndDrag`, `trelby/biblepanel.py:343`); under the tree
   in a splitter, the selected item's `BibleForm` (`makeForm` / `showItem`).
   Errors the film refuses are shown, never raised (`guard`). A line under
   the buttons names the cursor's scene and the bible items linked to it
   (`showScene`, called from `MyCtrl.updateCommon`,
-  `trelby/biblepanel.py:452`). From script… opens the links commands
-  (`OnScriptMenu`, `trelby/biblepanel.py:371`): each shows its plan in a
+  `trelby/biblepanel.py:456`). From script… opens the links commands
+  (`OnScriptMenu`, `trelby/biblepanel.py:375`): each shows its plan in a
   checklist (`choose`) and does only what is checked; Link scenes to sets
   ticks the links to known sets and leaves new sets unticked
-  (`OnLinkSets`, `trelby/biblepanel.py:420`); Find props lists links to
+  (`OnLinkSets`, `trelby/biblepanel.py:424`); Find props lists links to
   known props (ticked) and new props (unticked), then offers to mark the
   ones not made as not a prop for the film (`OnFindProps`,
-  `trelby/biblepanel.py:479`); Wardrobe gaps lists the characters in a
+  `trelby/biblepanel.py:483`); Wardrobe gaps lists the characters in a
   scene with no wardrobe there (`OnWardrobeGaps`,
-  `trelby/biblepanel.py:523`).
+  `trelby/biblepanel.py:527`).
 - `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
   wide, one row per act with its name, `n scenes` and a bar as long as its
   scene count against the largest act; the cursor's act highlighted; a
