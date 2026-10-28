@@ -3,10 +3,13 @@
 # number and letter with a dot between them: 12, 12.A, 12.A.1, 12.A.1.A.
 # the number is the scene's identity. no wx.
 
+import math
 import re
 from collections import namedtuple
 
 import trelby.screenplay as screenplay
+import trelby.undo as undo
+from trelby.line import Line
 
 NUMBER_RE = re.compile(r"^[1-9][0-9]*$")
 LETTER_RE = re.compile(r"^[A-Z]$")
@@ -255,3 +258,161 @@ def report(sp):
         )
 
     return "\n".join(out)
+
+
+# the text of an OMITTED heading, the place of a deleted scene
+OMITTED = "OMITTED"
+
+
+def _sortKey(n):
+    return parse(n) or (math.inf, n)
+
+
+# get sp's scene numbers ready for a save (fountain-native/scenes/3): a
+# number given before (sp.sceneNumbersIssued) and no longer on a heading
+# comes back as an OMITTED heading at its place by number order; a number
+# left on a line that is no longer a heading is removed; every scene
+# without a number gets one by assign(). all of it is one undo step, made
+# only when something changes. returns [] when the script can be saved, or
+# the reasons it cannot (duplicates, no room) as text, changing nothing.
+def prepareSave(sp):
+    ls = sp.lines
+    scenes = scenesOf(sp)
+    sceneLines = {line for line, _n in scenes}
+    stray = [i for i, ln in enumerate(ls) if ln.num and i not in sceneLines]
+    present = {n for _line, n in scenes if n}
+
+    # each vanished number goes before the first numbered scene after it,
+    # else at the end
+    def place(n):
+        t = parse(n)
+
+        if t is not None:
+            for k, (_line, num) in enumerate(scenes):
+                pt = parse(num)
+
+                if pt is not None and pt > t:
+                    return k
+
+        return len(scenes)
+
+    omitted = sorted(
+        ((place(n), n) for n in sp.sceneNumbersIssued if n not in present),
+        key=lambda x: (x[0], _sortKey(x[1])),
+    )
+
+    # the scenes and the OMITTED headings to come, in script order:
+    # (scene index or None, number or None)
+    merged = []
+    o = 0
+
+    for k in range(len(scenes) + 1):
+        while o < len(omitted) and omitted[o][0] == k:
+            merged.append((None, omitted[o][1]))
+            o += 1
+
+        if k < len(scenes):
+            merged.append((k, scenes[k][1] or None))
+
+    nums = [n for _k, n in merged]
+
+    def heading(i):
+        k = merged[i][0]
+
+        return OMITTED if k is None else ls[scenes[k][0]].text
+
+    msgs = [
+        _("Scene {} is numbered more than once: {}").format(p.number, heading(p.index))
+        for p in check(nums)
+        if p.kind == PROBLEM_DUPLICATE
+    ]
+
+    new, noRoom = assign(nums)
+
+    msgs += [
+        _(
+            "No number fits the new scene {}: it is right before the first "
+            "numbered scene, right after a scene and before its first insert, "
+            "or next to a number in another form."
+        ).format(heading(i))
+        for i in noRoom
+    ]
+
+    if msgs:
+        return msgs
+
+    given = [
+        (scenes[k][0], n) for (k, old), n in zip(merged, new) if k is not None and not old
+    ]
+
+    if not (stray or omitted or given):
+        sp.sceneNumbersIssued = present
+
+        return []
+
+    u = undo.SceneNumbers(sp)
+
+    for i in stray:
+        ls[i].num = ""
+
+    for line, n in given:
+        ls[line].num = n
+
+    for k, n in reversed(omitted):
+        at = scenes[k][0] if k < len(scenes) else len(ls)
+        ls.insert(at, Line(screenplay.LB_LAST, screenplay.SCENE, OMITTED, n))
+
+        if at <= sp.line:
+            sp.line += 1
+
+    sp.sceneNumbersIssued = {n for _line, n in scenesOf(sp) if n}
+    sp.paginate()
+    sp.markChanged()
+
+    u.setAfter(sp)
+    sp.addUndo(u)
+
+    return []
+
+
+# Script -> Renumber all scenes: every scene, in order, gets 1, 2, 3...;
+# the OMITTED headings go (their numbers mean nothing after a renumber);
+# one undo step. the numbers given so far become the new ones, so the old
+# ones do not come back as OMITTED.
+def renumberAll(sp):
+    u = undo.SceneNumbers(sp)
+    ls = sp.lines
+    keep = []
+    i = 0
+
+    while i < len(ls):
+        last = sp.getElemLastIndexFromLine(i)
+        text = " ".join(ls[j].text for j in range(i, last + 1)).strip()
+
+        if ls[i].lt == screenplay.SCENE and text.upper() == OMITTED:
+            if i <= sp.line:
+                sp.line -= min(last, sp.line) - i + 1
+        else:
+            keep.extend(ls[i : last + 1])
+
+        i = last + 1
+
+    if not keep:
+        keep.append(Line(screenplay.LB_LAST, screenplay.SCENE))
+
+    sp.lines = keep
+
+    for ln in keep:
+        ln.num = ""
+
+    for k, (line, _n) in enumerate(scenesOf(sp)):
+        keep[line].num = str(k + 1)
+
+    sp.sceneNumbersIssued = {ln.num for ln in keep if ln.num}
+    sp.validatePos()
+    sp.clearMark()
+    sp.paginate()
+    sp.markChanged()
+
+    u.setAfter(sp)
+    sp.addUndo(u)

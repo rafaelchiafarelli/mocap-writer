@@ -89,7 +89,7 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:72-85`):
   add a `VIEWMODE_*` constant and instance in `GlobalData`
   (`trelby/globaldata.py:25-29`, `trelby/globaldata.py:79-83`), a menu item
   and handler in `MyFrame` (`trelby/trelbyframe.py:109-121`,
-  `trelby/trelbyframe.py:797-833`), and widen the `ViewMode` range in
+  `trelby/trelbyframe.py:801-837`), and widen the `ViewMode` range in
   `GlobalData` (`trelby/globaldata.py:62-68`).
 
 ## Gotchas
@@ -108,7 +108,7 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:72-85`):
   `getSceneNumber` of the first line on the page, and `sceneContNr`
   (`CONTINUED (2)`) from `Screenplay.sceneContNrAt(pageNr)`, the number the
   PDF has there (`trelby/viewmode.py:346`, `trelby/viewmode.py:457`,
-  `trelby/screenplay.py:1583`).
+  `trelby/screenplay.py:1589`).
 - `ViewModeSideBySide.makeLineVisible` (`trelby/viewmode.py:547`) moves by
   whole pages: scrolling down makes the line's page the last one shown,
   up the first, otherwise (or with `recenterOnScroll`) the middle one;

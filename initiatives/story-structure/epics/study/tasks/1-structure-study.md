@@ -34,7 +34,7 @@
   acts already round-trip. It still **prints**: caps, bold, underlined
   (`trelby/config.py:495`), like a TV `END OF ACT ONE`. File → Export →
   Fountain and the PDF importer still use the old writer, which gives it
-  as centered text `>X<` (`trelby/screenplay.py:481`).
+  as centered text `>X<` (`trelby/screenplay.py:487`).
 - **Sections `##` and deeper, and synopses `=`**, are kept byte-identical
   but hidden: the editor does not show them (`_isHidden`,
   `trelby/fountain.py:95`). There is no section depth in the editor.

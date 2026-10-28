@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 210 tests.
+objects directly and never create the wx GUI. 226 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -99,6 +99,13 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   undo/redo of typing, join, split, type change, cut; cut and copy carry
   no number, a pasted scene has none, pasting at a heading's start,
   `report`, `deepcopy`.
+- `test_scenes_save.py` — numbers given on save (fountain-native/scenes/3,
+  `scenenumbers.prepareSave` / `renumberAll`): a new script `1..n`, no
+  undo when nothing changes, append, insert, delete → `.OMITTED #n#` (and
+  read back), a heading turned into Action, a scene made and removed
+  between saves, cut and paste, copy, no room and duplicates stop the
+  save, one undo step with `sceneNumbersIssued`, Renumber all and its
+  undo, the cursor in a removed `OMITTED`.
 - `test_propwords.py` — `propwords.find_prop_words`: positions, accents,
   one-letter words, punctuation, mixed case and digits, an all-caps line.
 - `test_taborder.py` — `ConfigGlobal.tabOrder`: the default cycle and its
@@ -152,7 +159,7 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   reader and writer for open, save, import and export: `test_fountain.py`,
   `test_importfountain.py`), pagination results,
   undo/redo.
-- Every run shows about 76 `DeprecationWarning`s for `wx.NewId()` from
+- Every run shows about 77 `DeprecationWarning`s for `wx.NewId()` from
   `trelby/ids.py`, imported through `trelbyframe` by `test_saveall.py`;
   harmless, the ids still work.
 

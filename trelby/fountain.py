@@ -489,6 +489,7 @@ def load(text: str, cfgGl):
 
     src.titlesKey = titlesKey(sp.titles)
     sp.fountainSource = src
+    sp.sceneNumbersIssued = {ln.num for ln in sp.lines if ln.num}
 
     sp.reformatAll()
     sp.paginate()
