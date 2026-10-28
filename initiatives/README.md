@@ -16,5 +16,6 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 5. **film-bible** — the maps (sets, characters, props, wardrobe) as folders in the film root
 6. **preprod-link** — feed the mocap-preprod agents: scene index, Sync to spec (script-to-spec on every change), review of proposals
 7. **story-structure** — where we are in the story: an act is a marker (no print) and a panel shows act sizes; models and beats later
+8. **spellcheck** — the spell checker in Brazilian Portuguese (pt-BR): study the dictionary's licence and how to read it, then a dictionary language setting (planned 2026-10-27)
 
-`film-bible` needs `fountain-native/scenes` (scene numbers). `preprod-link` needs `film-bible`. `film-bible`, `preprod-link` and `fountain-native/settings/1` (per-script settings, was io/2) need `file-format/layout/1`. `pdf-import` and `editor-ux` need nothing.
+`film-bible` needs `fountain-native/scenes` (scene numbers). `preprod-link` needs `film-bible`. `film-bible`, `preprod-link` and `fountain-native/settings/1` (per-script settings, was io/2) need `file-format/layout/1`. `pdf-import`, `editor-ux` and `spellcheck` need nothing.
