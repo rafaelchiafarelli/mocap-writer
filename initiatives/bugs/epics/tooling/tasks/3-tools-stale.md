@@ -1,6 +1,6 @@
 ## 3. tools/ scripts are stale
 
-- **Status:** Open
+- **Status:** Fixed (2026-10-27) — fixes/000092/tools (both fixed, Rafael 2026-10-27)
 - **Symptom:** `add_words.py` is Python 2 for the old layout; `update_icns.py` reads `../resources`, which no longer exists.
 - **Where:** `tools/add_words.py:9-12`, `tools/add_words.py:34-36`, `tools/update_icns.py:7`
 - **Reproduce:** Found by reading the code in the as-built review (2026-10-24).

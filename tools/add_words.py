@@ -1,37 +1,31 @@
-#!/usr/bin/env python
-# add words to ../dict_en.dat in the correct place
+#!/usr/bin/env python3
+# add words to trelby/dict_en.dat, the spell checker's word list (UTF-8,
+# one lower-case word per line, sorted, no duplicates):
+#   tools/add_words.py word1 word2...
 
+import os
 import sys
 
-if len(sys.argv) < 2:
-    raise Exception("add_word.py word1 word2...")
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+DICT = os.path.join(ROOT, "trelby", "dict_en.dat")
 
-sys.path.insert(0, "../src")
 
-import misc
-import util
+def main(args):
+    if not args:
+        sys.exit("usage: add_words.py word1 word2...")
 
-util.init(False)
-misc.init(False)
+    with open(DICT, encoding="utf-8") as f:
+        words = set(f.read().splitlines())
 
-s = util.loadFile("../dict_en.dat", None)
-if s == None:
-    raise Exception("error")
+    before = len(words)
+    words.update(w.lower() for w in args)
 
-words = {}
-lines = s.splitlines()
+    with open(DICT, "w", encoding="utf-8", newline="\n") as f:
+        for w in sorted(words):
+            f.write(w + "\n")
 
-for it in lines:
-    words[util.lower(it)] = None
+    print("%d word(s) added" % (len(words) - before))
 
-for arg in sys.argv[1:]:
-    words[util.lower(arg)] = None
 
-words = list(words.keys())
-words.sort()
-
-f = open("../dict_en.dat", "wb")
-for w in words:
-    f.write("%s\n" % w)
-
-f.close()
+if __name__ == "__main__":
+    main(sys.argv[1:])
