@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 59 modules: the
+**Role:** All of Trelby's code. One flat package of 60 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -141,7 +141,7 @@ Application and editor (wx)
   `eventKeyCode` (key code of a char event, `trelby/util.py:209`), `Key`
   (keyboard shortcut ↔ int, `trelby/util.py:820`), file load/write
   (`trelby/util.py:994-1091`), PDF viewer lookup and launch
-  (`trelby/util.py:1206-1267`).
+  (`trelby/util.py:1206-1269`).
 - `error.py` — `TrelbyError`, `ConfigError`, `MiscError`.
 - `translations.py` — `trelby_translations_load()`: picks the gettext
   catalog in `locales/` from `$LANG` and installs `_` as a builtin
@@ -222,6 +222,11 @@ Dialogs
 - `headersdlg.py` — `HeadersDlg`: edit page headers, PDF preview.
 - `locationsdlg.py` — `LocationsDlg`: group scene headings into locations.
 - `autocompletiondlg.py` — `AutoCompletionDlg`: edit completion lists.
+- `manual.py` — Help → Manual (`MyFrame.OnHelpManual`): `build(prebuilt,
+  docDir)` returns the prebuilt `manual.html` or makes it from
+  `doc/manual.xml` with lxml and the DocBook XSL stylesheets, else raises
+  `ManualError` (`trelby/manual.py:27-50`); `ManualFrame` shows it in a
+  `wx.html.HtmlWindow`, `#` links scroll inside it.
 - `commandsdlg.py` — `CommandsDlg`: HTML list of commands and their keys,
   can be saved to a file.
 - `watermarkdlg.py` — `WatermarkDlg`: one watermarked PDF per line of text
@@ -271,9 +276,9 @@ Data and folders
   `trelby/misc.py:54`), so resources are addressed as
   `trelby/resources/...` (`trelby/splash.py:39`).
 - `trelby/manual.html`, `dict_en.dat.gz`, `names.txt.gz` and `trelby.1.gz`
-  are build products of `../Makefile`, not in git; Help → Manual opens
-  `trelby/manual.html` (`trelby/trelbyframe.py:980`), which does not exist
-  in a plain checkout. Bug: [bugs/editor/11](../initiatives/bugs/epics/editor/tasks/11-help-manual-missing.md).
+  are build products of `../Makefile`, not in git; without
+  `manual.html`, Help → Manual makes the page from `doc/manual.xml`
+  (`manual.py`).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
   Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:192`)
   and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:209-214`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).

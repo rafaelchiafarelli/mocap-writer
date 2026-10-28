@@ -3,13 +3,16 @@
 # Python deps only from the hashed lockfile. The source is not copied in:
 # docker/run.sh mounts the repository, so code edits need no rebuild.
 FROM ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
-# GTK3 and the libraries the prebuilt wxPython wheel links against; fonts for the editor.
+# GTK3 and the libraries the prebuilt wxPython wheel links against; fonts for the editor;
+# evince (GPL-2.0+) shows Print and report PDFs, docbook-xsl (permissive DocBook XSL
+# licence) turns doc/manual.xml into the Help → Manual page.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 python3-venv \
         libgtk-3-0t64 libnotify4 libsm6 libxtst6 libsdl2-2.0-0 libcurl4t64 libpcre2-32-0 \
         libgl1 libglu1-mesa libegl1 \
         fonts-dejavu-core fonts-liberation \
+        evince docbook-xsl \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /build-py
 COPY requirements.lock ./

@@ -350,7 +350,8 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   - **formatted text** → `generateText` (`trelby/screenplay.py:195`), page
     markers optional.
 - **Print** writes the same PDF to a temporary file and opens the configured
-  PDF viewer (`trelby/trelbyctrl.py:1205`, `trelby/gutil.py:82`). Export
+  PDF viewer, else the first one found (`xdg-open`, else `evince`, which the
+  Docker image has; `trelby/util.py:1204-1220`) (`trelby/trelbyctrl.py:1205`, `trelby/gutil.py:82`). Export
   and Print make the PDF through `MyCtrl.makePDF`
   (`trelby/trelbyctrl.py:1216`): a custom PDF font that cannot be used is
   shown in a message box and nothing is written.
