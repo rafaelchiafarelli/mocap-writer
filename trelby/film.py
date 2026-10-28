@@ -15,6 +15,8 @@ from pathlib import Path
 import mocap_contracts as mc
 from mocap_contracts import film as cf
 
+import trelby.relink as relink
+
 PROGRAM = "mocap-writer"
 
 # the parts of a new film (layout/1, "Default parts")
@@ -38,12 +40,14 @@ class OwnerError(Exception):
 
 
 # something of the film that could not be opened: what it is, where it was
-# expected (a path relative to the film root) and why
+# expected (a path relative to the film root) and why; ref, a relink.Ref when
+# the creator can search for it (layout/3)
 class Problem:
-    def __init__(self, what, where, why):
+    def __init__(self, what, where, why, ref=None):
         self.what = what
         self.where = where
         self.why = why
+        self.ref = ref
 
     def __eq__(self, other):
         return (self.what, self.where, self.why) == (
@@ -83,7 +87,10 @@ class Film:
             if not (root / p.path).exists() and not notYet:
                 kind = _("folder") if p.path.endswith("/") else _("file")
                 f.problem(
-                    _("Part '%s'") % p.name, p.path, _("the %s is missing") % kind
+                    _("Part '%s'") % p.name,
+                    p.path,
+                    _("the %s is missing") % kind,
+                    f.partRef(p),
                 )
 
         for s in index.spaces:
@@ -136,8 +143,42 @@ class Film:
 
         return f
 
-    def problem(self, what, where, why):
-        self.problems.append(Problem(what, where, why))
+    def problem(self, what, where, why, ref=None):
+        self.problems.append(Problem(what, where, why, ref))
+
+    # the relink.Ref of part p: a new path is saved in film.json
+    def partRef(self, p):
+        if p.path.endswith("/"):
+            kind = "folder"
+        elif p.name == cf.SCRIPT_PART:
+            kind = "fountain"
+        elif p.path.endswith(".json"):
+            kind = "json"
+        else:
+            kind = "file"
+
+        name = p.name
+
+        return relink.Ref(
+            _("Part '%s'") % name,
+            p.path,
+            kind,
+            lambda rel: self.setPartPath(name, rel),
+        )
+
+    # point the part named name at rel and save film.json; the contract
+    # checks the new index before anything is written
+    def setPartPath(self, name, rel):
+        index = mc.Film()
+        index.CopyFrom(self.index)
+
+        for p in index.parts:
+            if p.name == name:
+                p.path = rel
+
+        mc.to_json(index)
+        self.index = index
+        self.saveIndex()
 
     # the part named name, or None
     def part(self, name):

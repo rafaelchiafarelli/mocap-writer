@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 62 modules: the
+**Role:** All of Trelby's code. One flat package of 64 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -108,22 +108,33 @@ Model and file format
   fully upper case (`trelby/propwords.py:9`); the editor underlines them in
   Action lines, film-bible will reuse it for prop records. No wx.
 - `film.py` — a film root (file-format/layout/1), no wx except the
-  version in `_origin` (`trelby/film.py:296`): `Film.open(root, owner)`
+  version in `_origin` (`trelby/film.py:347`): `Film.open(root, owner)`
   reads `film.json` through `mocap_contracts` and lists what is missing or
   invalid as `Problem(what, where, why)` in `film.problems`
-  (`trelby/film.py:73`); only a missing or invalid `film.json` raises
+  (`trelby/film.py:77`); only a missing or invalid `film.json` raises
   `FilmError`, naming the path and the broken field. `Film.create(root,
   scriptText)` writes `film.json` with `DEFAULT_PARTS`, the `w` space,
-  `ids/w.json` and the folder parts (`trelby/film.py:112`).
+  `ids/w.json` and the folder parts (`trelby/film.py:119`).
   `partOf` / `ownerOf` (prefix by segment, `film.json` → writer,
-  `ids/<code>.json` → its space's owner, `trelby/film.py:158-188`);
+  `ids/<code>.json` → its space's owner, `trelby/film.py:199-229`);
   `writeText` (atomic, through a temp file) and `deleteFile` refuse with
   `OwnerError` a path this program does not own (`checkWrite`,
-  `trelby/film.py:194`); `newId(kind, space)` saves the counter before it
-  returns the id (`trelby/film.py:238`); `addSpace(code, owner, path)`
+  `trelby/film.py:235`); `newId(kind, space)` saves the counter before it
+  returns the id (`trelby/film.py:279`); `addSpace(code, owner, path)`
   adds an agent's space and its `proposals-<code>` part, checked by the
-  contract before anything is written (`trelby/film.py:273`);
-  `problemsText(problems)` for the warning on open (`trelby/film.py:297`).
+  contract before anything is written (`trelby/film.py:314`);
+  `problemsText(problems)`, the problems as text (`trelby/film.py:338`);
+  a missing part's `Problem` carries a `relink.Ref` (`partRef`,
+  `trelby/film.py:150`) whose `apply` saves the new path in `film.json`
+  (`setPartPath`, `trelby/film.py:171`).
+- `relink.py` — missing files of a film (file-format/layout/3), no wx:
+  `Ref(what, rel, kind, apply)` (`trelby/relink.py:24`); `kindOk` by
+  extension (`KINDS`) or folder; `check(root, ref, path)` → the new film
+  path, or why not (outside the film root, wrong kind,
+  `trelby/relink.py:140`); `pattern(oldRel, newRel)` → the changed prefix
+  (`trelby/relink.py:84`), `applyPattern`, `suggest(root, pat, refs)` →
+  the refs the pattern finds at an existing path of the right kind
+  (`trelby/relink.py:122`).
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
   (`trelby/trelbyctrl.py:1559`).
@@ -149,12 +160,12 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
-  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1110`).
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1114`).
   File → New film… / Open film… (`OnNewFilm`, `OnOpenFilm`,
-  `trelby/trelbyframe.py:658-689`) and the open film `film`, with
+  `trelby/trelbyframe.py:659-690`) and the open film `film`, with
   `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:905-909`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:909-913`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   + `ActPanel` at the right (`trelby/trelbypanel.py:7`); the act panel is
@@ -251,6 +262,12 @@ Reports
   (`trelby/pagelist.py:6`).
 
 Dialogs
+- `relinkdlg.py` — `RelinkDlg` (`trelby/relinkdlg.py:14`): the one
+  warning for a film's problems on open; per missing file Search… (a file
+  or folder dialog, `askPath`) or Skip; a found file is applied at once and
+  its pattern's finds are offered in a `wx.MultiChoiceDialog`, all checked,
+  and applied only when accepted (`OnSearch`, `trelby/relinkdlg.py:134`);
+  an invalid file shows its reason and can't be searched for.
 - `cfgdlg.py` — `CfgDlg`: settings dialog; global pages or script pages
   from `configpages/` (`trelby/cfgdlg.py:21`).
 - `finddlg.py` — `FindDlg`: find and replace, optional element-type filter;
@@ -332,12 +349,12 @@ Data and folders
   `manual.html`, Help → Manual makes the page from `doc/manual.xml`
   (`manual.py`).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:205`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:222-227`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:206`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:223-228`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 - A missing file part other than the script (the settings record) is not
-  a problem on open: it was not written yet (`trelby/film.py:79-84`).
+  a problem on open: it was not written yet (`trelby/film.py:83-87`).
   Missing folder parts, the script and the writer's `ids/w.json` are; with
   `ids/w.json` lost, `newId` refuses rather than start again at 1.
 

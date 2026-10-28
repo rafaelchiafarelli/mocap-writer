@@ -17,6 +17,7 @@ import trelby.film as film
 import trelby.manual as manual
 import trelby.misc as misc
 import trelby.namesdlg as namesdlg
+import trelby.relinkdlg as relinkdlg
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
 import trelby.splash as splash
 import trelby.util as util
@@ -709,12 +710,15 @@ class MyFrame(wx.Frame):
         self.setFilm(f)
 
         if f.problems:
-            wx.MessageBox(
-                film.problemsText(f.problems),
-                _("Open film"),
-                wx.OK | wx.ICON_WARNING,
-                self,
-            )
+            dlg = relinkdlg.RelinkDlg(self, f.root, f.problems)
+            dlg.ShowModal()
+            dlg.Destroy()
+
+            # the script may have been found in the dialog
+            script = f.partPath("script")
+
+            if script.exists():
+                self.showScript(str(script))
 
     def OnSave(self, event=None):
         self.panel.ctrl.OnSave()
