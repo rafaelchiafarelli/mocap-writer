@@ -1,5 +1,7 @@
 ## 2. The number lives in the script model and the file
 
+- **Status:** Done (2026-10-27)
+
 - **Type:** code
 - **Depends on:** 1 (the rule's `parse` and `check`)
 - **Contract:**
@@ -11,7 +13,9 @@
       `==`, and in every copy of a line the model makes (`__deepcopy__`,
       undo), so undo and redo give the number back;
     - wrapping keeps it on the element's first line; splitting a heading
-      at its start moves it with the heading's text; joining a heading
+      (Enter) keeps it on the first part, as Trelby keeps the element's
+      type there (implemented 2026-10-27; pasting several elements at the
+      start of a heading leaves it with the heading's text); joining a heading
       into the element before drops it (that scene is gone); changing a
       heading's type keeps it on the line, so changing back restores it;
       copy and cut never put it on the clipboard (a pasted scene is new);
@@ -21,7 +25,8 @@
       element whose number changed counts as edited;
     - after open, `scenenumbers.check` problems are reported to the user
       (duplicates, order, other forms, scenes with no number), never
-      fixed.
+      fixed (also: PDF import puts its numbers on `num`, not in the
+      text, so they read back the same).
   - Delivers: `line.py`, `screenplay.py`, `undo.py`, `fountain.py`
     changes; the report on open (`trelbyctrl.py`)
 - **Pre-work:** —

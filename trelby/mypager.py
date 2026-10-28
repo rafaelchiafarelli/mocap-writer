@@ -11,8 +11,12 @@ class Pager:
         self.charIndent = cfg.getType(screenplay.CHARACTER).indent
         self.sceneIndent = cfg.getType(screenplay.SCENE).indent
 
-        # current scene number
-        self.scene = 0
+        # label of the current scene's number ("12.A", "(13)"), "" before
+        # the first scene
+        self.scene = ""
+
+        # scenenumbers.labels() of the script, filled when first needed
+        self.sceneLabels = None
 
         # number of CONTINUED:'s lines added for current scene
         self.sceneContNr = 0
