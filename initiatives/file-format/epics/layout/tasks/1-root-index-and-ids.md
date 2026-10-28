@@ -24,8 +24,13 @@
     and then with a message, never a crash
   - Delivers: the library that opens a film root, validates `film.json`,
     tells a program which parts it owns, and hands out new ids
-- **Pre-work:** the `mocap-contracts` task above. The id form and the
-  default part paths are decided (below, Rafael 2026-10-26)
+- **Pre-work:** the `mocap-contracts` task above (done, `v0.4.0`) and its
+  five open rules (decided 2026-10-28, below: `v0.5.0`). The id form and
+  the default part paths are decided (below, Rafael 2026-10-26). The writer
+  gets `mocap-contracts` as a git submodule at `third_party/mocap-contracts`
+  pinned to its tag, on `PYTHONPATH` in the image, with `protobuf` added to
+  `docker/requirements.lock` (Rafael, 2026-10-28: a hashed lock can't hold a
+  `git+` URL)
 - **Out of scope:** the warning and the search for missing files
   (layout/3); history (layout/2); the contents of each part (their
   own tasks); moving to C (study/3: kept in mind, not built)
@@ -134,3 +139,20 @@ contract/2 keeps `bible/` and the layout/1 id form.
 **Touchpoint:** `mocap-contracts` `session.harpia` already has a
 `Character` with a free-form `id` for capture. A bible `character-…` id
 could fill it later; nothing in layout/1 depends on that.
+
+### Decided: the five rules the `film` task left open (Rafael, 2026-10-28)
+
+All five, enforced in `mocap-contracts` (`mocap_contracts.rules`, released
+as `v0.5.0`), so the writer and every agent run the same checks:
+1. Every part whose owner is not `writer` has a space with that owner; a
+   space may outlive its part (a code is never reused).
+2. `film.json` always holds the `script` part and the `w` space (owner
+   `writer`).
+3. Part names are a fixed set: `script`, `settings`, `bible`,
+   `annotations`, `history`, `proposals-<code>`, where `<code>` is a
+   listed space.
+4. An owner is `writer` or kebab-case (`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`, an
+   agent's file name).
+5. Paths hold Windows-safe names only: no `<>:"|?*` or control
+   characters, no segment ending in a dot or a space, no reserved device
+   name (`CON`, `NUL`, `COM1`...).

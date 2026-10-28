@@ -5,6 +5,10 @@ Everything still open, in one list, to pick the work up again (Rafael,
 is settled, record the decision there and remove its line here. Bugs are
 not listed: they are the backlog in `bugs/bugs.md`.
 
+Settled on 2026-10-28 and removed from here: how the film keeps its
+history (a change log, file-format/layout/2); the `bible` message's shape
+(film-bible/contract/2) and its go-ahead in `mocap-contracts`.
+
 Settled on 2026-10-26 and removed from here: the id form and the default
 part paths (file-format/layout/1); the scene-number open points
 (fountain-native/scenes/1); the settings record's fields
@@ -23,8 +27,6 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 
 ## Decisions for Rafael
 
-- **How the film keeps its history** — a study to run, then Rafael decides
-  ([layout/2](file-format/epics/layout/tasks/2-history.md)).
 - **How agents write proposals** — (a) they write `item.json` and the
   writer refuses an invalid file, or (b) a validating `bible propose`
   command; deferred to the mocap-preprod planning
@@ -50,14 +52,13 @@ numbered `S1`, `S2` per scene; "needs review" not stored
   by layout/1's tests too.
 - **`mocap-contracts` tasks, none planned yet** (Rafael's go-ahead
   needed, another repository): `script_settings`
-  (fountain-native/settings/1), `bible` (film-bible/contract/2),
-  `annotation` (fountain-native/notes/1), `scene_index`
+  (fountain-native/settings/1), `annotation` (fountain-native/notes/1), `scene_index`
   (preprod-link/contract/1), `change_set` (preprod-link/contract/2).
 - **fountain-native/scenes/5** (a move and Renumber all rewrite the
   records that name scenes) waits for the first such records.
-- **file-format/layout/1** can pin `mocap-contracts` `v0.4.0` (pushed,
-  checked 2026-10-27); it waits for Rafael on the five rules the `film`
-  task left open (above); **layout/3** (missing files: warn and search) waits for layout/1.
+- **file-format/layout/1** pins `mocap-contracts` `v0.5.0` (the five rules
+  the `film` task left open, decided 2026-10-28, layout/1);
+  **layout/3**, **4** and **5** wait for layout/1.
 - **fountain-native/settings/1** waits for layout/1 and `script_settings`.
 - **fountain-native/notes/1** waits for `annotation` (scenes/1–4 done
   2026-10-27).
