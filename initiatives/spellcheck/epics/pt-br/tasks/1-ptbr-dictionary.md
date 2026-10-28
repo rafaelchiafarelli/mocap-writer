@@ -1,7 +1,8 @@
 ## 1. The spell checker in pt-BR
 
 - **Type:** code (and the Docker image)
-- **Depends on:** study/1 (Rafael's decision on the dictionary and on
+- **Depends on:** study/1 (in git history: git log --
+  initiatives/spellcheck/epics/study; Rafael's decision on the dictionary and on
   option 1 or 2)
 - **Contract:**
   - In: the dictionary and engine chosen in study/1
