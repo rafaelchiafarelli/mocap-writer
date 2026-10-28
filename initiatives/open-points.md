@@ -46,14 +46,19 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 
 ## Work waiting on something else
 
+- **`mocap-contracts` `film`** (root index and ids, for
+  file-format/layout/1): **done** (2026-10-27), tag `v0.4.0` (initiative
+  `film-root`). Its task lists five rules layout/1 left open, for Rafael
+  (`film-root/epics/film-messages/tasks/1-film-harpia-done.md`, "Not
+  decided"); `fixtures/film-v1/` with `invalid/expected.json` can be run
+  by layout/1's tests too.
 - **`mocap-contracts` tasks, none planned yet** (Rafael's go-ahead
-  needed, another repository): `film` (root index and ids, for
-  file-format/layout/1), `script_settings` (fountain-native/settings/1),
-  `bible` (film-bible/contract/2), `annotation` (fountain-native/notes/1),
-  `scene_index` (preprod-link/contract/1), `change_set`
-  (preprod-link/contract/2). `film` first: it unblocks layout/1.
-- **file-format/layout/1** waits for `film`; **layout/3** (missing files:
-  warn and search) waits for layout/1.
+  needed, another repository): `script_settings`
+  (fountain-native/settings/1), `bible` (film-bible/contract/2),
+  `annotation` (fountain-native/notes/1), `scene_index`
+  (preprod-link/contract/1), `change_set` (preprod-link/contract/2).
+- **file-format/layout/1** can pin `mocap-contracts` `v0.4.0` once it is
+  pushed; **layout/3** (missing files: warn and search) waits for layout/1.
 - **fountain-native/settings/1** waits for layout/1 and `script_settings`.
 - **fountain-native/notes/1** waits for scenes/1 and `annotation`.
 - **film-bible** waits for scenes/1, layout/1 and `bible`; links/2 also
