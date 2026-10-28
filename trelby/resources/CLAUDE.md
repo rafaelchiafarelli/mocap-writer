@@ -43,4 +43,4 @@ desktop entry. Files are addressed as `trelby/resources/<file>` relative to
 ## Touchpoints
 - Called by: `trelby/trelbyframe.py`, `trelby/splash.py`, `trelby/misc.py`.
 - Packaged by: `setup.cfg` (`resources/*`), `debian/install`,
-  `tools/update_icns.py` (meant to rebuild `resources_mac/icon.icns`).
+  `tools/update_icns.py` (rebuilds `resources_mac/icon.icns`).
