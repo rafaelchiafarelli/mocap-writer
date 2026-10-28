@@ -1,5 +1,8 @@
 ## 3. Wardrobe ↔ character × scene
 
+- **Status:** Done (2026-10-28) — the form's Worn by row, From script →
+  Wardrobe gaps, `biblelinks.wardrobeGaps`
+
 - **Type:** code
 - **Depends on:** maps/2, maps/4
 - **Contract:**

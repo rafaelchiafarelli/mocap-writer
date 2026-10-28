@@ -1,6 +1,7 @@
 import wx
 
 import trelby.bible as bible
+import trelby.misc as misc
 import trelby.biblelinks as biblelinks
 import trelby.bibleform as bibleform
 
@@ -381,6 +382,7 @@ class BiblePanel(wx.Panel):
         return [
             (_("Link scenes to sets..."), self.OnLinkSets),
             (_("Find props..."), self.OnFindProps),
+            (_("Wardrobe gaps..."), self.OnWardrobeGaps),
         ]
 
     # warn if the script has scenes with no number yet: those are left out
@@ -516,3 +518,23 @@ class BiblePanel(wx.Panel):
             dlg.Destroy()
 
         self.changed()
+
+    # links/3: characters in a scene with no wardrobe linked to them there
+    def OnWardrobeGaps(self, event=None):
+        sp = self.script()
+        gaps = biblelinks.wardrobeGaps(self.bible, sp)
+
+        if gaps:
+            lines = [
+                _("Scene %s: %s") % (n, self.bible.get(cid).name) for n, cid in gaps
+            ]
+            text = (
+                _("These characters have no wardrobe in these scenes (a gap, not an error):")
+                + "\n\n"
+                + "\n".join(lines)
+            )
+        else:
+            text = _("Every character the bible knows has wardrobe in every scene.")
+
+        text += self.noteUnnumbered(sp)
+        misc.showText(self, text, _("Wardrobe gaps"))
