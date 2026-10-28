@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 60 modules: the
+**Role:** All of Trelby's code. One flat package of 61 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -74,6 +74,16 @@ Model and file format
   act break are an unnamed first part (`name` None), listed only when
   there is an act break; `actAt(acts, line)` → index or None
   (`trelby/acts.py:64`).
+- `scenenumbers.py` — permanent scene numbers (fountain-native/scenes), no
+  wx: `parse("12.A.1") -> (12, "A", 1)` or None for another tool's form
+  (`trelby/scenenumbers.py:27`), `fmt`, `key`; `assign(nums) -> (new,
+  noRoom)` gives every scene without a number one by the rule (a fresh
+  script `1..n`; at the end the next whole number; else the next sibling
+  when the next number is outside the parent, else the first child; no
+  room between a scene and its child, before the first numbered scene or
+  next to another tool's form, `trelby/scenenumbers.py:106`);
+  `check(nums) -> [Problem]` (duplicate, order, foreign, missing,
+  `trelby/scenenumbers.py:160`).
 - `propwords.py` — `find_prop_words(line) -> [(start, end, word)]`
   (`trelby/propwords.py:15`): runs of 2+ letters, accents included, that are
   fully upper case (`trelby/propwords.py:9`); the editor underlines them in
