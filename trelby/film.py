@@ -293,6 +293,16 @@ class Film:
         self.saveIndex()
 
 
+# the problems as text for the user, one line each
+def problemsText(problems):
+    lines = [_("The film opened, but some of it is missing or invalid:"), ""]
+
+    for p in problems:
+        lines.append("%s (%s): %s" % (p.what, p.where, p.why))
+
+    return "\n".join(lines)
+
+
 def _origin():
     from trelby import misc  # imports wx; only for the version
 
