@@ -56,9 +56,16 @@ numbered `S1`, `S2` per scene; "needs review" not stored
   is done, 2026-10-28).
 - **fountain-native/notes/1** waits for `annotation` (scenes/1–4 done
   2026-10-27).
-- **preprod-link** waits for film-bible.
+- **preprod-link** can start: film-bible is implemented (its gate is
+  open, above).
 
 ## Gates left to a film session or to Rafael
+
+- film-bible (implemented 2026-10-28): on the neutral sample, Rafael
+  creates one item of each map, links it to scenes, copies one to a second
+  film root, and the mocap-preprod agents read the records
+  ([film-bible](film-bible/film-bible.md)). The agents' side needs
+  mocap-preprod to pin `mocap-contracts` `v0.5.0`.
 
 - fountain-native: one real scene survives open → save → open
   byte-identical. The numbering behavior was approved on 2026-10-27
