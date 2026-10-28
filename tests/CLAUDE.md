@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 310 tests.
+objects directly and never create the wx GUI. 336 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -63,6 +63,13 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   per-scene values, links shown by name keep their notes, files added and
   removed. The `BibleForm` needs a display: checked through the real
   window (2026-10-28).
+- `test_biblelinks.py` — film-bible/links: heading locations, a new
+  location offered and never made, a known one linked, made sets linked,
+  rename keeps the link, aliases, a set with no scene; the scene at a line
+  and its items; props as runs offered never made, known props linked,
+  made props linked, "not a prop" remembered, bible characters skipped,
+  the run being typed left out; wardrobe links, gaps and unlink, wardrobe
+  with no character.
 - `test_acts.py` — acts (story-structure/acts): the Act break is not in
   the PDF, the text after it moves up, the pagination still counts it,
   the screen page still shows it; `acts.actsOf` / `actAt` (no act break,
@@ -156,7 +163,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   numbered `1, 2`, a heading being typed shows `(3)` and gets `3` on
   Enter).
 - `test_propwords.py` — `propwords.find_prop_words`: positions, accents,
-  one-letter words, punctuation, mixed case and digits, an all-caps line.
+  a multi-word run is one prop, punctuation ends a run, one-letter words
+  inside a run but never at its ends, hyphen and apostrophe, mixed case and
+  digits, an all-caps line, a run being typed not offered yet.
 - `test_taborder.py` — `ConfigGlobal.tabOrder`: the default cycle and its
   wrap-around, elements outside the cycle, config round trip, `recalc`
   clean-up. Loads the translations itself.

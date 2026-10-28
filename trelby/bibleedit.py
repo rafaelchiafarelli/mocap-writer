@@ -249,3 +249,37 @@ def sceneChoices(b, item, sp=None):
         nums |= {n for _l, n in scenenumbers.scenesOf(sp) if n}
 
     return sorted(nums, key=lambda n: scenenumbers.key(n) or (999999, n))
+
+
+# the scenes a wardrobe item is worn in by the character cid
+def wornScenes(item, cid):
+    return [l.scene for l in item.msg.links if l.HasField("item") and l.item == cid]
+
+
+# "Ana in 1, 2; Bia in 3": who wears a wardrobe item where
+def wornText(b, item):
+    byChar = {}
+
+    for l in item.msg.links:
+        if l.HasField("item"):
+            byChar.setdefault(l.item, []).append(l.scene)
+
+    parts = []
+
+    for cid, scenes in byChar.items():
+        c = b.get(cid)
+        parts.append(_("%s in %s") % (c.name if c else cid, ", ".join(scenes)))
+
+    return LIST_SEP.join(sorted(parts))
+
+
+# the wardrobe item is worn by character in exactly scenes
+def setWorn(b, item, character, scenes):
+    old = set(wornScenes(item, character.id))
+
+    for s in sorted(old - set(scenes)):
+        b.unlink(item, s, character.id, "creator")
+
+    for s in scenes:
+        if s not in old:
+            b.link(item, s, character.id, "creator")
