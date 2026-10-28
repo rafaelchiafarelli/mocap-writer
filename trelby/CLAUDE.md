@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 65 modules: the
+**Role:** All of Trelby's code. One flat package of 66 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -188,17 +188,28 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
-  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1114`).
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1150`).
   File → New film… / Open film… (`OnNewFilm`, `OnOpenFilm`,
-  `trelby/trelbyframe.py:659-690`) and the open film `film`, with
-  `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5).
+  `trelby/trelbyframe.py:677-708`) and the open film `film`, with
+  `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5), its
+  `bible`, and the bible panel in `splitter` with View → Bible
+  (`showBible`, film-bible/tree/1, `trelby.process.md` Stage 1).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:909-913`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:945-949`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   + `ActPanel` at the right (`trelby/trelbypanel.py:7`); the act panel is
   made before `MyCtrl`, whose constructor already updates it
   (`trelby/trelbypanel.py:28`).
+- `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:18`): the bible
+  panel (film-bible/tree/1) over `MyFrame.bible`: New / New child /
+  Rename / Delete buttons, a `wx.TreeCtrl` with one branch per map
+  (`refresh` rebuilds it from `Bible.children`, keeping the selection and
+  what was expanded, `trelby/biblepanel.py:111`), a right-click menu
+  (`menuItems`, `trelby/biblepanel.py:303`), drag and drop to change an
+  item's parent (`OnEndDrag`, `trelby/biblepanel.py:333`); under the tree
+  in a splitter, the selected item's form (`makeForm` / `showItem`).
+  Errors the film refuses are shown, never raised (`guard`).
 - `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
   wide, one row per act with its name, `n scenes` and a bar as long as its
   scene count against the largest act; the cursor's act highlighted; a
@@ -215,8 +226,9 @@ Application and editor (wx)
 - `viewmode.py` — the three screen layouts (draft, layout, side by side):
   where each line is drawn and which line/column a mouse position hits.
   Detail: [viewmode.as-built.md](viewmode.as-built.md).
-- `ids.py` — wx menu ids (`ID_FILE_NEW_FILM`, `ID_FILE_OPEN_FILM` for the film) and `idToLTMap` (right-click "Element type" ids →
-  line types, `trelby/ids.py:85`).
+- `ids.py` — wx menu ids (`ID_FILE_NEW_FILM`, `ID_FILE_OPEN_FILM`,
+  `ID_VIEW_BIBLE` for the film) and `idToLTMap` (right-click "Element type" ids →
+  line types, `trelby/ids.py:86`).
 - `misc.py` — platform flags, `progPath` / `confPath` (`misc.init`,
   `trelby/misc.py:23`), `version` (`trelby/misc.py:20`), and shared widgets:
   `MyTabCtrl` (tab bar, `trelby/misc.py:287`), `MyStatus` (status area
@@ -377,8 +389,8 @@ Data and folders
   `manual.html`, Help → Manual makes the page from `doc/manual.xml`
   (`manual.py`).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:206`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:223-228`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:212`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:229-234`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 - A missing file part other than the script (the settings record) is not
