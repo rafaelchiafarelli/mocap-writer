@@ -7,3 +7,6 @@ pytest
 # PDF text with positions, for pdf-import (MIT; pdfminer.six MIT, pypdfium2
 # Apache-2.0/BSD-3). Not PyMuPDF (AGPL).
 pdfplumber
+# mocap-contracts (third_party/mocap-contracts, on PYTHONPATH) needs only protobuf
+# (BSD-3); its own pyproject asks >=4.21.12,<5.
+protobuf>=4.21.12,<5

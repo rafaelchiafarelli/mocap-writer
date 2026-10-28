@@ -4,3 +4,7 @@ requires = [
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+# Only this repository's suite: third_party/mocap-contracts has its own.
+testpaths = ["tests"]

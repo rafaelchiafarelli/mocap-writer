@@ -5,7 +5,9 @@ Everything still open, in one list, to pick the work up again (Rafael,
 is settled, record the decision there and remove its line here. Bugs are
 not listed: they are the backlog in `bugs/bugs.md`.
 
-Settled on 2026-10-28 and removed from here: how the film keeps its
+Settled on 2026-10-28 and removed from here: file-format, done (its five
+`film.json` rules and the `bible` and `change` messages are in
+`mocap-contracts` `v0.5.0`); how the film keeps its
 history (a change log, file-format/layout/2); the `bible` message's shape
 (film-bible/contract/2) and its go-ahead in `mocap-contracts`.
 
@@ -44,27 +46,16 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 
 ## Work waiting on something else
 
-- **`mocap-contracts` `film`** (root index and ids, for
-  file-format/layout/1): **done** (2026-10-27), tag `v0.4.0` (initiative
-  `film-root`). Its task lists five rules layout/1 left open, for Rafael
-  (`film-root/epics/film-messages/tasks/1-film-harpia-done.md`, "Not
-  decided"); `fixtures/film-v1/` with `invalid/expected.json` can be run
-  by layout/1's tests too.
 - **`mocap-contracts` tasks, none planned yet** (Rafael's go-ahead
   needed, another repository): `script_settings`
   (fountain-native/settings/1), `annotation` (fountain-native/notes/1), `scene_index`
   (preprod-link/contract/1), `change_set` (preprod-link/contract/2).
 - **fountain-native/scenes/5** (a move and Renumber all rewrite the
   records that name scenes) waits for the first such records.
-- **file-format/layout/1** pins `mocap-contracts` `v0.5.0` (the five rules
-  the `film` task left open, decided 2026-10-28, layout/1);
-  **layout/3**, **4** and **5** wait for layout/1.
-- **fountain-native/settings/1** waits for layout/1 and `script_settings`.
+- **fountain-native/settings/1** waits for `script_settings` (file-format
+  is done, 2026-10-28).
 - **fountain-native/notes/1** waits for `annotation` (scenes/1–4 done
   2026-10-27).
-- **film-bible** waits for layout/1 and `bible` (scenes done 2026-10-27); links/2 also
-  changes `find_prop_words` to runs of capitalized words (rule settled
-  2026-10-25).
 - **preprod-link** waits for film-bible.
 
 ## Gates left to a film session or to Rafael
