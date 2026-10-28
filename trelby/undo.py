@@ -179,6 +179,31 @@ class FullCopy(Base):
         self.setEndPos(sp)
 
 
+# a FullCopy that also keeps the scene numbers given so far
+# (Screenplay.sceneNumbersIssued), for the changes scene numbering makes on
+# save and Renumber all (fountain-native/scenes/3)
+class SceneNumbers(FullCopy):
+    def __init__(self, sp):
+        FullCopy.__init__(self, sp)
+
+        self.issuedBefore = set(sp.sceneNumbersIssued)
+
+    def setAfter(self, sp):
+        FullCopy.setAfter(self, sp)
+
+        self.issuedAfter = set(sp.sceneNumbersIssued)
+
+    def undo(self, sp):
+        FullCopy.undo(self, sp)
+
+        sp.sceneNumbersIssued = set(self.issuedBefore)
+
+    def redo(self, sp):
+        FullCopy.redo(self, sp)
+
+        sp.sceneNumbersIssued = set(self.issuedAfter)
+
+
 # stores a single modified paragraph
 class SinglePara(Base):
     # line is any line belonging to the modified paragraph. there is no
@@ -243,7 +268,7 @@ class AnyDifference(Base):
     def __init__(self, sp):
         Base.__init__(self, sp, CMD_MISC)
 
-        self.linesBefore = [Line(ln.lb, ln.lt, ln.text) for ln in sp.lines]
+        self.linesBefore = [ln.copy() for ln in sp.lines]
 
     def setAfter(self, sp):
         self.a, self.b, self.x, self.y = mySequenceMatcher(self.linesBefore, sp.lines)

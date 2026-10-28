@@ -131,6 +131,9 @@ class MyFrame(wx.Frame):
         scriptMenu = wx.Menu()
         scriptMenu.Append(ID_SCRIPT_FIND_ERROR, "(&F) " + _("Find next error"))
         scriptMenu.Append(ID_SCRIPT_PAGINATE, "(&P) " + _("Paginate"))
+        scriptMenu.Append(
+            ID_SCRIPT_RENUMBER, "(&R) " + _("Renumber all scenes") + "..."
+        )
         scriptMenu.AppendSeparator()
         scriptMenu.Append(
             ID_SCRIPT_AUTO_COMPLETION, "(&A) " + _("Auto-completion") + "..."
@@ -347,6 +350,7 @@ class MyFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.ToggleFullscreen, id=ID_VIEW_FULL_SCREEN)
             self.Bind(wx.EVT_MENU, self.OnFindNextError, id=ID_SCRIPT_FIND_ERROR)
             self.Bind(wx.EVT_MENU, self.OnPaginate, id=ID_SCRIPT_PAGINATE)
+            self.Bind(wx.EVT_MENU, self.OnRenumberScenes, id=ID_SCRIPT_RENUMBER)
             self.Bind(
                 wx.EVT_MENU, self.OnAutoCompletionDlg, id=ID_SCRIPT_AUTO_COMPLETION
             )
@@ -853,6 +857,9 @@ class MyFrame(wx.Frame):
 
     def OnPaginate(self, event=None):
         self.panel.ctrl.OnPaginate()
+
+    def OnRenumberScenes(self, event=None):
+        self.panel.ctrl.OnRenumberScenes()
 
     def OnAutoCompletionDlg(self, event=None):
         self.panel.ctrl.OnAutoCompletionDlg()

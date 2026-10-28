@@ -92,7 +92,7 @@ enum starting at `UNSET`. Defaults are today's `Config` defaults.
   layout is used only while the script's title block still equals
   `fountain_title`; if the title page was edited elsewhere, it is built
   from Fountain in the default layout (`makeTitles`,
-  `trelby/fountain.py:342`) and the mismatch is listed as a problem. On
+  `trelby/fountain.py:353`) and the mismatch is listed as a problem. On
   save the Fountain block is written as today and the record gets the
   layout and the block.
 
@@ -121,7 +121,7 @@ enum starting at `UNSET`. Defaults are today's `Config` defaults.
 2. The title page's layout (each string's x, y, size, font, alignment,
    `trelby/titles.py`): Fountain keeps only the `Key: value` text, and a
    title page edited in the Titles dialog is written back as text in
-   Trelby's default layout (`generateTitle`, `trelby/fountain.py:390`).
+   Trelby's default layout (`generateTitle`, `trelby/fountain.py:401`).
    Leave the layout out (recommended; the Fountain title page stays the
    source of truth), or keep it in the record so a custom title layout
    survives?

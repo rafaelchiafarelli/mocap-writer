@@ -24,6 +24,7 @@ import trelby.opts as opts
 import trelby.pml as pml
 import trelby.propwords as propwords
 import trelby.reports as reports
+import trelby.scenenumbers as scenenumbers
 import trelby.screenplay as screenplay
 import trelby.spellcheck as spellcheck
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
@@ -147,6 +148,18 @@ class MyCtrl(wx.Control):
         # display the first page
         self.makeLineVisible(self.sp.line)
 
+        # scene number problems are reported, never fixed
+        # (fountain-native/scenes/2)
+        msg = scenenumbers.report(self.sp)
+        if msg:
+            misc.showText(
+                self.gd.mainFrame,
+                _("Scene numbers in {}:").format(os.path.basename(fileName))
+                + "\n\n"
+                + msg,
+                _("Scene numbers"),
+            )
+
     # a .fountain file -> Screenplay, or None after telling the user why
     def readFountain(self, fileName):
         data = util.loadFile(fileName, self.gd.mainFrame, binary=True)
@@ -172,6 +185,10 @@ class MyCtrl(wx.Control):
     # unless the name ends in it). returns True on success.
     def saveFile(self, fileName):
         fileName = str(util.ensureEndsIn(fileName, ".fountain"))
+
+        if not self.numberScenes():
+            return False
+
         res = fountain.generate(self.sp)
 
         if util.writeToFile(fileName, res.text.encode("UTF-8"), self.gd.mainFrame):
@@ -186,6 +203,67 @@ class MyCtrl(wx.Control):
             return True
         else:
             return False
+
+    # give the scenes their numbers before a save (fountain-native/scenes/3).
+    # returns False if the save must wait: a duplicate number or a scene
+    # with no room, and the user does not renumber all scenes.
+    def numberScenes(self):
+        msgs = scenenumbers.prepareSave(self.sp)
+
+        if msgs:
+            text = (
+                _("The script was not saved:")
+                + "\n\n"
+                + "\n".join(msgs)
+                + "\n\n"
+                + _(
+                    "Renumber all scenes 1, 2, 3... and save? Every number "
+                    "given before changes."
+                )
+            )
+
+            if (
+                wx.MessageBox(
+                    text,
+                    _("Scene numbers"),
+                    wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
+                    self.gd.mainFrame,
+                )
+                != wx.YES
+            ):
+                return False
+
+            scenenumbers.renumberAll(self.sp)
+            scenenumbers.prepareSave(self.sp)
+
+        self.updateScreen()
+
+        return True
+
+    # Script -> Renumber all scenes
+    def OnRenumberScenes(self):
+        self.clearAutoComp()
+
+        if (
+            wx.MessageBox(
+                _(
+                    "Renumber every scene 1, 2, 3... in order? Scene numbers "
+                    "are permanent: every number given before changes, and "
+                    "the OMITTED headings are removed. Call sheets, schedules "
+                    "and notes outside the script will no longer match."
+                ),
+                _("Renumber all scenes"),
+                wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
+                self.gd.mainFrame,
+            )
+            != wx.YES
+        ):
+            return
+
+        scenenumbers.renumberAll(self.sp)
+
+        self.makeLineVisible(self.sp.line)
+        self.updateScreen()
 
     # elements a Fountain save could not write so that they read back the
     # same (fountain.Result.lost)
@@ -559,6 +637,19 @@ class MyCtrl(wx.Control):
             self.updateScreen()
 
         pos = event.GetPosition()
+
+        # a click on a scene number: numbers are permanent, never edited
+        # (fountain-native/scenes/4)
+        if not mark:
+            sceneLine = self.gd.vm.sceneNumberAt(self, pos.x, pos.y)
+
+            if sceneLine is not None:
+                self.sp.gotoPos(sceneLine, 0, False)
+                self.updateScreen()
+                self.sceneNumberWarning()
+
+                return
+
         line, col = self.gd.vm.pos2linecol(self, pos.x, pos.y)
 
         self.mouseSelectActive = True
@@ -566,6 +657,31 @@ class MyCtrl(wx.Control):
         if line is not None:
             self.sp.gotoPos(line, col, mark)
             self.updateScreen()
+
+    def sceneNumberWarning(self):
+        if not scenenumbers.clickWarning.click():
+            return
+
+        dlg = wx.RichMessageDialog(
+            self.gd.mainFrame,
+            _(
+                "Scene numbers are permanent: a scene keeps its number for "
+                "good, so call sheets, schedules and notes that name it stay "
+                "right. A new scene gets its number when the script is saved; "
+                "a scene inserted between two others gets a letter (12.A). "
+                "To number every scene again, use Script > Renumber all "
+                "scenes."
+            ),
+            _("Scene numbers"),
+            wx.OK | wx.ICON_INFORMATION,
+        )
+        dlg.ShowCheckBox(_("Do not show this again for the next 5 clicks"))
+        dlg.ShowModal()
+
+        if dlg.IsCheckBoxChecked():
+            scenenumbers.clickWarning.snooze()
+
+        dlg.Destroy()
 
     def OnLeftUp(self, event):
         self.mouseSelectActive = False
@@ -954,8 +1070,21 @@ class MyCtrl(wx.Control):
 
         scenes = self.sp.getSceneLocations()
 
+        if not scenes:
+            wx.MessageBox(
+                _(
+                    "No scene has a number yet: numbers are given when the "
+                    "script is saved."
+                ),
+                _("Goto scene"),
+                wx.OK,
+                self.gd.mainFrame,
+            )
+
+            return
+
         def validateFunc(s):
-            if s in [x[0] for x in scenes]:
+            if s.strip().upper() in [x[0] for x in scenes]:
                 return ""
             else:
                 return _("Invalid scene number.")
@@ -969,7 +1098,7 @@ class MyCtrl(wx.Control):
 
         if dlg.ShowModal() == wx.ID_OK:
             for it in scenes:
-                if it[0] == dlg.input:
+                if it[0] == dlg.input.strip().upper():
                     self.sp.line = it[1]
                     self.sp.column = 0
 

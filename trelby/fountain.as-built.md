@@ -7,7 +7,7 @@ byte-identical, and that an edit rewrites only the elements it touched.
 
 ## How the round trip works
 
-- `parse(text)` (`trelby/fountain.py:229`) returns a `Source`
+- `parse(text)` (`trelby/fountain.py:240`) returns a `Source`
   (`trelby/fountain.py:69`): the BOM, the line ending of the first line
   (`eol`, `\n` or `\r\n`), the raw title-page block, a list of `Element`s
   (`trelby/fountain.py:56`) and the `tail` after the last element.
@@ -15,67 +15,74 @@ byte-identical, and that an edit rewrites only the elements it touched.
   by `\n`, passed through `util.toInputStr`), `raw` (its exact source, line
   endings included), `pre` (the exact source between the previous element
   and this one) and `decor` (a scene number `#12#` or a dual-dialogue mark
-  `^`, with the spaces before it).
+  `^`, with the spaces before it). A scene's number is
+  `sceneNum(decor)` (`trelby/fountain.py:150`), and `toLines` puts it on
+  the heading's first `Line` as `num` (`trelby/fountain.py:464`;
+  fountain-native/scenes/2): the number is never in the editor's text.
 - What the editor does not show goes into `pre` (or `tail`): blank lines,
   boneyard blocks that start a line (`/*` up to the line holding `*/`,
-  `trelby/fountain.py:261`), synopses `=`, sections `##` and deeper, page
+  `trelby/fountain.py:272`), synopses `=`, sections `##` and deeper, page
   breaks `===` (`_isHidden`, `trelby/fountain.py:95`).
   `bom + title + Σ(pre + raw) + tail` is the file, character for character.
-- `generate(sp)` (`trelby/fountain.py:541`) compares the editor's elements
-  now (`elementsOf`, `trelby/fountain.py:428`; empty elements are skipped)
-  with `sp.fountainSource.elements`, keyed by `(type, text)`, upper-cased for
-  types whose export is all caps (`key`, `trelby/fountain.py:548`), with
-  `difflib.SequenceMatcher` (`trelby/fountain.py:626`):
-  - **equal** → `pre + raw` (`emitOld`, `trelby/fountain.py:589`); if the
+- `generate(sp)` (`trelby/fountain.py:560`) compares the editor's elements
+  now (`elementsOf`, `trelby/fountain.py:440`, `(type, text, num)`, `num`
+  the first line's number for a scene, `""` otherwise; empty elements are
+  skipped) with `sp.fountainSource.elements`, keyed by `(type, text, num)`,
+  upper-cased for types whose export is all caps (`key`,
+  `trelby/fountain.py:567`; a changed number makes the element edited), with
+  `difflib.SequenceMatcher` (`trelby/fountain.py:652`):
+  - **equal** → `pre + raw` (`emitOld`, `trelby/fountain.py:611`); if the
     element was glued to its predecessor (`pre` without a newline) and that
     predecessor is no longer before it, a separator is used instead
-    (`sep`, `trelby/fountain.py:583`);
+    (`sep`, `trelby/fountain.py:605`);
   - **replaced** (edited in place) → the old `pre`, then the element in
     canonical Fountain; same type keeps its `decor` (`emitNew`,
-    `trelby/fountain.py:600`);
+    `trelby/fountain.py:622`), except a scene whose number is not the one
+    in it: written as ` #n#`, or nothing without a number
+    (`trelby/fountain.py:625-627`);
   - **inserted** → separator + canonical Fountain;
   - **deleted** → the hidden source in its `pre` (if not only blank lines)
     is carried to the next element written (`drop`,
-    `trelby/fountain.py:620`).
+    `trelby/fountain.py:646`).
 - The title page is written from its raw block while `titlesKey(sp.titles)`
-  equals the one recorded at load (`trelby/fountain.py:558`), else from
-  `generateTitle` (`trelby/fountain.py:390`); a blank line is ensured after
-  it (`trelby/fountain.py:657`).
+  equals the one recorded at load (`trelby/fountain.py:580`), else from
+  `generateTitle` (`trelby/fountain.py:401`); a blank line is ensured after
+  it (`trelby/fountain.py:684`).
 - The result is parsed again and compared with what the editor has
-  (`trelby/fountain.py:666`). `Result.lost` (`trelby/fountain.py:534`) lists
+  (`trelby/fountain.py:693`). `Result.lost` (`trelby/fountain.py:553`) lists
   the `(type, text)` of elements that will read back differently; the new
   `Source` becomes the script's `fountainSource` once the file is written.
 
 ## Element mapping
 
-`classify(lines)` (`trelby/fountain.py:159`) reads one paragraph (lines up
+`classify(lines)` (`trelby/fountain.py:170`) reads one paragraph (lines up
 to a blank or hidden line; inside a dialogue block a run of `"  "` lines
-followed by more dialogue continues it, `trelby/fountain.py:284`), in this
+followed by more dialogue continues it, `trelby/fountain.py:295`), in this
 order:
 
-| Fountain | Element | Written as (`_candidates`, `trelby/fountain.py:483`) |
+| Fountain | Element | Written as (`_candidates`, `trelby/fountain.py:502`) |
 |---|---|---|
 | `!X` | Action, forced | when the natural form reads as something else |
 | `# X` | Act break | `# X` |
-| `INT.`/`EXT.`/`EST.`/`INT./EXT.`/`INT/EXT`/`EXT/INT`/`I/E` + `.` or space, or `.X` | Scene; `#n#` → `decor` | natural, else `.X` |
+| `INT.`/`EXT.`/`EST.`/`INT./EXT.`/`INT/EXT`/`EXT/INT`/`I/E` + `.` or space, or `.X` | Scene; `#n#` → `decor`, and `Line.num` | natural, else `.X` |
 | a paragraph that is one `[[...]]` | Note | `[[X]]` |
 | upper case ending `TO:`, or `>X` not ending `<`, alone | Transition | natural, else `> X` |
 | upper-case cue (before any `(`) + more lines, or `@X` | Character; `^` → `decor`; then Paren for `(...)` lines and Dialogue for the rest (empty line = `"  "`) | natural, else `@X` |
 | upper case alone, ending in two spaces | Shot | `X  ` |
 | anything else (also `>centered<`, inline notes and boneyard) | Action, text as written | — |
 
-`_render` (`trelby/fountain.py:508`) tries the candidates in order and keeps
+`_render` (`trelby/fountain.py:527`) tries the candidates in order and keeps
 the first that `classify` reads back as the same element; a first line that
 would start a title page is skipped at the top of the file
-(`trelby/fountain.py:514`). If none fits it writes the first one and reports
-the element as lost (`trelby/fountain.py:529`).
+(`trelby/fountain.py:533`). If none fits it writes the first one and reports
+the element as lost (`trelby/fountain.py:548`).
 
 ## Title page
 
 The title page is the block of lines at the top, from a `Key: value` line
 (`TITLE_KEY_RE`, `trelby/fountain.py:49`; a line in upper case ending in
 `:`, such as `FADE IN:`, is not a key, `trelby/fountain.py:105`) to the first
-blank line (`trelby/fountain.py:244`). `makeTitles` (`trelby/fountain.py:342`)
+blank line (`trelby/fountain.py:255`). `makeTitles` (`trelby/fountain.py:353`)
 builds one title page from it in Trelby's default layout: Title (Helvetica
 24 bold, centered, y 105), Author (`by`, ``, names), Contact (left, x 15),
 Credit / Source centered from y 150, other keys left from y 220 upwards
@@ -85,12 +92,15 @@ block → no title page.
 ## Entry points
 
 - `isFountain(fileName)` (`trelby/fountain.py:82`) — `.fountain`, any case.
-- `load(text, cfgGl)` (`trelby/fountain.py:464`) → a paginated `Screenplay`
-  with default headers and `fountainSource` set; an empty file gives one
-  empty Scene line (`trelby/fountain.py:457`).
+- `load(text, cfgGl)` (`trelby/fountain.py:482`) → a paginated `Screenplay`
+  with default headers and `fountainSource` set, and `sceneNumbersIssued`
+  the numbers read (`trelby/fountain.py:491`, fountain-native/scenes/3);
+  an empty file gives one empty Scene line (`trelby/fountain.py:475`).
+  `OMITTED` headings come back as Scene elements with their number, since
+  they are written as `.OMITTED #n#`.
 - `generate(sp)` → `Result(text, source, lost)`; the caller writes `text`
   (UTF-8) and stores `source` (`MyCtrl.saveFile`,
-  `trelby/trelbyctrl.py:173`).
+  `trelby/trelbyctrl.py:186`).
 
 ## Gotchas
 
@@ -111,7 +121,7 @@ block → no title page.
 - Emphasis (`*`, `**`, `_`), inline notes and inline boneyard stay in the
   text as typed characters; the editor shows them as they are.
 - Only UTF-8 files open (`MyCtrl.loadFile` shows an error otherwise,
-  `trelby/trelbyctrl.py:129`); the BOM and the line ending of the first line
+  `trelby/trelbyctrl.py:130`); the BOM and the line ending of the first line
   are kept, and new lines are written with that line ending.
 - It is the program's only Fountain reader and writer (fountain-native/io/5):
   Import → Fountain reads through `load` like Open (the tab stays
@@ -122,9 +132,9 @@ block → no title page.
 ## Touchpoints
 
 - Called by: `MyCtrl.readFountain` (Open and Import) / `saveFile` /
-  `OnExportScript` (`trelby/trelbyctrl.py:151`, `trelby/trelbyctrl.py:173`,
-  `trelby/trelbyctrl.py:1187-1193`); `pdfimport.main`
-  (`trelby/pdfimport.py:1137`); `tests/test_fountain.py`,
+  `OnExportScript` (`trelby/trelbyctrl.py:164`, `trelby/trelbyctrl.py:186`,
+  `trelby/trelbyctrl.py:1316-1322`); `pdfimport.main`
+  (`trelby/pdfimport.py:1151`); `tests/test_fountain.py`,
   `tests/test_pdfimport.py`.
 - Uses: `screenplay` constants and `Screenplay`, `titles`, `pml`, `util`,
   `line.Line`; stdlib `difflib`, `re`.

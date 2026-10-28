@@ -20,12 +20,17 @@ numbered `S1`, `S2` per scene; "needs review" not stored
   Hunspell engine, measured; then Rafael decides
   ([study/1](spellcheck/epics/study/tasks/1-dictionary-study.md)).
 
-- **fountain-native/scenes/1–4** — permanent scene numbers, split
-  2026-10-27 ([scenes epic](fountain-native/epics/README.md)); scenes/5,
-  rewriting records on a move, waits for the first records.
-
 ## Decisions for Rafael
 
+- **Scene numbering, choices made while implementing (2026-10-27)** — to
+  confirm or overturn: a number is given on save, not while typing (a new
+  scene shows `(12.A)` until then); nothing fits before scene 1 or next
+  to another tool's form (`1A`); a deleted scene's `OMITTED` goes right
+  before the next higher number; Renumber all removes the `OMITTED`
+  headings; Enter at the start of a heading leaves the number on the
+  empty first part
+  ([scenes/1](fountain-native/epics/scenes/tasks/1-numbering-rule.md),
+  [scenes/3](fountain-native/epics/scenes/tasks/3-numbers-on-save.md)).
 
 - **How the film keeps its history** — a study to run, then Rafael decides
   ([layout/2](file-format/epics/layout/tasks/2-history.md)).
@@ -52,11 +57,14 @@ numbered `S1`, `S2` per scene; "needs review" not stored
   `bible` (film-bible/contract/2), `annotation` (fountain-native/notes/1),
   `scene_index` (preprod-link/contract/1), `change_set`
   (preprod-link/contract/2). `film` first: it unblocks layout/1.
+- **fountain-native/scenes/5** (a move and Renumber all rewrite the
+  records that name scenes) waits for the first such records.
 - **file-format/layout/1** waits for `film`; **layout/3** (missing files:
   warn and search) waits for layout/1.
 - **fountain-native/settings/1** waits for layout/1 and `script_settings`.
-- **fountain-native/notes/1** waits for scenes/1 and `annotation`.
-- **film-bible** waits for scenes/1, layout/1 and `bible`; links/2 also
+- **fountain-native/notes/1** waits for `annotation` (scenes/1–4 done
+  2026-10-27).
+- **film-bible** waits for layout/1 and `bible` (scenes done 2026-10-27); links/2 also
   changes `find_prop_words` to runs of capitalized words (rule settled
   2026-10-25).
 - **preprod-link** waits for film-bible.
