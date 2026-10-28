@@ -1,5 +1,11 @@
 ## 4. Copy items
 
+- **Status:** Done (2026-10-28) — `biblelinks.copyItem`, the item menu's
+  Copy and Copy to another film…; the second film root is built in
+  `tests/test_biblelinks.py`. "Placing a copy into a scene" warns at the
+  copy, naming the original's scenes; deleting names the scenes that use
+  the item
+
 - **Type:** code
 - **Depends on:** links/1–3
 - **Contract:**

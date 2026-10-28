@@ -1,5 +1,8 @@
 ## 2. Bible folders and contract
 
+- **Status:** Done (2026-10-28) — `mocap-contracts` `v0.5.0`
+  (`bible.harpia`, `catalog/bible-v1.json`); `trelby/bible.py`
+
 - **Type:** code, here and in `mocap-contracts`
 - **Depends on:** contract/1 (approved catalog); a `mocap-contracts` task for
   `bible.harpia` done and tagged; fountain-native/scenes/1 (scene numbers);

@@ -1,5 +1,7 @@
 ## 3. Prop (item cênico) editor
 
+- **Status:** Done (2026-10-28) — the generic form of maps/1 (`trelby/bibleform.py`), generated from this map's catalog; `tests/test_bibleedit.py` covers this map
+
 - **Type:** code
 - **Depends on:** tree/1
 - **Contract:**
