@@ -1,5 +1,8 @@
 ## 5. Find characters
 
+- **Status:** Done (2026-10-28) — `biblelinks.characterPlan`, From script →
+  Find characters
+
 - **Type:** code
 - **Asked by:** Rafael, 2026-10-28, before testing the bible on an
   imported script: no command made characters from the script
