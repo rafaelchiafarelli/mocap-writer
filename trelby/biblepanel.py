@@ -1,6 +1,7 @@
 import wx
 
 import trelby.bible as bible
+import trelby.bibleform as bibleform
 
 # the bible panel (film-bible/tree/1): left of the script, one tree per map
 # (sets, characters, props, wardrobe) like a file explorer, over the open
@@ -80,20 +81,12 @@ class BiblePanel(wx.Panel):
 
         self.setBible(None)
 
-    # the form under the tree; the maps epic replaces it
+    # the selected item's form under the tree (film-bible/maps)
     def makeForm(self, parent):
-        p = wx.Panel(parent, -1)
-        self.formText = wx.StaticText(p, -1, "")
-        s = wx.BoxSizer(wx.VERTICAL)
-        s.Add(self.formText, 0, wx.ALL, 6)
-        p.SetSizer(s)
-
-        return p
+        return bibleform.BibleForm(parent, -1, self)
 
     def showItem(self, item):
-        self.formText.SetLabel(
-            "%s\n%s\n%s" % (item.name, item.id, item.folder) if item else ""
-        )
+        self.form.setItem(item)
 
     def setBible(self, b):
         self.bible = b

@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 66 modules: the
+**Role:** All of Trelby's code. One flat package of 68 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -155,6 +155,33 @@ Model and file format
   value's state only; `link` / `unlink` scenes (wardrobe: with the
   character); `scenes(item)`; `notProps` and `saveNotProps`. Every write
   goes through `Film.writeText`, so ownership is checked and it is logged.
+- `bibleedit.py` — what the bible form edits (film-bible/maps), no wx:
+  `groups(map)` → `Group`s of catalog `Field`s in catalog order
+  (`trelby/bibleedit.py:43`); `text` (a field's values as text: a list
+  joined by `; `, a number without its unit, a link as the item's name,
+  `trelby/bibleedit.py:62`) and `parse` back (a comma decimal accepted, a
+  bad number a `ValueError`, `trelby/bibleedit.py:81`); `commit` stores
+  what the creator typed, if it changed, as `creator-approved`, source
+  `creator <date>`, by `creator` (`trelby/bibleedit.py:108`); `stateOf`,
+  `describe` (the state button's tooltip), `setState` (state, source and
+  revisit only; put back if the contract refuses it,
+  `trelby/bibleedit.py:160`); `linkChoices` / `setLinks` (keeps the notes
+  of the links kept); `addFiles` (into `FILE_FOLDERS[field]`, else `blend/`
+  or `files/`) / `removeFile`; `sceneChoices` (the item's scenes and the
+  open script's numbers, in script order, `trelby/bibleedit.py:246`).
+- `bibleform.py` — `BibleForm` (`trelby/bibleform.py:38`): the selected
+  item's form under the bible tree, the same for every map, built from
+  `bibleedit.groups` (`doBuild`, `trelby/bibleform.py:98`): name, id and
+  folder, aliases, scenes; per group a header and per field a label of
+  `LABEL_WIDTH`, a control by type (text, multi-line for description and
+  notes, combo box with the options for a choice, read-only text with
+  Add… for files, also a drop target, and … for links) and a state button
+  (`script` / `ok` / `proposal` / `TBD`, its menu approves a proposal or
+  sets another state, asking the scene for script-stated and the trigger
+  for TBD, `trelby/bibleform.py:309-353`); a per-scene group has a scene
+  combo box. A value is saved when its control loses the focus or Enter
+  is pressed (`OnCommit`, `trelby/bibleform.py:275`); the field being typed
+  in is saved before another item is shown (`commitFocused`).
 - `relink.py` — missing files of a film (file-format/layout/3), no wx:
   `Ref(what, rel, kind, apply)` (`trelby/relink.py:24`); `kindOk` by
   extension (`KINDS`) or folder; `check(root, ref, path)` → the new film
@@ -208,7 +235,7 @@ Application and editor (wx)
   what was expanded, `trelby/biblepanel.py:111`), a right-click menu
   (`menuItems`, `trelby/biblepanel.py:303`), drag and drop to change an
   item's parent (`OnEndDrag`, `trelby/biblepanel.py:333`); under the tree
-  in a splitter, the selected item's form (`makeForm` / `showItem`).
+  in a splitter, the selected item's `BibleForm` (`makeForm` / `showItem`).
   Errors the film refuses are shown, never raised (`guard`).
 - `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
   wide, one row per act with its name, `n scenes` and a bar as long as its
@@ -401,6 +428,13 @@ Data and folders
   and the new one created; the files that moved with the folder are not
   logged, so a revert puts the `item.json` back but not the files
   (`Bible.moveFolder`, `trelby/bible.py:283`).
+- `BibleForm` is rebuilt without `Freeze()`: GTK aborts
+  (`gtk_text_btree_find_line_top`) when multi-line text controls are made
+  in a frozen window (found 2026-10-28). While it rebuilds, `building`
+  stops the destroyed controls' focus-loss from saving into the next item
+  (`trelby/bibleform.py:90-96`).
+- A link's note (e.g. the kind of a relationship) is kept and shown in the
+  state button's tooltip, but the form has no control to type one.
 - The change log holds text only: `film.json`, the id counters, the
   script (saved by `MyCtrl.saveFile`, not through `Film`) and binary files
   are not logged; an agent's own writes are not logged either (it does
