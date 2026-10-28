@@ -12,6 +12,9 @@ import trelby.pml as util
 
 # PDF transform matrixes where key is the angle from x-axis
 # in counter-clockwise direction.
+# name of the destination "open PDF on current page" points at
+OPEN_PAGE_KEY = "trelby-open-page"
+
 TRANSFORM_MATRIX = {
     45: (1, 1, -1, 1),
     90: (0, 1, -1, 0),
@@ -265,11 +268,6 @@ class PDFExporter:
         if self.doc.uniqueId:
             canvas.setKeywords(self.doc.uniqueId)
 
-        if doc.defPage != -1:
-            # canvas.addLiteral("/OpenAction [%d 0 R /XYZ null null 0]\n" % (self.pageObjs[0].nr + doc.defPage * 2)) # this should make the PDF reader open the PDF at the desired page
-            # TODO: This doesn't seem to be easily doable with reportlab. /OpenAction is considered a security threat by some (as it allows executing JavaScript), so I think it's unlikely they'll add support. Also, this feature didn't work with many PDF viewers anyway; I tested Evince, Okular and pdf.js in Firefox, and they all didn't support it. So maybe, we should remove this feature entirely?
-            pass
-
         numberOfPages: int = len(doc.pages)
 
         # draw pages
@@ -277,6 +275,15 @@ class PDFExporter:
             pg = self.doc.pages[i]
             for op in pg.ops:
                 op.pdfOp.draw(op, i, self, canvas)
+
+            # "open PDF on current page": a destination on that page, and
+            # the document's /OpenAction pointing at it (a plain go-to,
+            # no script). some viewers ignore /OpenAction.
+            if i == doc.defPage:
+                canvas.bookmarkPage(OPEN_PAGE_KEY, fit="XYZ")
+                canvas._doc.Catalog.OpenAction = canvas._bookmarkReference(
+                    OPEN_PAGE_KEY
+                )
 
             if i < numberOfPages - 1:
                 canvas.showPage()

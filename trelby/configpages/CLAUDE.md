@@ -64,8 +64,6 @@ Shared
   names come from a fixed key, never from the translated label, or a page
   breaks outside English (fixed 2026-10-27, bugs/config-i18n/2;
   `tests/test_i18n.py`).
-- "Open PDF on current page" (`trelby/configpages/pdfpanel.py:26`) has no
-  effect: the PDF writer ignores it (`trelby/pdf.py:268-271`). Bug: [bugs/import-export/9](../../initiatives/bugs/epics/import-export/tasks/9-pdf-open-on-page.md).
 - The folder has no `__init__.py`; `trelby.configpages.*` imports work as a
   namespace package (`trelby/cfgdlg.py:4-18`).
 - Pages hold no state of their own beyond widgets; cancelling the dialog

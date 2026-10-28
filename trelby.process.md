@@ -338,7 +338,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
     Act break lines are left out and the text after them moves up, with
     the pagination unchanged (`trelby/screenplay.py:623-639`,
     story-structure/acts/1),
-    then custom PDF fonts → `pdf.generate` (`trelby/pdf.py:22`), which draws
+    then custom PDF fonts → `pdf.generate` (`trelby/pdf.py:25`), which draws
     the PML with ReportLab;
   - **RTF** → `generateRTF` (`trelby/screenplay.py:395`), one style per
     element type;
