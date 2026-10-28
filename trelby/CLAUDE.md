@@ -90,17 +90,22 @@ Model and file format
   `report(sp)` (the problems as text, shown on open); `prepareSave(sp)`
   (before a save: `OMITTED` headings for numbers given before and gone,
   numbers for new scenes, one undo step; or the reasons the save must
-  wait, `trelby/scenenumbers.py:278`); `renumberAll(sp)`
-  (`trelby/scenenumbers.py:382`);
-  `check(nums) -> [Problem]` (duplicate, order, foreign, missing,
-  `trelby/scenenumbers.py:165`).
+  wait, `trelby/scenenumbers.py:354`); `renumberAll(sp)`
+  (`trelby/scenenumbers.py:420`); `labels(sp) -> {line: label}` (the number
+  shown for each heading: its number, or the one a save would give in
+  parentheses, `(12.A)`, or `?` when none fits; the same plan as
+  `prepareSave`, `trelby/scenenumbers.py:324`), `labelAt(labs, line)`;
+  `clickWarning`, a `ClickWarning` (`trelby/scenenumbers.py:461`): the
+  warning on a click on a number, skipped for 5 clicks after "do not show
+  this again"; `check(nums) -> [Problem]` (duplicate, order, foreign,
+  missing, `trelby/scenenumbers.py:165`).
 - `propwords.py` — `find_prop_words(line) -> [(start, end, word)]`
   (`trelby/propwords.py:15`): runs of 2+ letters, accents included, that are
   fully upper case (`trelby/propwords.py:9`); the editor underlines them in
   Action lines, film-bible will reuse it for prop records. No wx.
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1505`).
+  (`trelby/trelbyctrl.py:1556`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -178,8 +183,10 @@ Page language and PDF
 - `pdf.py` — `generate(doc)`: draws a PML document with ReportLab, one
   `PDF*Op` per PML op, custom TrueType fonts, TOC outline. Detail:
   [pdf.as-built.md](pdf.as-built.md).
-- `mypager.py` — `Pager`: the PML document being built plus scene counters
-  shared across `generatePMLPage` calls (`trelby/mypager.py:6`).
+- `mypager.py` — `Pager`: the PML document being built plus scene state
+  shared across `generatePMLPage` calls (`trelby/mypager.py:6`): `scene`,
+  the current scene's number label, `sceneLabels`
+  (`scenenumbers.labels`, filled when first needed), `sceneContNr`.
 - `fontinfo.py` — PDF core-font metrics: Courier (fixed 600 units), and
   256-entry width tables for Helvetica and Times (`getMetrics`,
   `trelby/fontinfo.py:11`).
@@ -209,7 +216,8 @@ Reports
 - `scriptreport.py` — `ScriptReport`: line counts per type, interior /
   exterior share, scene and action lengths, speaking characters.
 - `scenereport.py` — `SceneReport` / `SceneInfo`: one entry per scene
-  (heading, lines, pages, speakers).
+  (number label from `scenenumbers.labels`, heading, lines, pages,
+  speakers).
 - `locationreport.py` — `LocationReport`: scenes merged by `Locations`.
 - `characterreport.py` — `CharacterReport` / `CharInfo`: speeches, lines,
   words, pages and scenes per speaking character.
