@@ -65,6 +65,11 @@ class Screenplay:
         # or last saved to, None otherwise (trelby/fountain.py)
         self.fountainSource = None
 
+        # the scene numbers the script had when it was opened or last
+        # saved; one no longer in the script is written back as OMITTED on
+        # the next save (scenenumbers.prepareSave)
+        self.sceneNumbersIssued = set()
+
         # cursor position: line and column
         self.line = 0
         self.column = 0
@@ -162,6 +167,7 @@ class Screenplay:
         sp.titles = copy.deepcopy(self.titles)
         sp.scDict = copy.deepcopy(self.scDict)
         sp.fountainSource = self.fountainSource
+        sp.sceneNumbersIssued = set(self.sceneNumbersIssued)
 
         sp.lines = [ln.copy() for ln in self.lines]
 

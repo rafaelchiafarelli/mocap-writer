@@ -185,6 +185,10 @@ class MyCtrl(wx.Control):
     # unless the name ends in it). returns True on success.
     def saveFile(self, fileName):
         fileName = str(util.ensureEndsIn(fileName, ".fountain"))
+
+        if not self.numberScenes():
+            return False
+
         res = fountain.generate(self.sp)
 
         if util.writeToFile(fileName, res.text.encode("UTF-8"), self.gd.mainFrame):
@@ -199,6 +203,67 @@ class MyCtrl(wx.Control):
             return True
         else:
             return False
+
+    # give the scenes their numbers before a save (fountain-native/scenes/3).
+    # returns False if the save must wait: a duplicate number or a scene
+    # with no room, and the user does not renumber all scenes.
+    def numberScenes(self):
+        msgs = scenenumbers.prepareSave(self.sp)
+
+        if msgs:
+            text = (
+                _("The script was not saved:")
+                + "\n\n"
+                + "\n".join(msgs)
+                + "\n\n"
+                + _(
+                    "Renumber all scenes 1, 2, 3... and save? Every number "
+                    "given before changes."
+                )
+            )
+
+            if (
+                wx.MessageBox(
+                    text,
+                    _("Scene numbers"),
+                    wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
+                    self.gd.mainFrame,
+                )
+                != wx.YES
+            ):
+                return False
+
+            scenenumbers.renumberAll(self.sp)
+            scenenumbers.prepareSave(self.sp)
+
+        self.updateScreen()
+
+        return True
+
+    # Script -> Renumber all scenes
+    def OnRenumberScenes(self):
+        self.clearAutoComp()
+
+        if (
+            wx.MessageBox(
+                _(
+                    "Renumber every scene 1, 2, 3... in order? Scene numbers "
+                    "are permanent: every number given before changes, and "
+                    "the OMITTED headings are removed. Call sheets, schedules "
+                    "and notes outside the script will no longer match."
+                ),
+                _("Renumber all scenes"),
+                wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
+                self.gd.mainFrame,
+            )
+            != wx.YES
+        ):
+            return
+
+        scenenumbers.renumberAll(self.sp)
+
+        self.makeLineVisible(self.sp.line)
+        self.updateScreen()
 
     # elements a Fountain save could not write so that they read back the
     # same (fountain.Result.lost)
