@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 61 modules: the
+**Role:** All of Trelby's code. One flat package of 62 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -332,7 +332,6 @@ Data and folders
   and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:212-217`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
-
 - A missing file part other than the script (the settings record) is not
   a problem on open: it was not written yet (`trelby/film.py:79-84`).
   Missing folder parts, the script and the writer's `ids/w.json` are; with
