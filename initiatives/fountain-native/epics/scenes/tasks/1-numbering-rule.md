@@ -43,13 +43,17 @@ delivers the rule itself, without wx and without the editor.
     record that names a scene, as one change. This relaxes the 2026-10-25
     "never change" for the records inside the film root; what is outside
     it (printed call sheets, people saying "scene 12") does not follow.
-- **Decided in planning (2026-10-27, the epic split; Rafael can overturn):**
-  - **A number is given when the script is saved** (task 3), the moment it
-    can first be named outside the editor. Until then a new scene shows the
-    number it will get, in parentheses (task 4). A scene made and removed
-    between two saves leaves nothing.
-  - **Before the first numbered scene** there is no room either (nothing
-    comes before `1`): reported like "no room".
+- **Decided in planning (2026-10-27, the epic split), reviewed by Rafael
+  the same day:** the choices below and the three of task 3 (OMITTED's
+  place, Renumber all removes OMITTED, Enter at a heading's start) are
+  approved, except the first:
+  - ~~**A number is given when the script is saved**~~ — changed by
+    Rafael (2026-10-27): it is given **when the scene heading is
+    finished** (task 6). The heading being typed shows the number it will
+    get, in parentheses (task 4).
+  - **Before scene `1`** there is no room (nothing comes before `1`):
+    reported like "no room". Before a first number above `1`, the new
+    scene gets `1` (task 6).
   - **Numbers in other forms** (`#1A#`, `#I-1-A#`, written by other tools)
     are kept as they are and stay unique; a scene inserted right after one
     of them has no room.

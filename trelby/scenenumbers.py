@@ -138,12 +138,17 @@ def assign(nums):
 
                 break
 
-        if not p or foreignQ:
+        if foreignQ or p is False:
             noRoom.append(i)
 
             continue
 
-        t = _between(p, q, highest)
+        if p is None:
+            # before the first numbered scene: 1, when that scene is not 1
+            # (fountain-native/scenes/6)
+            t = (1,) if (1,) < q else None
+        else:
+            t = _between(p, q, highest)
 
         if t is None:
             noRoom.append(i)
@@ -252,8 +257,8 @@ def report(sp):
     if missing:
         out.append(
             _(
-                "{} of {} scenes have no number yet; they get one when the "
-                "script is saved."
+                "{} of {} scenes have no number yet; they get one now, by "
+                "their place in the script."
             ).format(len(missing), len(scenes))
         )
 
@@ -266,6 +271,40 @@ OMITTED = "OMITTED"
 
 def _sortKey(n):
     return parse(n) or (math.inf, n)
+
+
+# give every finished scene heading without a number its number
+# (fountain-native/scenes/6): a heading is finished when it has text and
+# the cursor is not in it. same plan as prepareSave; never the heading
+# holding the cursor, except in a script with no number at all yet (opened
+# or imported without them), which is numbered 1..n at once so the
+# heading under the cursor does not end up after its successor. only
+# Line.num changes, so no undo step is made and no undo step's line ranges
+# move. returns True if a number was given.
+def numberFinished(sp):
+    p = _plan(sp)
+    first, last = sp.getElemIndexesFromLine(sp.line)
+    changed = False
+
+    if not any(n for _k, n in p.merged):
+        first, last = -1, -1
+
+    for (k, old), n in zip(p.merged, p.new):
+        if k is None or old or not n:
+            continue
+
+        line = p.scenes[k][0]
+
+        if first <= line <= last:
+            continue
+
+        sp.lines[line].num = n
+        changed = True
+
+    if changed:
+        sp.markChanged()
+
+    return changed
 
 
 # what a save would do to sp's scene numbers, changing nothing: a Plan of
