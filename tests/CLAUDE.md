@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 235 tests.
+objects directly and never create the wx GUI. 246 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -91,7 +91,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - `test_scenenumbers.py` — the numbering rule (fountain-native/scenes/1):
   `parse`/`fmt`/`key` order, a fresh script, append, inserts after a whole
   number and a letter, nesting, after `Z`, several in a row, no room,
-  numbers never change, `check`.
+  numbers never change, `check`; `1` before a first number above `1`
+  (scenes/6).
 - `test_scenes_model.py` — the scene number in the model and the file
   (fountain-native/scenes/2): `#n#` read into `Line.num`, round trip
   byte-identical, an edited heading keeps its number and spacing, a
@@ -99,6 +100,12 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   undo/redo of typing, join, split, type change, cut; cut and copy carry
   no number, a pasted scene has none, pasting at a heading's start,
   `report`, `deepcopy`.
+- `test_scenes_finish.py` — the number given when a heading is finished
+  (fountain-native/scenes/6, `scenenumbers.numberFinished`): none while
+  typing (label `(3)`), Enter and moving away give it, an empty heading
+  gets none, a pasted heading at once, an unnumbered script all at once,
+  the cursor's heading skipped when some numbers exist, no room stays
+  `?`, undo / redo, the save numbers the heading being typed.
 - `test_scenes_save.py` — numbers given on save (fountain-native/scenes/3,
   `scenenumbers.prepareSave` / `renumberAll`): a new script `1..n`, no
   undo when nothing changes, append, insert, delete → `.OMITTED #n#` (and
@@ -114,7 +121,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   the dialogs need a display (checked through the real window on
   2026-10-27: numbers drawn at their headings in draft and layout, a click
   on each hits its heading, a click on the text does not, the save gives
-  `2.A`).
+  `2.A`; and on 2026-10-27 for scenes/6: an unnumbered script opened is
+  numbered `1, 2`, a heading being typed shows `(3)` and gets `3` on
+  Enter).
 - `test_propwords.py` — `propwords.find_prop_words`: positions, accents,
   one-letter words, punctuation, mixed case and digits, an all-caps line.
 - `test_taborder.py` — `ConfigGlobal.tabOrder`: the default cycle and its

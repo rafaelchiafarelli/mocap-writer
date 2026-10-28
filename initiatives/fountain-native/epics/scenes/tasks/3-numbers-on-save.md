@@ -1,6 +1,8 @@
 ## 3. Numbers given on save; OMITTED; Renumber all
 
-- **Status:** Done (2026-10-27). As built: an `OMITTED` heading goes
+- **Status:** Done (2026-10-27); since task 6 a number is given when a
+  heading is finished, so the save only numbers the heading still being
+  typed. As built: an `OMITTED` heading goes
   right before the next higher number, so a new scene put where a deleted
   one was is an insert after the scene before (`1`, `1.A`, `2 OMITTED`,
   `3`).
