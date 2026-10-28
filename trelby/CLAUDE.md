@@ -203,18 +203,21 @@ Model and file format
   `createSets` (named as the script writes the location); links/2:
   `propPlan(b, sp, cursorLine, cursorCol)` → links for known props and
   `{run: [scenes]}` for runs that are no speaking or bible character, no
-  known prop and not marked "not a prop" (`trelby/biblelinks.py:188`),
+  known prop and not marked "not a prop" (`trelby/biblelinks.py:244`),
   compared by `propKey` (no case, accents, or plural `s` on a word),
-  `createProps`, `markNotProps`; links/3: `charactersByScene` (the bible
-  characters who speak in each numbered scene, `trelby/biblelinks.py:252`),
+  `createProps`, `markNotProps`; links/5: `speaker(text)` (a Character
+  element's name without extension or `^`), `characterPlan(b, sp)` →
+  links for known characters and `{name: [scenes]}` for unknown
+  speakers (`trelby/biblelinks.py:175`), `createCharacters`; links/3: `charactersByScene` (the bible
+  characters who speak in each numbered scene, `trelby/biblelinks.py:308`),
   `linkWardrobe` / `unlinkWardrobe`, `wardrobeGaps` → `[(scene, character
-  id)]` with no wardrobe linked there (`trelby/biblelinks.py:279`);
+  id)]` with no wardrobe linked there (`trelby/biblelinks.py:335`);
   links/4: `copyItem(src, item, dst, parent, by, name)` copies an item with
   its file folders and child items into `dst` (the same bible or another
   film's), each with a new id of `dst`'s film, no scene links and no
   per-scene values, and, into another film, no links to other items
-  (`trelby/biblelinks.py:304`); `usedIn(b, item)` → its scenes, for the
-  warnings (`trelby/biblelinks.py:355`).
+  (`trelby/biblelinks.py:360`); `usedIn(b, item)` → its scenes, for the
+  warnings (`trelby/biblelinks.py:411`).
 - `relink.py` — missing files of a film (file-format/layout/3), no wx:
   `Ref(what, rel, kind, apply)` (`trelby/relink.py:24`); `kindOk` by
   extension (`KINDS`) or folder; `check(root, ref, path)` → the new film
@@ -272,19 +275,20 @@ Application and editor (wx)
   Errors the film refuses are shown, never raised (`guard`). A line under
   the buttons names the cursor's scene and the bible items linked to it
   (`showScene`, called from `MyCtrl.updateCommon`,
-  `trelby/biblepanel.py:456`). From script… opens the links commands
+  `trelby/biblepanel.py:457`). From script… opens the links commands
   (`OnScriptMenu`, `trelby/biblepanel.py:375`): each shows its plan in a
   checklist (`choose`) and does only what is checked; Link scenes to sets
   ticks the links to known sets and leaves new sets unticked
-  (`OnLinkSets`, `trelby/biblepanel.py:424`); Find props lists links to
+  (`OnLinkSets`, `trelby/biblepanel.py:425`); Find props lists links to
   known props (ticked) and new props (unticked), then offers to mark the
   ones not made as not a prop for the film (`OnFindProps`,
-  `trelby/biblepanel.py:483`); Wardrobe gaps lists the characters in a
+  `trelby/biblepanel.py:484`); Find characters does the same for the
+  speakers (`OnFindCharacters`, `trelby/biblepanel.py:622`); Wardrobe gaps lists the characters in a
   scene with no wardrobe there (`OnWardrobeGaps`,
-  `trelby/biblepanel.py:527`). The item menu's Copy makes `<name> copy`
+  `trelby/biblepanel.py:528`). The item menu's Copy makes `<name> copy`
   next to it and names the scenes the original is used in (`OnCopy`,
-  `trelby/biblepanel.py:549`); Copy to another film… opens that film's
-  bible and copies into it (`OnCopyToFilm`, `trelby/biblepanel.py:569`).
+  `trelby/biblepanel.py:550`); Copy to another film… opens that film's
+  bible and copies into it (`OnCopyToFilm`, `trelby/biblepanel.py:570`).
 - `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
   wide, one row per act with its name, `n scenes` and a bar as long as its
   scene count against the largest act; the cursor's act highlighted; a
