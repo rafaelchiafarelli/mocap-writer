@@ -471,6 +471,12 @@ class MyCtrl(wx.Control):
 
         self.panel.actPanel.update(self.sp)
 
+        # the bible's items in the cursor's scene (film-bible/links/1)
+        biblePanel = getattr(self.gd.mainFrame, "biblePanel", None)
+
+        if biblePanel is not None:
+            biblePanel.showScene(self.sp)
+
         canUndo = self.sp.canUndo()
         canRedo = self.sp.canRedo()
 

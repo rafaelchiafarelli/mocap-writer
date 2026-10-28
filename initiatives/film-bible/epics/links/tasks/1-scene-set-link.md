@@ -1,5 +1,9 @@
 ## 1. Scene ↔ set
 
+- **Status:** Done (2026-10-28) — `biblelinks.setPlan`, From script → Link
+  scenes to sets; shown in the set's form (Scenes) and in the panel's
+  scene line for the cursor's scene
+
 - **Type:** code
 - **Depends on:** maps/1
 - **Contract:**
