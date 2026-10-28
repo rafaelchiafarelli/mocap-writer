@@ -40,7 +40,7 @@ def roundTrip(text):
 
 
 def elems(sp):
-    return fountain.elementsOf(sp)
+    return [(lt, text) for lt, text, num in fountain.elementsOf(sp)]
 
 
 def testSampleRoundTrip():

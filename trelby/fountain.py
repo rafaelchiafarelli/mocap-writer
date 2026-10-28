@@ -12,7 +12,7 @@
 #
 # Mapping (element type <-> Fountain):
 #   scene       INT./EXT./EST./I/E heading, or forced ".X"; a trailing
-#               scene number "#12#" is kept in the source, not in the text
+#               scene number "#12#" is the line's num, not in the text
 #   action      any other paragraph; forced "!X" when it would read as
 #               something else
 #   character   upper-case cue followed by dialogue, or forced "@X"; the
@@ -143,6 +143,17 @@ def _isParen(s: str) -> bool:
 
 def _isNote(s: str) -> bool:
     return s.startswith("[[") and s.endswith("]]") and s.find("]]") == len(s) - 2
+
+
+# the scene number in a scene heading's decor ("  #12.A#" -> "12.A"), ""
+# if none
+def sceneNum(decor: str) -> str:
+    d = decor.strip()
+
+    if d.startswith("#") and d.endswith("#") and len(d) > 2:
+        return d[1:-1]
+
+    return ""
 
 
 def _splitSuffix(s: str, rx: re.Pattern) -> Tuple[str, str]:
@@ -424,17 +435,23 @@ def generateTitle(t: titles.Titles) -> List[str]:
     return ret
 
 
-# the editor's elements: [(lt, text)], text lines joined by "\n"
-def elementsOf(sp) -> List[Tuple[int, str]]:
+# the editor's elements: [(lt, text, num)], text lines joined by "\n",
+# num the scene number of a scene heading ("" for other types)
+def elementsOf(sp) -> List[Tuple[int, str, str]]:
     ret = []
     cur = ""
+    num = None
 
     for ln in sp.lines:
+        if num is None:
+            num = ln.num
+
         cur += ln.text
 
         if ln.lb == screenplay.LB_LAST:
-            ret.append((ln.lt, cur))
+            ret.append((ln.lt, cur, num if ln.lt == screenplay.SCENE else ""))
             cur = ""
+            num = None
         elif ln.lb == screenplay.LB_SPACE:
             cur += " "
         elif ln.lb == screenplay.LB_FORCED:
@@ -452,7 +469,8 @@ def toLines(src: Source) -> List[Line]:
 
         for i, part in enumerate(parts):
             lb = screenplay.LB_LAST if i == len(parts) - 1 else screenplay.LB_FORCED
-            ret.append(Line(lb, e.lt, part))
+            num = sceneNum(e.decor) if (i == 0 and e.lt == screenplay.SCENE) else ""
+            ret.append(Line(lb, e.lt, part, num))
 
     if not ret:
         ret.append(Line(screenplay.LB_LAST, screenplay.SCENE))
@@ -545,14 +563,17 @@ def generate(sp) -> Result:
     dialogueTypes = (screenplay.CHARACTER, screenplay.DIALOGUE, screenplay.PAREN)
     spokenTypes = (screenplay.DIALOGUE, screenplay.PAREN)
 
-    def key(lt, text):
+    def key(lt, text, num):
         if sp.cfg.getType(lt).export.isCaps:
             text = util.upper(text)
 
-        return (lt, text)
+        return (lt, text, num)
 
-    cur = [key(lt, text) for lt, text in elementsOf(sp) if text.strip()]
-    oldKeys = [key(e.lt, e.text) for e in old.elements]
+    def oldKey(e):
+        return key(e.lt, e.text, sceneNum(e.decor) if e.lt == screenplay.SCENE else "")
+
+    cur = [key(*el) for el in elementsOf(sp) if el[1].strip()]
+    oldKeys = [oldKey(e) for e in old.elements]
 
     curTitles = titlesKey(sp.titles)
     if src and curTitles == old.titlesKey:
@@ -598,7 +619,11 @@ def generate(sp) -> Result:
         st.update(prevLt=e.lt, prevOld=idx, carry="", any=True)
 
     def emitNew(ci, pre, decor):
-        lt, text = cur[ci]
+        lt, text, num = cur[ci]
+
+        # a scene number not written as it was: in canonical form
+        if lt == screenplay.SCENE and sceneNum(decor) != num:
+            decor = " #%s#" % num if num else ""
         inDialogue = st["prevLt"] in dialogueTypes
         cued = (
             lt == screenplay.CHARACTER
@@ -633,7 +658,8 @@ def generate(sp) -> Result:
             continue
 
         # edited in place: keep the hidden source before it and, same type,
-        # its scene number / dual mark
+        # its dual mark, and its scene number's spacing while the number is
+        # the same
         pairs = min(i2 - i1, j2 - j1)
 
         for k in range(j2 - j1):
@@ -662,14 +688,14 @@ def generate(sp) -> Result:
     newSrc = parse(text)
     newSrc.titlesKey = curTitles
 
-    got = [key(e.lt, e.text) for e in newSrc.elements]
+    got = [oldKey(e) for e in newSrc.elements]
     if got != cur:
         sm = difflib.SequenceMatcher(None, cur, got, autojunk=False)
 
         for op, i1, i2, j1, j2 in sm.get_opcodes():
             if op != "equal":
                 for k in range(i1, i2):
-                    if cur[k] not in lost:
-                        lost.append(cur[k])
+                    if cur[k][:2] not in lost:
+                        lost.append(cur[k][:2])
 
     return Result(text, newSrc, lost)

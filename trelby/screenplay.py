@@ -163,7 +163,7 @@ class Screenplay:
         sp.scDict = copy.deepcopy(self.scDict)
         sp.fountainSource = self.fountainSource
 
-        sp.lines = [Line(ln.lb, ln.lt, ln.text) for ln in self.lines]
+        sp.lines = [ln.copy() for ln in self.lines]
 
         # "open PDF on current page" breaks on scripts we're removing
         # notes from before printing if we don't copy these
@@ -896,6 +896,9 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
                     ret.append(Line(LB_NONE, line.lt, text[0:w]))
                     text = text[w:]
 
+        # the scene number stays on the first line
+        ret[0].num = line.num
+
         return ret
 
     # rewrap paragraph starting at given line. returns the number of lines
@@ -932,7 +935,7 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
             s += config.lb2str(ls[i - 1].lb)
             s += ls[i].text
 
-        tmp = Line(ls[line2].lb, ls[line1].lt, s)
+        tmp = Line(ls[line2].lb, ls[line1].lt, s, ls[line1].num)
         wrappedLines = self.wrapLine(tmp)
         ls[line1 : line2 + 1] = wrappedLines
 
@@ -1466,6 +1469,11 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
         ln = ls[line]
 
         pos = len(ln.text)
+
+        # an empty line takes the scene number of the line joined into it
+        if not ln.text and not ln.num:
+            ln.num = ls[line + 1].num
+
         ln.text += ls[line + 1].text
         ln.lb = ls[line + 1].lb
 
@@ -2018,6 +2026,10 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
         atEnd = self.column == len(ln.text)
 
+        # pasting several elements at the start of a scene heading: its
+        # number goes with the heading's text, not with the pasted text
+        moveNum = (self.column == 0) and bool(ln.text) and (len(inLines) != 1)
+
         if (len(ln.text) == 0) and self.isOnlyLineOfElem(self.line):
             ln.lt = inLines[0].lt
 
@@ -2029,6 +2041,11 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
             if not atEnd:
                 self.splitLine()
                 ls[self.line - 1].lb = inLines[0].lb
+
+                if moveNum:
+                    ls[self.line].num = ls[self.line - 1].num
+                    ls[self.line - 1].num = ""
+
                 ls[self.line : self.line] = inLines[1:]
                 self.line += len(inLines) - 2
 

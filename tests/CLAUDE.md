@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 194 tests.
+objects directly and never create the wx GUI. 210 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -54,7 +54,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   committed). With the profile `fixtures/pdf/letter-test.toml`: expected
   Fountain (written by `fountain.generate`) with accented names, the
   Fountain reading back to the same elements, page furniture dropped, dialogue joined
-  across a page break, margin and typed scene numbers → `#n#`, dual
+  across a page break, margin and typed scene numbers → `Line.num`
+  written as `#n#`, dual
   dialogue → `^`, `strict` stops with page and line, lenient reading
   (nearest indent, columns as one line) with `IMPORT:` notes, a character
   with no speech → issue and note, profile errors, every profile in
@@ -91,6 +92,13 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `parse`/`fmt`/`key` order, a fresh script, append, inserts after a whole
   number and a letter, nesting, after `Z`, several in a row, no room,
   numbers never change, `check`.
+- `test_scenes_model.py` — the scene number in the model and the file
+  (fountain-native/scenes/2): `#n#` read into `Line.num`, round trip
+  byte-identical, an edited heading keeps its number and spacing, a
+  changed / added / removed number written, `str` / `fromStr`, wrapping,
+  undo/redo of typing, join, split, type change, cut; cut and copy carry
+  no number, a pasted scene has none, pasting at a heading's start,
+  `report`, `deepcopy`.
 - `test_propwords.py` — `propwords.find_prop_words`: positions, accents,
   one-letter words, punctuation, mixed case and digits, an all-caps line.
 - `test_taborder.py` — `ConfigGlobal.tabOrder`: the default cycle and its
