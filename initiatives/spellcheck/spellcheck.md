@@ -1,6 +1,8 @@
 # spellcheck — mocap-writer
 
-**Status:** Planned (2026-10-27). A feature, not a bug (Rafael,
+**Status:** study/1 measured (2026-10-27), waiting on Rafael's decision
+(the dictionary's licence and the option); pt-br/1 not planned yet.
+Planned 2026-10-27. A feature, not a bug (Rafael,
 2026-10-27): Rafael writes in Brazilian Portuguese and the spell checker
 only knows English.
 

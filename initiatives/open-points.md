@@ -17,7 +17,9 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 ## Ready to implement
 
 - **spellcheck/study/1** — pt-BR dictionary: licence, flat list or
-  Hunspell engine, measured; then Rafael decides
+  Hunspell engine. Measured 2026-10-27; waiting on Rafael's decision
+  (VERO's LGPL-3-or-MPL licence, and the option; Hunspell via pyenchant
+  recommended)
   ([study/1](spellcheck/epics/study/tasks/1-dictionary-study.md)).
 
 - **fountain-native/scenes/1** — permanent scene numbers
