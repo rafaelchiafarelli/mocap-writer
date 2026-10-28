@@ -79,19 +79,19 @@ Mouse and scrolling
   (`trelby/trelbyctrl.py:317-345`).
 
 Painting
-- `OnPaint` (`trelby/trelbyctrl.py:1465`): workspace fill, then either one
+- `OnPaint` (`trelby/trelbyctrl.py:1467`): workspace fill, then either one
   endless page (draft, `dpages` empty) or a rectangle + shadow per
   `DisplayPage`; per `TextString`: note box, selection, show-formatting
   marks, page-break lines (draft only, by `cfgGl.pbi`), cursor; then
-  underlines and text; then `drawAutoComp` (`trelby/trelbyctrl.py:1661`).
+  underlines and text; then `drawAutoComp` (`trelby/trelbyctrl.py:1663`).
 - Props: in an Action line, each word `propwords.find_prop_words` finds
   in the line's own text (not the screen text, which is all caps when the
   Action style is) gets an underline of the text pen; display only
-  (`trelby/trelbyctrl.py:1632-1641`). A line already underlined by its
+  (`trelby/trelbyctrl.py:1634-1643`). A line already underlined by its
   style gets no extra underline.
 - Text color: `cfgGui.textColor`, or the per-type color when
   `useCustomElemColors`; header/continued texts (line −1) use
-  `textHdrColor` (`trelby/trelbyctrl.py:1616-1622`).
+  `textHdrColor` (`trelby/trelbyctrl.py:1618-1624`).
 - `updateScreen` / `updateCommon` (`trelby/trelbyctrl.py:363-400`): scroll
   bar, status area (page, element, next Tab/Enter types), the tab's act
   panel (`trelby/trelbyctrl.py:391`, `trelby/actpanel.py:40`), Undo/Redo
@@ -165,10 +165,12 @@ Settings and dialogs
   already wrapped by the script.
 - `OnPaint` keys its per-font text batches by testing
   `fi.font not in texts`, where `texts` is a list of `(font, data)` tuples
-  (`trelby/trelbyctrl.py:1609-1612`); the test is always true, so every
+  (`trelby/trelbyctrl.py:1611-1614`); the test is always true, so every
   string gets its own `DrawTextList` call. Output is correct, just slower.
-- Test-mode hotkeys: all three compare against U+FFFD, so only "load
-  `trelby/sample.fountain`" is reachable (`trelby/trelbyctrl.py:1425-1430`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
+- Test-mode hotkeys (with `--test`): `å` loads `trelby/sample.fountain`,
+  `¤` runs `cmdTest`, `½` `cmdSpeedTest`; written as `\xe5` / `\xa4` /
+  `\xbd` escapes (`trelby/trelbyctrl.py:1425-1432`), the characters of
+  upstream's 2006 code.
 - `toolbarshown` and the `KC_CTRL_*` constants at the top
   (`trelby/trelbyctrl.py:37-48`) are unused, as are the same names in
   `trelby/trelby.py:20-31`.

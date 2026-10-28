@@ -9,6 +9,9 @@ import trelby.util as util
 # number to use with the layout mode margins we have.
 MAX_JUMP_DISTANCE = 17
 
+# side by side: gap between pages, and before the first one (pixels)
+SBS_PAGE_GAP = 10
+
 
 # a piece of text on screen.
 class TextString:
@@ -339,10 +342,8 @@ class ViewModeLayout(ViewMode):
                 if pageNr >= len(ctrl.sp.pages):
                     break
 
-                # we'd have to go back an arbitrary number of pages to
-                # get an accurate number for this in the worst case,
-                # so disable it altogether.
-                pager.sceneContNr = 0
+                # the number the PDF would have here (bugs/editor/8)
+                pager.sceneContNr = ctrl.sp.sceneContNrAt(pageNr)
 
                 if pageCache:
                     pg = pageCache.getPage(pager, pageNr)
@@ -433,10 +434,9 @@ class ViewModeSideBySide(ViewMode):
         mm2p = ctrl.mm2p
 
         # gap between pages (+ screen left edge)
-        pageGap = 10
+        pageGap = SBS_PAGE_GAP
 
-        # how many pages fit on screen
-        pageCnt = max(1, (width - pageGap) // (ctrl.pageW + pageGap))
+        pageCnt = self.pageCount(ctrl)
 
         pager = mypager.Pager(ctrl.sp.cfg)
 
@@ -452,10 +452,8 @@ class ViewModeSideBySide(ViewMode):
             if (pagesDone >= pageCnt) or (pageNr >= len(ctrl.sp.pages)):
                 break
 
-            # we'd have to go back an arbitrary number of pages to get an
-            # accurate number for this in the worst case, so disable it
-            # altogether.
-            pager.sceneContNr = 0
+            # the number the PDF would have here (bugs/editor/8)
+            pager.sceneContNr = ctrl.sp.sceneContNrAt(pageNr)
 
             if pageCache:
                 pg = pageCache.getPage(pager, pageNr)
@@ -536,8 +534,29 @@ class ViewModeSideBySide(ViewMode):
 
         return (line, column)
 
+    # how many pages fit on screen
+    def pageCount(self, ctrl):
+        width = ctrl.GetClientSize()[0]
+
+        return max(1, (width - SBS_PAGE_GAP) // (ctrl.pageW + SBS_PAGE_GAP))
+
+    # the screen shows whole pages from the top line's page on: scrolling
+    # down makes the line's page the last one shown, scrolling up the first,
+    # anything else (or recenterOnScroll) puts it in the middle
+    # (bugs/editor/7)
     def makeLineVisible(self, ctrl, line, texts, direction=config.SCROLL_CENTER):
-        ctrl.sp.setTopLine(line)
+        pageNr = ctrl.sp.line2page(line)
+        cnt = self.pageCount(ctrl)
+        recenter = ctrl.sp.cfgGl.recenterOnScroll
+
+        if (direction == config.SCROLL_DOWN) and not recenter:
+            first = pageNr - cnt + 1
+        elif (direction == config.SCROLL_UP) and not recenter:
+            first = pageNr
+        else:
+            first = pageNr - cnt // 2
+
+        ctrl.sp.setTopLine(ctrl.sp.page2lines(max(1, first))[0])
 
     def pageCmd(self, ctrl, cs, dir, texts, dpages):
         if dir < 0:

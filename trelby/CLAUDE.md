@@ -80,7 +80,7 @@ Model and file format
   Action lines, film-bible will reuse it for prop records. No wx.
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1425`).
+  (`trelby/trelbyctrl.py:1427`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -236,8 +236,7 @@ Data and folders
 - `__init__.py` — empty.
 - `pdfprofiles/` — optional TOML layout profiles for the PDF importer's
   command line, and the profile format (its own `CLAUDE.md`).
-- `configpages/` — the settings-dialog pages (its own `CLAUDE.md`; two of
-  them break when the GUI language is not English).
+- `configpages/` — the settings-dialog pages (its own `CLAUDE.md`).
 - `resources/` — icons, toolbar SVGs, splash logo, quotes (its own
   `CLAUDE.md`).
 - `locales/` — compiled gettext catalogs `en` and `it` (its own `CLAUDE.md`).
@@ -255,8 +254,9 @@ Data and folders
 - **Messages are translated, then formatted:** `_("…{}").format(x)`; a
   translated string is never an attribute or save name: helpers that build
   attribute names take a fixed key and a separate label
-  (`tests/test_i18n.py` checks both). The Italian catalog's placeholders
-  match the English ones (checked 2026-10-27).
+  (`tests/test_i18n.py` checks both). English is the only GUI language
+  Mocap Studio needs (Rafael, 2026-10-27): the inherited `it` catalog is
+  not kept in step, so a changed message is simply untranslated there.
 - **`TRELBY_TESTING` env var** makes `config`, `misc`, `util` and `gutil`
   import a `Mock` instead of `wx` (`trelby/config.py:14-19`) and leaves
   `ConfigGlobal.commands` empty (`trelby/config.py:740-743`).
@@ -267,12 +267,6 @@ Data and folders
   `cleanInput` helpers are identity functions left from the Python 2 code
   (`trelby/util.py:194-245`). Helvetica and Times measure a character
   above U+00FF like `?` (`trelby/fontinfo.py:50-65`); Courier has no table.
-- **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
-  `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
-  branch (load `trelby/sample.fountain`) is reachable (`trelby/trelbyctrl.py:1425-1430`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
-- The "PDF viewer not found" message mixes `{}` and `%s`
-  (`trelby/util.py:1293`): the default viewer's path is never filled in,
-  a literal `%s` is shown. Bug: [bugs/editor/19](../initiatives/bugs/epics/editor/tasks/19-pdf-viewer-message.md).
 - `misc.progPath` is the repository root (parent of `trelby/`,
   `trelby/misc.py:54`), so resources are addressed as
   `trelby/resources/...` (`trelby/splash.py:39`).

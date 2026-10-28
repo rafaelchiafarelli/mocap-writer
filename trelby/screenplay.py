@@ -1569,6 +1569,21 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
     # pageNr is out of bounds, it is clamped to the valid range. if
     # pagination is out of date and the lines no longer exist, they are
     # clamped to the valid range as well.
+    # pager.sceneContNr as the PDF has it at the start of page pageNr: one
+    # per page since the last scene heading before the page. the screen
+    # draws pages out of sequence and sets it with this.
+    def sceneContNrAt(self, pageNr):
+        first = self.page2lines(pageNr)[0]
+        start = 0
+
+        for i in range(first - 1, -1, -1):
+            if (self.lines[i].lt == SCENE) and self.isFirstLineOfElem(i):
+                start = i
+
+                break
+
+        return max(0, pageNr - 1 - self.line2page(start))
+
     def page2lines(self, pageNr):
         pageNr = util.clamp(pageNr, 1, len(self.pages) - 1)
         last = len(self.lines) - 1

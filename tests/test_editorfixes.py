@@ -61,3 +61,56 @@ def testFormattedCopyUsesScriptSettings():
 
     text = clip.AddData.call_args[0][0]
     assert " " * 17 + "Some action." in text.splitlines()
+
+
+# the screen's CONTINUED (n) number on any page is the PDF's
+# (Screenplay.sceneContNrAt, bugs/editor/8)
+def testSceneContNrMatchesPdf():
+    import trelby.mypager as mypager
+
+    text = "INT. ONE - DAY\n\n" + "Action line that goes on.\n\n" * 150
+    text += "EXT. TWO - NIGHT\n\n" + "More action here.\n\n" * 120
+    sp = u.loadString(text)
+    sp.cfg.sceneContinueds = True
+    sp.paginate()
+    assert len(sp.pages) > 6
+
+    pager = mypager.Pager(sp.cfg)
+    seen = set()
+    for pageNr in range(1, len(sp.pages)):
+        assert pager.sceneContNr == sp.sceneContNrAt(pageNr), pageNr
+        seen.add(pager.sceneContNr)
+        sp.generatePMLPage(pager, pageNr, True, True)
+
+    assert max(seen) >= 2
+
+
+# side by side: scrolling down shows the cursor's page as the last one on
+# screen, up as the first (bugs/editor/7)
+def testSideBySideScrollDirection():
+    import trelby.config as config
+    import trelby.viewmode as viewmode
+
+    text = "INT. ONE - DAY\n\n" + "Action line that goes on.\n\n" * 400
+    sp = u.loadString(text)
+    sp.cfgGl.recenterOnScroll = False
+    assert len(sp.pages) > 10
+
+    ctrl = mock.Mock()
+    ctrl.sp = sp
+    ctrl.pageW = 100
+    ctrl.GetClientSize.return_value = (10 + 3 * 110, 500)  # 3 pages
+    vm = viewmode.ViewModeSideBySide()
+
+    line = sp.page2lines(8)[0] + 2
+    vm.makeLineVisible(ctrl, line, [], config.SCROLL_DOWN)
+    assert sp.line2page(sp.getTopLine()) == 6
+
+    vm.makeLineVisible(ctrl, line, [], config.SCROLL_UP)
+    assert sp.line2page(sp.getTopLine()) == 8
+
+    vm.makeLineVisible(ctrl, line, [], config.SCROLL_CENTER)
+    assert sp.line2page(sp.getTopLine()) == 7
+
+    vm.makeLineVisible(ctrl, sp.page2lines(1)[0], [], config.SCROLL_DOWN)
+    assert sp.line2page(sp.getTopLine()) == 1
