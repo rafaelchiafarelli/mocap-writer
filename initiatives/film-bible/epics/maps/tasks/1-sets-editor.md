@@ -1,5 +1,7 @@
 ## 1. Set (cenário) editor
 
+- **Status:** Done (2026-10-28) — `trelby/bibleform.py` and `trelby/bibleedit.py`, one form for every map
+
 - **Type:** code
 - **Depends on:** tree/1
 - **Contract:**
