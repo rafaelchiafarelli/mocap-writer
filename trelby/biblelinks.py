@@ -162,12 +162,12 @@ def characterNames(sp):
     return names
 
 
-# a prop word as compared: also without a plural "s" ("XÍCARAS" is
-# "XÍCARA")
-def propKey(word):
-    k = norm(word)
-
-    return k[:-1] if k.endswith("s") and len(k) > 3 else k
+# a prop as compared: also without a plural "s" on its words ("XÍCARAS
+# AZUL" is "XÍCARA AZUL")
+def propKey(run):
+    return " ".join(
+        w[:-1] if w.endswith("s") and len(w) > 3 else w for w in norm(run).split()
+    )
 
 
 def findProp(b, word):

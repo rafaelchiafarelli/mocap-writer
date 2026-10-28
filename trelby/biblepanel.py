@@ -152,8 +152,9 @@ class BiblePanel(wx.Panel):
                     if it.id == selectId:
                         toSelect = n
 
+        # the maps are always open; an item as it was
         for n, key in self.nodes.items():
-            if expanded is None or key in expanded:
+            if expanded is None or key in expanded or key[0] == "map":
                 if self.tree.ItemHasChildren(n):
                     self.tree.Expand(n)
 
@@ -377,7 +378,10 @@ class BiblePanel(wx.Panel):
         menu.Destroy()
 
     def scriptMenuItems(self):
-        return [(_("Link scenes to sets..."), self.OnLinkSets)]
+        return [
+            (_("Link scenes to sets..."), self.OnLinkSets),
+            (_("Find props..."), self.OnFindProps),
+        ]
 
     # warn if the script has scenes with no number yet: those are left out
     # until a save numbers them
@@ -468,3 +472,47 @@ class BiblePanel(wx.Panel):
             self.sceneText.SetLabel(text)
             self.sceneText.Wrap(max(self.GetSize().width - 12, 100))
             self.Layout()
+
+    # links/2: runs of capitalized words in Action -> props
+    def OnFindProps(self, event=None):
+        sp = self.script()
+        links, new = biblelinks.propPlan(self.bible, sp, sp.line, sp.column)
+        news = list(new.items())
+        choices = [_("Link %s in scene %s") % (it.name, n) for it, n in links]
+        choices += [
+            _("New prop %s (scenes %s)") % (run, ", ".join(nums)) for run, nums in news
+        ]
+        sel = self.choose(
+            _("Find props"),
+            _("Capitalized words in Action. A new prop is made only if you check it.")
+            + self.noteUnnumbered(sp),
+            choices,
+            list(range(len(links))),
+        )
+
+        if sel is None:
+            return
+
+        chosenLinks = [links[i] for i in sel if i < len(links)]
+        chosenNew = dict(news[i - len(links)] for i in sel if i >= len(links))
+        self.guard(biblelinks.applyLinks, self.bible, chosenLinks)
+        self.guard(biblelinks.createProps, self.bible, chosenNew)
+
+        # the ones not made can be marked "not a prop" once for the film
+        rest = [run for run, _n in news if run not in chosenNew]
+
+        if rest:
+            dlg = wx.MultiChoiceDialog(
+                self,
+                _("Mark any of these as not a prop, for the whole film?"),
+                _("Find props"),
+                rest,
+            )
+
+            if dlg.ShowModal() == wx.ID_OK and dlg.GetSelections():
+                words = [rest[i] for i in dlg.GetSelections()]
+                self.guard(biblelinks.markNotProps, self.bible, words)
+
+            dlg.Destroy()
+
+        self.changed()
