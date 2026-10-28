@@ -49,7 +49,7 @@
 
 ## Results (2026-10-27)
 
-**Status:** Measured — waiting for Rafael's decision (licence and option).
+**Status:** Done (2026-10-27) — decided, see "Decision".
 
 Material in [`1-dictionary-study/`](1-dictionary-study/): `run.sh`
 reproduces everything (run from the repository root after
@@ -156,8 +156,14 @@ huge (2.3 GB of memory) or wrong (missing `amanhã`, `atrás`), and in both
 cases Trelby's suggestions are poor. spylls gives the same answers but is
 far too slow to suggest.
 
-**Rafael decides:** (a) whether the VERO dictionary's LGPL-3-or-MPL
-licence is acceptable (it is not on the rule's list; no permissive pt-BR
-dictionary was found), and whether `pyenchant`/`libenchant` (LGPL-2.1)
-are; (b) the option. Then the decision is written here and pt-br/1 is
-planned.
+### Decision (Rafael, 2026-10-27)
+
+- **Licence:** VERO's `pt_BR.dic`/`.aff` (LGPL-3 or MPL) are accepted,
+  used unmodified, read from the system package. spylls (MPL-2.0) was
+  accepted too, but is not used. `libenchant` / `pyenchant` (LGPL-2.1)
+  are GPL-family libraries.
+- **Option: 2a, Hunspell through `pyenchant`.** Rafael first picked
+  spylls, then chose pyenchant once told spylls takes 7.6 s per
+  suggestion on average (worst 86 s).
+- For pt-br/1: apt `hunspell-pt-br` and `libenchant-2-2` in the
+  Dockerfile, `pyenchant==3.3.0` in the hashed lockfile.

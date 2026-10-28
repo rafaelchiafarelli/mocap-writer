@@ -1,7 +1,8 @@
 # spellcheck — mocap-writer
 
-**Status:** study/1 measured (2026-10-27), waiting on Rafael's decision
-(the dictionary's licence and the option); pt-br/1 not planned yet.
+**Status:** study/1 done (2026-10-27): VERO through Hunspell via
+`pyenchant`, licence accepted. pt-br/1 is next (to be planned against
+that decision).
 Planned 2026-10-27. A feature, not a bug (Rafael,
 2026-10-27): Rafael writes in Brazilian Portuguese and the spell checker
 only knows English.
