@@ -16,9 +16,10 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 
 ## Ready to implement
 
-- **spellcheck/study/1** — pt-BR dictionary: licence, flat list or
-  Hunspell engine, measured; then Rafael decides
-  ([study/1](spellcheck/epics/study/tasks/1-dictionary-study.md)).
+- **spellcheck/pt-br/1** — the pt-BR spell checker: plan it against
+  study/1's decision (VERO through Hunspell via `pyenchant`, 2026-10-27),
+  then implement
+  ([pt-br/1](spellcheck/epics/pt-br/tasks/1-ptbr-dictionary.md)).
 
 ## Decisions for Rafael
 
