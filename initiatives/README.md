@@ -18,4 +18,6 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 7. **story-structure** — where we are in the story: an act is a marker (no print) and a panel shows act sizes (done 2026-10-26; the gate, Rafael using the act panel on a script, is in `open-points.md`; models and beats later; history: git log -- initiatives/story-structure)
 8. **spellcheck** — the spell checker in Brazilian Portuguese (pt-BR): study done 2026-10-27 (VERO through Hunspell via `pyenchant`); next the dictionary language setting (pt-br/1)
 
+9. **import-to-film** — an import ends in a complete film: Import into film, one review of the bible the script offers, a report (planned 2026-10-28; three decisions for Rafael in `import-to-film/import-to-film.md`)
+
 `film-bible` needs `fountain-native/scenes` (scene numbers). `preprod-link` needs `film-bible`. `film-bible`, `preprod-link` and `fountain-native/settings/1` (per-script settings, was io/2) need `file-format/layout/1`. `pdf-import`, `editor-ux` and `spellcheck` need nothing.
