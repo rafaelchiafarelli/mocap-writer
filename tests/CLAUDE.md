@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 275 tests.
+objects directly and never create the wx GUI. 294 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -48,6 +48,12 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   each log one `Change` line, an unchanged write none, bookkeeping and the
   script none; revert of one author's changes, logged; a broken line is a
   problem.
+- `test_bible.py` — film-bible/contract/2: round trip per map, child
+  items, unknown field and wrong values refused, an item found by id after
+  its folder was renamed by hand, rename / move / delete, slug clashes,
+  files copied in and a missing one relinked, approving a proposal,
+  links, invalid and misplaced items as problems, the `mocap-contracts`
+  `bible-v1` fixture, the change log.
 - `test_acts.py` — acts (story-structure/acts): the Act break is not in
   the PDF, the text after it moves up, the pagination still counts it,
   the screen page still shows it; `acts.actsOf` / `actAt` (no act break,
