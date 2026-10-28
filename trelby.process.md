@@ -138,7 +138,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   together (`trelby/screenplay.py:1280-1356`). `pagesNoAdjust` keeps the
   breaks before that adjustment.
 - **Element-type sequencing rules** are only checked, not enforced, by
-  `findError` (`trelby/screenplay.py:2118`): a character must be followed by
+  `findError` (`trelby/screenplay.py:2133`): a character must be followed by
   a parenthetical or dialogue, a parenthetical must follow a character or
   dialogue, dialogue must follow a character or parenthetical.
 
@@ -152,28 +152,28 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   - A printable character without Ctrl/Alt (`util.isValidInputChar`:
     code 32–255 minus 0x7F–0x9F and 0xAD, `trelby/util.py:219`) replaces the
     selection if `overwriteSelectionOnInsert` and is inserted with
-    `Screenplay.addCharCmd` (`trelby/trelbyctrl.py:1408-1432`).
+    `Screenplay.addCharCmd` (`trelby/trelbyctrl.py:1408-1434`).
   - Anything else is looked up in `MyFrame.kbdCommands`
     (`trelby/trelbyframe.py:494-512`, built from `cfgGl.commands`,
     `trelby/config.py:740`). Menu commands call `MyFrame.On<Name>`; the rest
-    call `MyCtrl.cmd<Name>` (`trelby/trelbyctrl.py:1439-1445`), which mostly
+    call `MyCtrl.cmd<Name>` (`trelby/trelbyctrl.py:1441-1447`), which mostly
     forward to `Screenplay.<name>Cmd`.
   - After every command: `cmdPost` fixes the column and refreshes
-    auto-completion (`trelby/screenplay.py:2441`); the script is re-paginated
+    auto-completion (`trelby/screenplay.py:2456`); the script is re-paginated
     if `paginateInterval` seconds (default 1) have passed
-    (`trelby/trelbyctrl.py:1452-1458`); the cursor line is scrolled into view
-    and the screen is redrawn (`trelby/trelbyctrl.py:1460-1463`).
+    (`trelby/trelbyctrl.py:1454-1460`); the cursor line is scrolled into view
+    and the screen is redrawn (`trelby/trelbyctrl.py:1462-1465`).
 - **Enter** (`NewElement`, `trelby/config.py:996`) →
-  `Screenplay.splitElementCmd` (`trelby/screenplay.py:2781`): splits the
+  `Screenplay.splitElementCmd` (`trelby/screenplay.py:2796`): splits the
   element at the cursor and gives the new element the current type's
   `newTypeEnter`. If an auto-completion list is open, the selected item
   replaces the line first (`trelby/screenplay.py:1506-1511`).
 - **Tab** (`trelby/config.py:1138`) → `Screenplay.tabCmd`
-  (`trelby/screenplay.py:2790`): at the end of a non-empty element (or before
+  (`trelby/screenplay.py:2805`): at the end of a non-empty element (or before
   the closing `)` of a parenthetical) it creates a new element of type
-  `newTypeTab` (`tabMakesNew`, `trelby/screenplay.py:1685`); otherwise it
+  `newTypeTab` (`tabMakesNew`, `trelby/screenplay.py:1700`); otherwise it
   converts the current element to the next one of the Tab cycle.
-  **Shift-Tab** converts to the previous one (`trelby/screenplay.py:2804`).
+  **Shift-Tab** converts to the previous one (`trelby/screenplay.py:2819`).
   The cycle is `ConfigGlobal.tabOrder`, Scene → Action → Character →
   Dialogue → Scene by default; an element outside it converts to Action
   both ways (`ConfigGlobal.nextTypeTab`, `trelby/config.py:1428-1444`).
@@ -194,42 +194,42 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   | Act break   | Scene      | Action     | Action        | Action     |
   | Note        | Action     | Character  | Action        | Action     |
 
-- **Typing rules** in `addCharCmd` (`trelby/screenplay.py:2814`):
+- **Typing rules** in `addCharCmd` (`trelby/screenplay.py:2829`):
   - the first letter of a sentence is upper-cased when `capitalize` is on
-    (`capitalizeNeeded`, `trelby/screenplay.py:2049`);
+    (`capitalizeNeeded`, `trelby/screenplay.py:2064`);
   - a lone `i` becomes `I` when `capitalizeI` is on
-    (`trelby/screenplay.py:2875-2890`);
+    (`trelby/screenplay.py:2890-2905`);
   - an element whose whole text becomes `INT.` or `EXT.` turns into a Scene
-    (`trelby/screenplay.py:2896-2899`);
+    (`trelby/screenplay.py:2911-2914`);
   - typing `(` as the only text of a Dialogue or Character element turns it
-    into a Parenthetical `()` (`trelby/screenplay.py:2900-2906`).
+    into a Parenthetical `()` (`trelby/screenplay.py:2915-2921`).
 - Element type changes: Alt+letter shortcuts (e.g. Alt+A Action,
   `trelby/config.py:764`) and the right-click menu call `convertTypeTo` (`trelby/screenplay.py:1394`, `trelby/trelbyctrl.py:77`).
 - **Undo**: each edit records an `undo.*` object (`trelby/undo.py`) on a
   doubly linked list; consecutive typing and deleting are merged into word
   steps; history is trimmed past ~5 MB (`addUndo`,
-  `trelby/screenplay.py:2965-3018`).
+  `trelby/screenplay.py:2980-3033`).
 - **Auto-completion**: Scene, Character, Transition and Shot elements offer
   the matching earlier lines of the same type plus the configured list
-  (`getMatchingText`, `trelby/screenplay.py:1736`).
+  (`getMatchingText`, `trelby/screenplay.py:1751`).
 - **Clipboard**: the internal clipboard keeps typed lines (`ClipData`,
-  `trelby/screenplay.py:3109`); pasting from the system clipboard turns each
+  `trelby/screenplay.py:3124`); pasting from the system clipboard turns each
   non-empty text line into an Action element (`trelby/trelbyctrl.py:905`).
 
 ## Stage 4 — screen rendering (`viewmode`)
 
-- `MyCtrl.OnPaint` (`trelby/trelbyctrl.py:1465`) asks the active view mode
+- `MyCtrl.OnPaint` (`trelby/trelbyctrl.py:1467`) asks the active view mode
   (`gd.vm`, `trelby/globaldata.py:106`) for `getScreen(ctrl, True, True)` →
   `(texts, dpages)`: positioned `TextString`s and, outside draft mode, page
-  rectangles (`trelby/viewmode.py:82`). It then paints the workspace, pages,
+  rectangles (`trelby/viewmode.py:85`). It then paints the workspace, pages,
   note boxes, selection, page-break lines, cursor, the text (one font per
   `TextString`) and the auto-completion popup.
-- **Draft** (`ViewModeDraft`, `trelby/viewmode.py:202`): one endless page;
+- **Draft** (`ViewModeDraft`, `trelby/viewmode.py:205`): one endless page;
   each line is `fontYdelta` pixels (default 18) below the previous one plus
   its spacing; x comes from the element indent times the screen font's
   character width.
-- **Layout** (`ViewModeLayout`, `trelby/viewmode.py:280`) and **side by
-  side** (`ViewModeSideBySide`, `trelby/viewmode.py:422`): pages are built
+- **Layout** (`ViewModeLayout`, `trelby/viewmode.py:283`) and **side by
+  side** (`ViewModeSideBySide`, `trelby/viewmode.py:423`): pages are built
   with `Screenplay.generatePMLPage(..., forPDF=False, ...)`
   (`trelby/screenplay.py:542`), the same code the PDF uses, and their
   millimeter positions are scaled to pixels by `ctrl.mm2p`
@@ -239,7 +239,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   element's screen style (caps/bold/italic/underline) comes from the script's
   `Type.screen` (`trelby/config.py:191`). In Action lines, words written
   fully in capitals (2+ letters, accents included) are underlined as props,
-  on screen only (`propwords.find_prop_words`, `trelby/trelbyctrl.py:1632-1641`). **Zoom** (50–300 % in steps of
+  on screen only (`propwords.find_prop_words`, `trelby/trelbyctrl.py:1634-1643`). **Zoom** (50–300 % in steps of
   10, Ctrl `+` / `-` / `0`, Ctrl + wheel, the status control) scales those
   fonts and the draft row height only; it is a global setting and never
   touches the PDF (`trelby/config.py:1697-1709`, `trelby/trelbyctrl.py:453`). Colors are the global `*Color`
@@ -359,7 +359,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   page (`trelby/watermarkdlg.py:12`).
 - **Compare scripts** diffs two open scripts' formatted text and shows the
   diff as a colored PDF (`trelby/trelbyctrl.py:710`,
-  `trelby/screenplay.py:2211`).
+  `trelby/screenplay.py:2226`).
 
 ## Stage 8 — reports
 

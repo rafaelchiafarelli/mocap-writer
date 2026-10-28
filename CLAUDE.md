@@ -72,10 +72,9 @@ Chocolatey from `choco/`).
   `choco/`, `doc/version.xml`, `debian/changelog`, and the
   `--package-version` in `t_01_update_pot.sh:4`; nothing keeps them in sync.
 - `README.dev` sections 3–4 describe upstream's old layout (`bin/trelby`,
-  `sample.trelby`); the test-mode hotkeys it lists are broken
-  ([bugs/editor/10](initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md)).
-  What `--test` does now: no splash, config under `./.trelby`
-  (`trelby/misc.py:49-51`).
+  `sample.trelby`). What `--test` does now: no splash, config under
+  `./.trelby` (`trelby/misc.py:49-51`), and the hotkeys `å` / `¤` / `½`
+  (`trelby/trelbyctrl.as-built.md`).
 - `make dist` needs the DocBook toolchain, which the Docker image does not
   have (`docker/CLAUDE.md`).
 

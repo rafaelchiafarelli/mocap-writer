@@ -1,6 +1,6 @@
 ## 19. "PDF viewer not found" message shows a literal %s
 
-- **Status:** Open
+- **Status:** Fixed (2026-10-27) — fixes/000090/editor-more
 - **Symptom:** When the configured PDF viewer is missing, the message ends with "Using the default PDF viewer instead:" followed by `%s` instead of the viewer's path.
 - **Where:** the message mixes `{}` and `%s` and gets two `.format` arguments (`trelby/util.py:1293-1296`).
 - **Reproduce:** Found by reading the code while fixing config-i18n/3 (2026-10-27).

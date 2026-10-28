@@ -1290,7 +1290,7 @@ def showPDF(
         if regPDF:
             wx.MessageBox(
                 _(
-                    "Currently set PDF viewer ({}) was not found.\nChange this in File/Settings/Change/Misc.\n\nUsing the default PDF viewer instead:\n%s"
+                    "Currently set PDF viewer ({}) was not found.\nChange this in File/Settings/Change/Misc.\n\nUsing the default PDF viewer instead:\n{}"
                 ).format(
                     pdfProgram, regPDF
                 ),

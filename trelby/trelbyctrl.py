@@ -1422,11 +1422,13 @@ class MyCtrl(wx.Control):
             if addChar:
                 cs.char = chr(kc)
 
-                if opts.isTest and (cs.char == "�"):
+                # test-mode hotkeys, written as escapes so no encoding
+                # conversion can break them again (bugs/editor/10)
+                if opts.isTest and (cs.char == "\xe5"):  # å
                     self.loadFile("trelby/sample.fountain")
-                elif opts.isTest and (cs.char == "�"):
+                elif opts.isTest and (cs.char == "\xa4"):  # ¤
                     self.cmdTest(cs)
-                elif opts.isTest and (cs.char == "�"):
+                elif opts.isTest and (cs.char == "\xbd"):  # ½
                     self.cmdSpeedTest(cs)
                 else:
                     self.sp.addCharCmd(cs)
