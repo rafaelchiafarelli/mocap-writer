@@ -1,6 +1,9 @@
 ## 1. Tree panel
 
 - **Type:** code
+- **Decided (Rafael, 2026-10-28):** a **left side panel**, beside the
+  script in a splitter, shown and hidden with View → Bible; the selected
+  item's form opens in the same panel, under the tree
 - **Depends on:** contract/2
 - **Contract:**
   - In: the film root's `bible/`
