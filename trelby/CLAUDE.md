@@ -108,25 +108,33 @@ Model and file format
   fully upper case (`trelby/propwords.py:9`); the editor underlines them in
   Action lines, film-bible will reuse it for prop records. No wx.
 - `film.py` — a film root (file-format/layout/1), no wx except the
-  version in `_origin` (`trelby/film.py:347`): `Film.open(root, owner)`
+  version in `_origin` (`trelby/film.py:457`): `Film.open(root, owner)`
   reads `film.json` through `mocap_contracts` and lists what is missing or
   invalid as `Problem(what, where, why)` in `film.problems`
-  (`trelby/film.py:77`); only a missing or invalid `film.json` raises
+  (`trelby/film.py:79`); only a missing or invalid `film.json` raises
   `FilmError`, naming the path and the broken field. `Film.create(root,
   scriptText)` writes `film.json` with `DEFAULT_PARTS`, the `w` space,
-  `ids/w.json` and the folder parts (`trelby/film.py:119`).
+  `ids/w.json` and the folder parts (`trelby/film.py:121`).
   `partOf` / `ownerOf` (prefix by segment, `film.json` → writer,
-  `ids/<code>.json` → its space's owner, `trelby/film.py:199-229`);
+  `ids/<code>.json` → its space's owner, `trelby/film.py:201-231`);
   `writeText` (atomic, through a temp file) and `deleteFile` refuse with
   `OwnerError` a path this program does not own (`checkWrite`,
-  `trelby/film.py:235`); `newId(kind, space)` saves the counter before it
-  returns the id (`trelby/film.py:279`); `addSpace(code, owner, path)`
+  `trelby/film.py:237`). Every `writeText` / `deleteFile` of a text
+  record in a part other than the script and the history appends a
+  `Change` (time, `by`, path, record id, op, before, after) to
+  `history/<yyyy-mm>.jsonl` when this program owns the history
+  (file-format/layout/5, `logs` / `log`, `trelby/film.py:293-342`); an
+  unchanged write logs nothing; `changes(by)` reads the log, oldest
+  first (`trelby/film.py:345`); `revert(changes, by)` puts records back,
+  newest first, and is itself logged (`trelby/film.py:371`).
+  `newId(kind, space)` saves the counter before it
+  returns the id (`trelby/film.py:389`); `addSpace(code, owner, path)`
   adds an agent's space and its `proposals-<code>` part, checked by the
-  contract before anything is written (`trelby/film.py:314`);
-  `problemsText(problems)`, the problems as text (`trelby/film.py:338`);
+  contract before anything is written (`trelby/film.py:424`);
+  `problemsText(problems)`, the problems as text (`trelby/film.py:448`);
   a missing part's `Problem` carries a `relink.Ref` (`partRef`,
-  `trelby/film.py:150`) whose `apply` saves the new path in `film.json`
-  (`setPartPath`, `trelby/film.py:171`).
+  `trelby/film.py:152`) whose `apply` saves the new path in `film.json`
+  (`setPartPath`, `trelby/film.py:173`).
 - `relink.py` — missing files of a film (file-format/layout/3), no wx:
   `Ref(what, rel, kind, apply)` (`trelby/relink.py:24`); `kindOk` by
   extension (`KINDS`) or folder; `check(root, ref, path)` → the new film
@@ -354,9 +362,13 @@ Data and folders
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 - A missing file part other than the script (the settings record) is not
-  a problem on open: it was not written yet (`trelby/film.py:83-87`).
+  a problem on open: it was not written yet (`trelby/film.py:85-89`).
   Missing folder parts, the script and the writer's `ids/w.json` are; with
   `ids/w.json` lost, `newId` refuses rather than start again at 1.
+- The change log holds text only: `film.json`, the id counters, the
+  script (saved by `MyCtrl.saveFile`, not through `Film`) and binary files
+  are not logged; an agent's own writes are not logged either (it does
+  not own `history/`).
 
 ## Touchpoints
 - Called by: `../trelby.py`; `../tests/` (through `tests/u.py`).

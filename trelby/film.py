@@ -8,6 +8,8 @@
 # every file is read and written through its from_json / to_json, so a file
 # that breaks its message is never written and is refused on read.
 
+import datetime
+import json
 import os
 import tempfile
 from pathlib import Path
@@ -244,10 +246,19 @@ class Film:
     def readText(self, rel):
         return (self.root / rel).read_text(encoding="utf-8")
 
+    # the file's text, or None if there is none
+    def textOrNone(self, rel):
+        try:
+            return self.readText(rel)
+        except FileNotFoundError:
+            return None
+
     # write text to rel, atomically (a crash leaves the old file or the new
-    # one, never half of one)
-    def writeText(self, rel, text):
+    # one, never half of one). a record's change is logged (layout/5) as
+    # made by by, default this program's owner.
+    def writeText(self, rel, text, by=None):
         self.checkWrite(rel)
+        before = self.textOrNone(rel) if self.logs(rel) else None
         path = self.root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -264,9 +275,108 @@ class Film:
 
             raise
 
-    def deleteFile(self, rel):
+        if self.logs(rel) and before != text:
+            self.log(rel, "UPDATE" if before is not None else "CREATE", before, text, by)
+
+    def deleteFile(self, rel, by=None):
         self.checkWrite(rel)
+        before = self.textOrNone(rel) if self.logs(rel) else None
         (self.root / rel).unlink()
+
+        if before is not None:
+            self.log(rel, "DELETE", before, None, by)
+
+    # True if a write to rel goes into the change log: a text record in a
+    # part other than the script and the history, when this program owns
+    # the history. film.json and the id counters are bookkeeping, not
+    # records.
+    def logs(self, rel):
+        p = self.partOf(rel)
+        history = self.part("history")
+
+        return bool(
+            p
+            and history
+            and p.name not in ("history", cf.SCRIPT_PART)
+            and self.owns(history.path)
+        )
+
+    # append one Change to history/<yyyy-mm>.jsonl
+    def log(self, rel, op, before, after, by):
+        time = (
+            datetime.datetime.now(datetime.timezone.utc)
+            .isoformat(timespec="microseconds")
+            .replace("+00:00", "Z")
+        )
+        c = mc.Change(
+            time=time,
+            by=by or self.owner,
+            path=rel,
+            op=mc.ChangeOp.Value("CHANGE_OP_" + op),
+        )
+        record = _recordId(after if after is not None else before)
+
+        if record:
+            c.record = record
+
+        if before is not None:
+            c.before = before
+
+        if after is not None:
+            c.after = after
+
+        line = json.dumps(json.loads(mc.to_json(c)), ensure_ascii=False)
+        logRel = self.historyFile(time)
+        path = self.root / logRel
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(path, "a", encoding="utf-8", newline="") as fp:
+            fp.write(line + "\n")
+
+    # the log file of a change made at time, inside the history part
+    def historyFile(self, time):
+        default = cf.history_file(time)
+        history = self.part("history").path
+
+        return history + default.removeprefix("history/")
+
+    # every logged Change, oldest first; only by's if by is given. a line
+    # that breaks its message is a problem, not a crash.
+    def changes(self, by=None):
+        folder = self.partPath("history")
+        out = []
+
+        if folder is None or not folder.is_dir():
+            return out
+
+        for path in sorted(folder.glob("*.jsonl")):
+            for i, line in enumerate(path.read_text(encoding="utf-8").splitlines()):
+                if not line.strip():
+                    continue
+
+                try:
+                    c = mc.from_json(mc.Change, line)
+                except mc.ContractError as e:
+                    self.problem(_("Change log"), "%s:%d" % (path.name, i + 1), str(e))
+
+                    continue
+
+                if by is None or c.by == by:
+                    out.append(c)
+
+        return out
+
+    # undo changes, newest first: each record goes back to its before (a
+    # create is deleted). the undo is itself logged, as made by by.
+    def revert(self, changes, by=None):
+        for c in sorted(changes, key=lambda c: c.time, reverse=True):
+            op = mc.ChangeOp.Name(c.op)
+
+            if op == "CHANGE_OP_CREATE":
+                if (self.root / c.path).exists():
+                    self.deleteFile(c.path, by)
+            else:
+                self.writeText(c.path, c.before, by)
 
     # write film.json, with this program as its origin
     def saveIndex(self):
@@ -348,6 +458,16 @@ def _origin():
     from trelby import misc  # imports wx; only for the version
 
     return mc.FilmOrigin(program=PROGRAM, version=misc.version)
+
+
+# the record id at the top of a record's JSON text, or None
+def _recordId(text):
+    try:
+        rid = json.loads(text).get("id")
+    except (ValueError, AttributeError):
+        return None
+
+    return rid if isinstance(rid, str) and cf.RECORD_ID.fullmatch(rid) else None
 
 
 # read path as message cls, raising err (with the path) if it is missing or
