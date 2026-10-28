@@ -30,7 +30,7 @@ run.
     opened from or last saved to, else `None` (`trelby/screenplay.py:66`);
     `__deepcopy__` shares it (`trelby/screenplay.py:169`);
   - `line`, `column` — cursor; `_topLine` — first line on screen
-    (`getTopLine` / `setTopLine` clamp it, `trelby/screenplay.py:802-809`);
+    (`getTopLine` / `setTopLine` clamp it, `trelby/screenplay.py:805-812`);
   - `mark: Mark | None` — the other end of the selection;
   - `pages`, `pagesNoAdjust` — page table (see Pagination);
   - `acItems`, `acSel`, `acMax` — open auto-completion list;
@@ -38,26 +38,26 @@ run.
     `undoMemoryUsed` — undo chain;
   - `cfg: config.Config` (per script), `cfgGl` (shared global config),
     `titles`, `headers`, `locations`, `autoCompletion`, `scDict`.
-- `Mark(line, column)` (`trelby/screenplay.py:3137`), `ClipData`
-  (`lines`, `trelby/screenplay.py:3147`), `CommandState`
+- `Mark(line, column)` (`trelby/screenplay.py:3118`), `ClipData`
+  (`lines`, `trelby/screenplay.py:3128`), `CommandState`
   (`doAutoComp` = `AC_DEL` / `AC_REDO` / `AC_KEEP`, `char`, `mark`,
-  `needsVisifying`, `trelby/screenplay.py:3155`).
+  `needsVisifying`, `trelby/screenplay.py:3136`).
 
 ## Data-structure invariants
 
-Checked by `_validate` (`trelby/screenplay.py:3098`, test code only):
+Checked by `_validate` (`trelby/screenplay.py:3079`, test code only):
 - at least one line; cursor inside the script and inside its line;
 - every line's text equals `util.toInputStr(text)`;
 - `len(text.rstrip(" "))` ≤ the type's `width` — trailing spaces may run
-  past the width (`trelby/screenplay.py:868-895`);
+  past the width (`trelby/screenplay.py:871-898`);
 - an `LB_NONE` line does not end in a space;
 - all lines of one element have the same type (an element ends at
   `LB_LAST`).
 
-`_validate` checks them (`trelby/screenplay.py:3098`). Paragraph = lines up to `LB_FORCED` /
+`_validate` checks them (`trelby/screenplay.py:3079`). Paragraph = lines up to `LB_FORCED` /
 `LB_LAST`; element = lines up to `LB_LAST`; scene = from a `SCENE` or
 `ACTBREAK` element to the next (`getSceneIndexesFromLine`,
-`trelby/screenplay.py:1127`).
+`trelby/screenplay.py:1130`).
 
 ## Key functions
 
@@ -70,12 +70,12 @@ Settings
   numbers are kept.
 
 Layout
-- `wrapLine` (`trelby/screenplay.py:847`), `rewrapPara`
-  (`trelby/screenplay.py:913`), `rewrapPrevPara`, `rewrapElem`
-  (`trelby/screenplay.py:980`), `reformatRange`
-  (`trelby/screenplay.py:827`), `reformatAll` (`trelby/screenplay.py:811`).
+- `wrapLine` (`trelby/screenplay.py:850`), `rewrapPara`
+  (`trelby/screenplay.py:916`), `rewrapPrevPara`, `rewrapElem`
+  (`trelby/screenplay.py:983`), `reformatRange`
+  (`trelby/screenplay.py:830`), `reformatAll` (`trelby/screenplay.py:814`).
   The scene number (`Line.num`) stays on the first line of what is
-  wrapped (`trelby/screenplay.py:906`, `trelby/screenplay.py:944`).
+  wrapped (`trelby/screenplay.py:909`, `trelby/screenplay.py:947`).
   Parentheticals wrap one character narrower after their first line and are
   drawn one character further right (`needsExtraParenIndent`,
   `trelby/screenplay.py:136`).
@@ -83,57 +83,58 @@ Layout
   `intraSpacing`, in tenths of a line (`trelby/screenplay.py:139`).
 
 Pagination
-- `paginate()` (`trelby/screenplay.py:1221`): `pages = [-1, last line of
+- `paginate()` (`trelby/screenplay.py:1212`): `pages = [-1, last line of
   page 1, …]`. Page capacity `linesOnPage * 10` minus headers, minus 20 for
   `CONTINUED:` and 10 for `(cont'd)` on later pages, never below 50.
-  Break adjustment by type of the last line (`trelby/screenplay.py:1287-1365`,
-  `removeDanglingElement` `trelby/screenplay.py:1376`).
+  Break adjustment by type of the last line (`trelby/screenplay.py:1278-1356`,
+  `removeDanglingElement` `trelby/screenplay.py:1367`).
   `lastPaginated` is set for the editor's timed re-pagination.
 - `line2page`, `line2pageNoAdjust` (binary search,
-  `trelby/screenplay.py:1562-1580`), `page2lines` (`trelby/screenplay.py:1601`),
-  `getPageNumbers` (`trelby/screenplay.py:1611`), `needsMore`
-  (`trelby/screenplay.py:1186`), `getPrevSpeaker` (`trelby/screenplay.py:1198`).
+  `trelby/screenplay.py:1553-1571`), `page2lines` (`trelby/screenplay.py:1592`),
+  `getPageNumbers` (`trelby/screenplay.py:1602`), `needsMore`
+  (`trelby/screenplay.py:1177`), `getPrevSpeaker` (`trelby/screenplay.py:1189`).
 
 Editing commands (`cmd(name)` calls `<name>Cmd` then `cmdPost`,
-`trelby/screenplay.py:2490`)
+`trelby/screenplay.py:2471`)
 - Movement: `moveLeftCmd` … `moveSceneDownCmd`
-  (`trelby/screenplay.py:2506-2675`). Up/Down move the completion selection
-  when a list is open (`trelby/screenplay.py:2526-2551`).
-- Text: `addCharCmd` (`trelby/screenplay.py:2852`), `deleteBackwardCmd`
-  (`trelby/screenplay.py:2677`), `deleteForwardCmd`
-  (`trelby/screenplay.py:2732`), `insertForcedLineBreakCmd`
-  (`trelby/screenplay.py:2808`).
-- Elements: `splitElementCmd` (Enter, `trelby/screenplay.py:2819`),
-  `tabCmd` (`trelby/screenplay.py:2828`), `toPrevTypeTabCmd`
-  (`trelby/screenplay.py:2842`), `to<Type>Cmd` (`trelby/screenplay.py:2957-2982`)
-  → `convertTypeTo(lt, saveUndo)` (`trelby/screenplay.py:1403`, works on the
+  (`trelby/screenplay.py:2487-2656`). Up/Down move the completion selection
+  when a list is open (`trelby/screenplay.py:2507-2532`).
+- Text: `addCharCmd` (`trelby/screenplay.py:2833`), `deleteBackwardCmd`
+  (`trelby/screenplay.py:2658`), `deleteForwardCmd`
+  (`trelby/screenplay.py:2713`), `insertForcedLineBreakCmd`
+  (`trelby/screenplay.py:2789`).
+- Elements: `splitElementCmd` (Enter, `trelby/screenplay.py:2800`),
+  `tabCmd` (`trelby/screenplay.py:2809`), `toPrevTypeTabCmd`
+  (`trelby/screenplay.py:2823`), `to<Type>Cmd` (`trelby/screenplay.py:2938-2963`)
+  → `convertTypeTo(lt, saveUndo)` (`trelby/screenplay.py:1394`, works on the
   selection's elements if any; empty parenthetical ↔ `()`).
 - Selection and clipboard: `getMarkedLines`, `getMarkedColumns`,
-  `getSelectedAsCD(doDelete)` (cut/copy, `trelby/screenplay.py:1879`),
-  `paste(clines)` (`trelby/screenplay.py:1990`), `selectSceneCmd`,
+  `getSelectedAsCD(doDelete)` (cut/copy, `trelby/screenplay.py:1860`),
+  `paste(clines)` (`trelby/screenplay.py:1971`), `selectSceneCmd`,
   `selectAllCmd`. Neither cut nor copy puts a scene number on the
   clipboard, so a pasted scene has none; pasting several elements at the
   start of a heading leaves its number with the heading's text
-  (`trelby/screenplay.py:2037`, `trelby/screenplay.py:2051-2053`). `joinLines` drops the number of the
+  (`trelby/screenplay.py:2018`, `trelby/screenplay.py:2032-2034`). `joinLines` drops the number of the
   line joined in, unless the line it joins is empty and has none
-  (`trelby/screenplay.py:1480-1481`).
-- Other: `removeElementTypes(tdict, saveUndo)` (`trelby/screenplay.py:2421`),
-  `findError(line)` (`trelby/screenplay.py:2156`), `getWord` (spell checker,
-  `trelby/screenplay.py:1665`), `capitalizeNeeded`
-  (`trelby/screenplay.py:2087`).
-- Queries for reports and dialogs: `getSceneLocations`, `getSceneNames`,
-  `getCharacterNames`, `getSceneNumber`, `getCharCount`
-  (`trelby/screenplay.py:1154-1658`).
+  (`trelby/screenplay.py:1471-1472`).
+- Other: `removeElementTypes(tdict, saveUndo)` (`trelby/screenplay.py:2402`),
+  `findError(line)` (`trelby/screenplay.py:2137`), `getWord` (spell checker,
+  `trelby/screenplay.py:1646`), `capitalizeNeeded`
+  (`trelby/screenplay.py:2068`).
+- Queries for reports and dialogs: `getSceneLocations` (the numbered
+  scenes, `[(number, line)]`, for Go to scene, `trelby/screenplay.py:1612`),
+  `getSceneNames`, `getCharacterNames`, `getCharCount`
+  (`trelby/screenplay.py:1155-1639`).
 
-Undo (`trelby/screenplay.py:2985-3094`)
+Undo (`trelby/screenplay.py:2966-3075`)
 - Doubly linked list of `undo.*` objects. A new edit while inside the
-  history cuts off the redo part (`trelby/screenplay.py:3004-3028`).
+  history cuts off the redo part (`trelby/screenplay.py:2985-3009`).
   History is trimmed from the oldest end once the estimate reaches
-  5 000 000 bytes (`trelby/screenplay.py:3043-3056`).
+  5 000 000 bytes (`trelby/screenplay.py:3024-3037`).
 - Merging: consecutive `addChar` (word-level, spaces join the preceding
   word), `deleteBackward`, `deleteForward` merge when the cursor is where
-  the last step left it (`trelby/screenplay.py:2685-2690`,
-  `trelby/screenplay.py:2882-2905`).
+  the last step left it (`trelby/screenplay.py:2666-2671`,
+  `trelby/screenplay.py:2863-2886`).
 
 Export
 - `generateText(doPages)` (`trelby/screenplay.py:201`), `generateHtml(includeNotes)`
@@ -147,10 +148,16 @@ Export
   doExtra)` (`trelby/screenplay.py:548`; `forPDF=False` is the screen
   layout, `doExtra=False` skips headers and styling and is used only for
   position queries; with `forPDF=True` Act break lines are not drawn and
-  take no space, `trelby/screenplay.py:629-645`, so a PDF page ends a
-  little short where it held one), `addSceneNumbers`
-  (`trelby/screenplay.py:781`), `compareScripts(sp2) -> bytes | None`
-  (`trelby/screenplay.py:2249`).
+  take no space, `trelby/screenplay.py:638-654`, so a PDF page ends a
+  little short where it held one). Scene numbers are the labels of
+  `scenenumbers.labels` (permanent, or `(12.A)` for one a save would
+  give), drawn when `pdfShowSceneNumbers` is on or always on screen
+  (`trelby/screenplay.py:580`), also in the TOC and next to a page-top
+  `CONTINUED:`; `addSceneNumbers` (`trelby/screenplay.py:793`) puts the
+  label left of the heading, right-aligned to it, and right of it, and
+  tags both ops with `sceneLine` (the heading's line) for the click on
+  screen, `compareScripts(sp2) -> bytes | None`
+  (`trelby/screenplay.py:2230`).
 
 ## Extension points
 
@@ -160,24 +167,24 @@ Export
   `Config.__init__` (`trelby/config.py:445-512`); an Enter/Tab row in
   `ConfigGlobal.__init__` (`trelby/config.py:693-737`); a `ChangeTo<Type>`
   command in the alphabetical command list (`trelby/config.py:740`), a
-  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1322-1350`) and a
-  `to<Type>Cmd` here (`trelby/screenplay.py:2957-2982`); a menu id in
+  `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1373-1401`) and a
+  `to<Type>Cmd` here (`trelby/screenplay.py:2938-2963`); a menu id in
   `trelby/ids.py:73-93` and the right-click menu
   (`trelby/trelbyframe.py:292-300`); entries in the export maps `htmlMap`
   (`trelby/screenplay.py:239`), `xmlMap` (`trelby/screenplay.py:360`) and
   `trelby/fountain.py` (parse and generate); pagination rules if it should not end a page
-  (`trelby/screenplay.py:1289-1365`); `findError` rules if it has sequencing
+  (`trelby/screenplay.py:1280-1356`); `findError` rules if it has sequencing
   constraints.
 - **Enter/Tab behaviour** is data, not code: `splitElementCmd` / `tabCmd`
   read `cfgGl.getType(lt).newTypeEnter|newTypeTab` and
   `cfgGl.nextTypeTab(lt)` / `prevTypeTab(lt)`, the `tabOrder` cycle
-  (`trelby/screenplay.py:2820`, `trelby/screenplay.py:2834-2839`,
-  `trelby/screenplay.py:2848-2849`); the table is in
+  (`trelby/screenplay.py:2801`, `trelby/screenplay.py:2815-2820`,
+  `trelby/screenplay.py:2829-2830`); the table is in
   `trelby/config.py:693-737`. `tabMakesNew` decides "new element vs.
-  convert" (`trelby/screenplay.py:1714`).
+  convert" (`trelby/screenplay.py:1695`).
 - **Typing rules** (auto-capitalize, `INT.`/`EXT.` → Scene, `(` → Paren) are
-  hard-coded in `addCharCmd` (`trelby/screenplay.py:2907-2944`) and
-  `capitalizeNeeded` (`trelby/screenplay.py:2087`); only the two capitalize
+  hard-coded in `addCharCmd` (`trelby/screenplay.py:2888-2925`) and
+  `capitalizeNeeded` (`trelby/screenplay.py:2068`); only the two capitalize
   switches are settings.
 - **Import** produces `lines` only; whatever imports must give lines that
   satisfy the invariants above before `reformatAll` + `paginate`
@@ -186,7 +193,7 @@ Export
 ## Gotchas
 
 - `reformatAll` asserts there is no undo history
-  (`trelby/screenplay.py:814`); `applyCfg` clears undo for that reason
+  (`trelby/screenplay.py:817`); `applyCfg` clears undo for that reason
   (`trelby/screenplay.py:184-187`).
 - Element-type sequencing (Character → Dialogue, etc.) is **not enforced**
   while editing; only `findError` reports it, before export/print when
@@ -194,7 +201,7 @@ Export
 - `Config.cursorLine` / `cursorColumn` and `cfgGl.honorSavedPos` are left
   from the `.trelby` format: nothing writes or reads the saved cursor now.
 - Accepting a completion with End (`moveLineEndCmd`,
-  `trelby/screenplay.py:2621-2636`) replaces only the current screen line's
+  `trelby/screenplay.py:2602-2617`) replaces only the current screen line's
   text, as Enter does, then re-wraps; it is one `SinglePara` undo step.
 - `generateHtml` uses one `<pre>` per screen line, not per element
   (`trelby/screenplay.py:311-319`).

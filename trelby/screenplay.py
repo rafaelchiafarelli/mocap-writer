@@ -575,6 +575,15 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
         pg = pml.Page(pager.doc)
 
+        # scene numbers: in the PDF when asked for, always on screen
+        # (fountain-native/scenes/4)
+        showNumbers = cfg.pdfShowSceneNumbers or not forPDF
+
+        if doExtra and pager.sceneLabels is None:
+            import trelby.scenenumbers as scenenumbers
+
+            pager.sceneLabels = scenenumbers.labels(self)
+
         # what line we're on, counted from first line after top
         # margin, units = line / 10
         y = 0
@@ -601,10 +610,10 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
                     pager.sceneContNr += 1
 
-                    if cfg.pdfShowSceneNumbers:
+                    if showNumbers and pager.scene:
                         self.addSceneNumbers(
                             pg,
-                            "%d" % pager.scene,
+                            pager.scene,
                             cfg.getType(SCENE).width,
                             y,
                             chX,
@@ -715,16 +724,16 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
             if doExtra and (tcfg.lt == SCENE) and self.isFirstLineOfElem(i):
                 pager.sceneContNr = 0
+                pager.scene = pager.sceneLabels.get(i, "")
 
-                if cfg.pdfShowSceneNumbers:
-                    pager.scene += 1
+                if showNumbers and pager.scene:
                     self.addSceneNumbers(
-                        pg, "%d" % pager.scene, tcfg.width, y, chX, chY
+                        pg, pager.scene, tcfg.width, y, chX, chY, i
                     )
 
                 if cfg.pdfIncludeTOC:
-                    if cfg.pdfShowSceneNumbers:
-                        s = "%d %s" % (pager.scene, text)
+                    if cfg.pdfShowSceneNumbers and pager.scene:
+                        s = "%s %s" % (pager.scene, text)
                     else:
                         s = text
 
@@ -778,25 +787,19 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
         return pg
 
-    def addSceneNumbers(self, pg, s, width, y, chX, chY):
+    # the scene number s left and right of a heading; line is the
+    # heading's line, kept on the ops as sceneLine so a click on the number
+    # can be told apart on screen (-1 for a CONTINUED repeat)
+    def addSceneNumbers(self, pg, s, width, y, chX, chY, line=-1):
         cfg = self.cfg
 
-        pg.add(
-            pml.TextOp(
-                s,
-                cfg.marginLeft - 6 * chX,
-                cfg.marginTop + (y / 10.0) * chY,
-                cfg.fontSize,
-            )
-        )
-        pg.add(
-            pml.TextOp(
-                s,
-                cfg.marginLeft + (width + 1) * chX,
-                cfg.marginTop + (y / 10.0) * chY,
-                cfg.fontSize,
-            )
-        )
+        for x in (
+            cfg.marginLeft - (len(s) + 2) * chX,
+            cfg.marginLeft + (width + 1) * chX,
+        ):
+            op = pml.TextOp(s, x, cfg.marginTop + (y / 10.0) * chY, cfg.fontSize)
+            op.sceneLine = line
+            pg.add(op)
 
     # get topLine, clamping it to the valid range in the process.
     def getTopLine(self):
@@ -1149,18 +1152,6 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
             bottom = self.getElemIndexesFromLine(tmp)[1]
 
         return (top, bottom)
-
-    # return scene number for the given line. if line is -1, return 0.
-    def getSceneNumber(self, line):
-        ls = self.lines
-        sc = SCENE
-        scene = 0
-
-        for i in range(line + 1):
-            if (ls[i].lt == sc) and self.isFirstLineOfElem(i):
-                scene += 1
-
-        return scene
 
     # return how many elements one must advance to get from element
     # containing line1 to element containing line2. line1 must be <=
@@ -1616,22 +1607,12 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
         return pages
 
-    # return a list of all scene locations in a [(sceneNumber, startLine),
-    # ...] format. if script does not start with a scene line, that scene
-    # is not included in this list. note that the sceneNumber in the
-    # returned list is a string, not a number.
+    # return the numbered scenes as [(number, startLine), ...], in script
+    # order; a scene not numbered yet is not listed (fountain-native/scenes/4)
     def getSceneLocations(self):
-        ls = self.lines
-        sc = SCENE
-        scene = 0
-        ret = []
+        import trelby.scenenumbers as scenenumbers
 
-        for i in range(len(ls)):
-            if (ls[i].lt == sc) and self.isFirstLineOfElem(i):
-                scene += 1
-                ret.append((str(scene), i))
-
-        return ret
+        return [(n, line) for line, n in scenenumbers.scenesOf(self) if n]
 
     # return a dictionary of all scene names (single-line text elements
     # only, upper-cased, values = None).

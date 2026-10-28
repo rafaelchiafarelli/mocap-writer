@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 226 tests.
+objects directly and never create the wx GUI. 235 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -106,6 +106,15 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   between saves, cut and paste, copy, no room and duplicates stop the
   save, one undo step with `sceneNumbersIssued`, Renumber all and its
   undo, the cursor in a removed `OMITTED`.
+- `test_scenes_screen.py` — scene numbers shown (fountain-native/scenes/4):
+  `labels` / `labelAt` (`(1.A)` for a scene not numbered yet, `?` with no
+  room), the PDF's numbers left and right of each heading and none when
+  off, the screen page always numbered with `sceneLine` tags, the TOC, Go
+  to scene's list, the scene report, the 5-click counter. The click and
+  the dialogs need a display (checked through the real window on
+  2026-10-27: numbers drawn at their headings in draft and layout, a click
+  on each hits its heading, a click on the text does not, the save gives
+  `2.A`).
 - `test_propwords.py` — `propwords.find_prop_words`: positions, accents,
   one-letter words, punctuation, mixed case and digits, an all-caps line.
 - `test_taborder.py` — `ConfigGlobal.tabOrder`: the default cycle and its

@@ -268,14 +268,15 @@ def _sortKey(n):
     return parse(n) or (math.inf, n)
 
 
-# get sp's scene numbers ready for a save (fountain-native/scenes/3): a
-# number given before (sp.sceneNumbersIssued) and no longer on a heading
-# comes back as an OMITTED heading at its place by number order; a number
-# left on a line that is no longer a heading is removed; every scene
-# without a number gets one by assign(). all of it is one undo step, made
-# only when something changes. returns [] when the script can be saved, or
-# the reasons it cannot (duplicates, no room) as text, changing nothing.
-def prepareSave(sp):
+# what a save would do to sp's scene numbers, changing nothing: a Plan of
+# scenes (scenesOf), stray (lines holding a number but no longer a heading),
+# omitted ([(scene index it goes before, number)]), merged (the scenes and
+# OMITTED headings to come in order: (scene index or None, number or
+# None)), new and noRoom (assign() over merged)
+Plan = namedtuple("Plan", "scenes stray present omitted merged new noRoom")
+
+
+def _plan(sp):
     ls = sp.lines
     scenes = scenesOf(sp)
     sceneLines = {line for line, _n in scenes}
@@ -301,8 +302,6 @@ def prepareSave(sp):
         key=lambda x: (x[0], _sortKey(x[1])),
     )
 
-    # the scenes and the OMITTED headings to come, in script order:
-    # (scene index or None, number or None)
     merged = []
     o = 0
 
@@ -314,6 +313,47 @@ def prepareSave(sp):
         if k < len(scenes):
             merged.append((k, scenes[k][1] or None))
 
+    new, noRoom = assign([n for _k, n in merged])
+
+    return Plan(scenes, stray, present, omitted, merged, new, noRoom)
+
+
+# the number shown for each scene heading: {line: label}, the number, or
+# for a scene not numbered yet the one a save would give it in parentheses
+# ("(12.A)"), "?" when no number fits (fountain-native/scenes/4)
+def labels(sp):
+    p = _plan(sp)
+    ret = {}
+
+    for (k, old), n in zip(p.merged, p.new):
+        if k is not None:
+            ret[p.scenes[k][0]] = old or ("(%s)" % n if n else "?")
+
+    return ret
+
+
+# the label of the scene holding line (labels as from labels()), "" if
+# the line is before the first scene
+def labelAt(labs, line):
+    best = -1
+
+    for k in labs:
+        if best < k <= line:
+            best = k
+
+    return labs.get(best, "")
+
+
+# get sp's scene numbers ready for a save (fountain-native/scenes/3): a
+# number given before (sp.sceneNumbersIssued) and no longer on a heading
+# comes back as an OMITTED heading at its place by number order; a number
+# left on a line that is no longer a heading is removed; every scene
+# without a number gets one by assign(). all of it is one undo step, made
+# only when something changes. returns [] when the script can be saved, or
+# the reasons it cannot (duplicates, no room) as text, changing nothing.
+def prepareSave(sp):
+    ls = sp.lines
+    scenes, stray, present, omitted, merged, new, noRoom = _plan(sp)
     nums = [n for _k, n in merged]
 
     def heading(i):
@@ -326,8 +366,6 @@ def prepareSave(sp):
         for p in check(nums)
         if p.kind == PROBLEM_DUPLICATE
     ]
-
-    new, noRoom = assign(nums)
 
     msgs += [
         _(
@@ -416,3 +454,30 @@ def renumberAll(sp):
 
     u.setAfter(sp)
     sp.addUndo(u)
+
+
+# the warning shown when a scene number is clicked: "do not show this again
+# for the next 5 clicks" (fountain-native/scenes/4)
+class ClickWarning:
+    SNOOZE = 5
+
+    def __init__(self):
+        # clicks left on which the warning is not shown
+        self.skip = 0
+
+    # a click on a number: whether to show the warning
+    def click(self):
+        if self.skip > 0:
+            self.skip -= 1
+
+            return False
+
+        return True
+
+    # the user ticked "do not show this again for the next 5 clicks"
+    def snooze(self):
+        self.skip = self.SNOOZE
+
+
+# one for the whole program, while it runs
+clickWarning = ClickWarning()

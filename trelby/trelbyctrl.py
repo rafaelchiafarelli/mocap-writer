@@ -637,6 +637,19 @@ class MyCtrl(wx.Control):
             self.updateScreen()
 
         pos = event.GetPosition()
+
+        # a click on a scene number: numbers are permanent, never edited
+        # (fountain-native/scenes/4)
+        if not mark:
+            sceneLine = self.gd.vm.sceneNumberAt(self, pos.x, pos.y)
+
+            if sceneLine is not None:
+                self.sp.gotoPos(sceneLine, 0, False)
+                self.updateScreen()
+                self.sceneNumberWarning()
+
+                return
+
         line, col = self.gd.vm.pos2linecol(self, pos.x, pos.y)
 
         self.mouseSelectActive = True
@@ -644,6 +657,31 @@ class MyCtrl(wx.Control):
         if line is not None:
             self.sp.gotoPos(line, col, mark)
             self.updateScreen()
+
+    def sceneNumberWarning(self):
+        if not scenenumbers.clickWarning.click():
+            return
+
+        dlg = wx.RichMessageDialog(
+            self.gd.mainFrame,
+            _(
+                "Scene numbers are permanent: a scene keeps its number for "
+                "good, so call sheets, schedules and notes that name it stay "
+                "right. A new scene gets its number when the script is saved; "
+                "a scene inserted between two others gets a letter (12.A). "
+                "To number every scene again, use Script > Renumber all "
+                "scenes."
+            ),
+            _("Scene numbers"),
+            wx.OK | wx.ICON_INFORMATION,
+        )
+        dlg.ShowCheckBox(_("Do not show this again for the next 5 clicks"))
+        dlg.ShowModal()
+
+        if dlg.IsCheckBoxChecked():
+            scenenumbers.clickWarning.snooze()
+
+        dlg.Destroy()
 
     def OnLeftUp(self, event):
         self.mouseSelectActive = False
@@ -1032,8 +1070,21 @@ class MyCtrl(wx.Control):
 
         scenes = self.sp.getSceneLocations()
 
+        if not scenes:
+            wx.MessageBox(
+                _(
+                    "No scene has a number yet: numbers are given when the "
+                    "script is saved."
+                ),
+                _("Goto scene"),
+                wx.OK,
+                self.gd.mainFrame,
+            )
+
+            return
+
         def validateFunc(s):
-            if s in [x[0] for x in scenes]:
+            if s.strip().upper() in [x[0] for x in scenes]:
                 return ""
             else:
                 return _("Invalid scene number.")
@@ -1047,7 +1098,7 @@ class MyCtrl(wx.Control):
 
         if dlg.ShowModal() == wx.ID_OK:
             for it in scenes:
-                if it[0] == dlg.input:
+                if it[0] == dlg.input.strip().upper():
                     self.sp.line = it[1]
                     self.sp.column = 0
 

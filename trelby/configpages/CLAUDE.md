@@ -67,7 +67,7 @@ Shared
 - The folder has no `__init__.py`; `trelby.configpages.*` imports work as a
   namespace package (`trelby/cfgdlg.py:4-18`).
 - Pages hold no state of their own beyond widgets; cancelling the dialog
-  just drops the deep copy (`trelby/trelbyctrl.py:1302-1320`).
+  just drops the deep copy (`trelby/trelbyctrl.py:1353-1371`).
 
 ## Touchpoints
 - Called by: `trelby/cfgdlg.py`.
