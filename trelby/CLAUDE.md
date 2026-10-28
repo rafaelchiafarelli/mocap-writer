@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 60 modules: the
+**Role:** All of Trelby's code. One flat package of 61 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -17,7 +17,7 @@ drawn by `viewmode`), the page language and PDF writer (`pml`, `pdf`), import
   GUI (what the tests use, through `tests/u.py`).
 - `myimport.import*(fileName, frame)` — one function per import format.
 - `python -m trelby.pdfimport import|probe ...` — PDF → `.fountain` from
-  the command line (`trelby/pdfimport.py:1062`).
+  the command line (`trelby/pdfimport.py:1076`).
 - `Screenplay.generate{PDF,RTF,FDX,Html,Text}` — exports; Fountain export
   is `fountain.generate`, the same writer as Save.
 
@@ -43,12 +43,16 @@ Model and file format
   their source and edited ones in canonical Fountain (byte-identical round
   trip), and reports what cannot read back the same. Detail:
   [fountain.as-built.md](fountain.as-built.md).
-- `line.py` — `Line(lb, lt, text)` (`trelby/line.py:10`); `str(line)` is
-  line-break char + type char + text (`trelby/line.py:22`), the form undo
-  stores lines in. `fromStr` has no error checking and is for internal
+- `line.py` — `Line(lb, lt, text, num)` (`trelby/line.py:16`); `num` is
+  the permanent scene number on a heading's first line
+  (fountain-native/scenes/2), kept if the line's type changes;
+  `str(line)` is line-break char + type char + (`\x01` number `\x01`) +
+  text (`trelby/line.py:33`), the form undo stores lines in, so undo keeps
+  numbers; `copy()`. `fromStr` has no error checking and is for internal
   storage only (undo).
-- `undo.py` — undo objects: `FullCopy`, `SinglePara`, `ManyElems`,
-  `AnyDifference` (`trelby/undo.py:169-266`); lines are stored as
+- `undo.py` — undo objects: `FullCopy`, `SceneNumbers` (a `FullCopy` that
+  also restores `sceneNumbersIssued`, `trelby/undo.py:185`), `SinglePara`,
+  `ManyElems`, `AnyDifference` (`trelby/undo.py:169-291`); lines are stored as
   zlib-compressed strings when that is shorter (`trelby/undo.py:64`). The
   table at `trelby/undo.py:5-32` says which command uses which.
 - `titles.py` — `Titles` (list of title pages) and `TitleString` (lines of
@@ -74,13 +78,34 @@ Model and file format
   act break are an unnamed first part (`name` None), listed only when
   there is an act break; `actAt(acts, line)` → index or None
   (`trelby/acts.py:64`).
+- `scenenumbers.py` — permanent scene numbers (fountain-native/scenes), no
+  wx: `parse("12.A.1") -> (12, "A", 1)` or None for another tool's form
+  (`trelby/scenenumbers.py:32`), `fmt`, `key`; `assign(nums) -> (new,
+  noRoom)` gives every scene without a number one by the rule (a fresh
+  script `1..n`; at the end the next whole number; else the next sibling
+  when the next number is outside the parent, else the first child; no
+  room between a scene and its child, before the first numbered scene or
+  next to another tool's form, `trelby/scenenumbers.py:111`);
+  `scenesOf(sp) -> [(line, num)]` (non-empty headings),
+  `report(sp)` (the problems as text, shown on open); `prepareSave(sp)`
+  (before a save: `OMITTED` headings for numbers given before and gone,
+  numbers for new scenes, one undo step; or the reasons the save must
+  wait, `trelby/scenenumbers.py:354`); `renumberAll(sp)`
+  (`trelby/scenenumbers.py:420`); `labels(sp) -> {line: label}` (the number
+  shown for each heading: its number, or the one a save would give in
+  parentheses, `(12.A)`, or `?` when none fits; the same plan as
+  `prepareSave`, `trelby/scenenumbers.py:324`), `labelAt(labs, line)`;
+  `clickWarning`, a `ClickWarning` (`trelby/scenenumbers.py:461`): the
+  warning on a click on a number, skipped for 5 clicks after "do not show
+  this again"; `check(nums) -> [Problem]` (duplicate, order, foreign,
+  missing, `trelby/scenenumbers.py:165`).
 - `propwords.py` — `find_prop_words(line) -> [(start, end, word)]`
   (`trelby/propwords.py:15`): runs of 2+ letters, accents included, that are
   fully upper case (`trelby/propwords.py:9`); the editor underlines them in
   Action lines, film-bible will reuse it for prop records. No wx.
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1427`).
+  (`trelby/trelbyctrl.py:1556`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -103,9 +128,9 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
-  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:993`).
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1000`).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:791-795`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:795-799`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   + `ActPanel` at the right (`trelby/trelbypanel.py:7`); the act panel is
@@ -117,8 +142,8 @@ Application and editor (wx)
   hint when there is no act break. Own pixel fonts, so the zoom never
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
-  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:391`); repainted on a theme
-  change (`trelby/trelbyctrl.py:434`); `draw(dc, w, h)` does the drawing
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:469`); repainted on a theme
+  change (`trelby/trelbyctrl.py:512`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
@@ -128,7 +153,7 @@ Application and editor (wx)
   where each line is drawn and which line/column a mouse position hits.
   Detail: [viewmode.as-built.md](viewmode.as-built.md).
 - `ids.py` — wx menu ids and `idToLTMap` (right-click "Element type" ids →
-  line types, `trelby/ids.py:82`).
+  line types, `trelby/ids.py:83`).
 - `misc.py` — platform flags, `progPath` / `confPath` (`misc.init`,
   `trelby/misc.py:23`), `version` (`trelby/misc.py:20`), and shared widgets:
   `MyTabCtrl` (tab bar, `trelby/misc.py:287`), `MyStatus` (status area
@@ -158,8 +183,10 @@ Page language and PDF
 - `pdf.py` — `generate(doc)`: draws a PML document with ReportLab, one
   `PDF*Op` per PML op, custom TrueType fonts, TOC outline. Detail:
   [pdf.as-built.md](pdf.as-built.md).
-- `mypager.py` — `Pager`: the PML document being built plus scene counters
-  shared across `generatePMLPage` calls (`trelby/mypager.py:6`).
+- `mypager.py` — `Pager`: the PML document being built plus scene state
+  shared across `generatePMLPage` calls (`trelby/mypager.py:6`): `scene`,
+  the current scene's number label, `sceneLabels`
+  (`scenenumbers.labels`, filled when first needed), `sceneContNr`.
 - `fontinfo.py` — PDF core-font metrics: Courier (fixed 600 units), and
   256-entry width tables for Helvetica and Times (`getMetrics`,
   `trelby/fontinfo.py:11`).
@@ -189,7 +216,8 @@ Reports
 - `scriptreport.py` — `ScriptReport`: line counts per type, interior /
   exterior share, scene and action lengths, speaking characters.
 - `scenereport.py` — `SceneReport` / `SceneInfo`: one entry per scene
-  (heading, lines, pages, speakers).
+  (number label from `scenenumbers.labels`, heading, lines, pages,
+  speakers).
 - `locationreport.py` — `LocationReport`: scenes merged by `Locations`.
 - `characterreport.py` — `CharacterReport` / `CharInfo`: speeches, lines,
   words, pages and scenes per speaking character.
@@ -252,7 +280,7 @@ Data and folders
   defaults after opening one. Page setup and styles can be kept with
   Script → Settings → Save as / Load. The rest is planned as a record in
   the film root (fountain-native/settings/1, waits for file-format/layout/1). Shot is written as upper case + two trailing spaces,
-  Trelby's own convention (`trelby/fountain.py:483`).
+  Trelby's own convention (`trelby/fountain.py:502`).
 - **`_` is a builtin installed by `translations.trelby_translations_load()`**
   (`trelby/translations.py:26`); no module imports it. The tests get it
   from `tests/u.py:16`.
@@ -280,8 +308,8 @@ Data and folders
   `manual.html`, Help → Manual makes the page from `doc/manual.xml`
   (`manual.py`).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:192`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:209-214`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:195`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:212-217`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 
