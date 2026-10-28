@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 68 modules: the
+**Role:** All of Trelby's code. One flat package of 69 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -182,6 +182,16 @@ Model and file format
   combo box. A value is saved when its control loses the focus or Enter
   is pressed (`OnCommit`, `trelby/bibleform.py:275`); the field being typed
   in is saved before another item is shown (`commitFocused`).
+- `biblelinks.py` — the script's links to the bible (film-bible/links),
+  no wx; each scan returns a plan, applied only with the creator's choice:
+  `locationOf(heading)` (no INT./EXT. prefix, no time of day,
+  `trelby/biblelinks.py:28`), `norm` (case, accents, spaces ignored),
+  `findItem(b, map, name)` (name or alias); `scenesWithLines(sp)` (numbered
+  scenes only), `sceneAt(sp, line)`, `itemsInScene(b, scene)`; links/1:
+  `setPlan(b, sp)` → links for known locations and `{location: [scenes]}`
+  for unknown ones (`trelby/biblelinks.py:109`), `applyLinks`,
+  `createSets` (named as the script writes the location); the props,
+  wardrobe and copy helpers of links/2–4 (`trelby/biblelinks.py:155-357`).
 - `relink.py` — missing files of a film (file-format/layout/3), no wx:
   `Ref(what, rel, kind, apply)` (`trelby/relink.py:24`); `kindOk` by
   extension (`KINDS`) or folder; `check(root, ref, path)` → the new film
@@ -192,7 +202,7 @@ Model and file format
   (`trelby/relink.py:122`).
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1559`).
+  (`trelby/trelbyctrl.py:1565`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -228,15 +238,22 @@ Application and editor (wx)
   + `ActPanel` at the right (`trelby/trelbypanel.py:7`); the act panel is
   made before `MyCtrl`, whose constructor already updates it
   (`trelby/trelbypanel.py:28`).
-- `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:18`): the bible
+- `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:19`): the bible
   panel (film-bible/tree/1) over `MyFrame.bible`: New / New child /
   Rename / Delete buttons, a `wx.TreeCtrl` with one branch per map
   (`refresh` rebuilds it from `Bible.children`, keeping the selection and
-  what was expanded, `trelby/biblepanel.py:111`), a right-click menu
-  (`menuItems`, `trelby/biblepanel.py:303`), drag and drop to change an
-  item's parent (`OnEndDrag`, `trelby/biblepanel.py:333`); under the tree
+  what was expanded, `trelby/biblepanel.py:122`), a right-click menu
+  (`menuItems`, `trelby/biblepanel.py:314`), drag and drop to change an
+  item's parent (`OnEndDrag`, `trelby/biblepanel.py:344`); under the tree
   in a splitter, the selected item's `BibleForm` (`makeForm` / `showItem`).
-  Errors the film refuses are shown, never raised (`guard`).
+  Errors the film refuses are shown, never raised (`guard`). A line under
+  the buttons names the cursor's scene and the bible items linked to it
+  (`showScene`, called from `MyCtrl.updateCommon`,
+  `trelby/biblepanel.py:446`). From script… opens the links commands
+  (`OnScriptMenu`, `trelby/biblepanel.py:369`): each shows its plan in a
+  checklist (`choose`) and does only what is checked; Link scenes to sets
+  ticks the links to known sets and leaves new sets unticked
+  (`OnLinkSets`, `trelby/biblepanel.py:414`).
 - `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
   wide, one row per act with its name, `n scenes` and a bar as long as its
   scene count against the largest act; the cursor's act highlighted; a
@@ -244,7 +261,7 @@ Application and editor (wx)
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
   `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:472`); repainted on a theme
-  change (`trelby/trelbyctrl.py:515`); `draw(dc, w, h)` does the drawing
+  change (`trelby/trelbyctrl.py:521`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key

@@ -1,6 +1,7 @@
 import wx
 
 import trelby.bible as bible
+import trelby.biblelinks as biblelinks
 import trelby.bibleform as bibleform
 
 # the bible panel (film-bible/tree/1): left of the script, one tree per map
@@ -38,11 +39,20 @@ class BiblePanel(wx.Panel):
         self.childBtn = wx.Button(self, -1, _("New child"), style=wx.BU_EXACTFIT)
         self.renameBtn = wx.Button(self, -1, _("Rename"), style=wx.BU_EXACTFIT)
         self.deleteBtn = wx.Button(self, -1, _("Delete"), style=wx.BU_EXACTFIT)
+        self.scriptBtn = wx.Button(self, -1, _("From script..."), style=wx.BU_EXACTFIT)
+        self.scriptBtn.SetToolTip(_("Link the script's scenes to the bible"))
 
-        for b in (self.newBtn, self.childBtn, self.renameBtn, self.deleteBtn):
+        for b in (self.newBtn, self.childBtn, self.renameBtn, self.deleteBtn, self.scriptBtn):
             hsizer.Add(b, 0, wx.RIGHT, 4)
 
         vsizer.Add(hsizer, 0, wx.ALL, 4)
+
+        # what the bible links to the cursor's scene (film-bible/links/1)
+        self.sceneText = wx.StaticText(self, -1, "")
+        vsizer.Add(self.sceneText, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 6)
+
+        # (scene, text) last shown, so a cursor move repaints nothing
+        self.sceneShown = None
 
         self.splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
         self.splitter.SetMinimumPaneSize(80)
@@ -72,6 +82,7 @@ class BiblePanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnNewChild, id=self.childBtn.GetId())
         self.Bind(wx.EVT_BUTTON, self.OnRename, id=self.renameBtn.GetId())
         self.Bind(wx.EVT_BUTTON, self.OnDelete, id=self.deleteBtn.GetId())
+        self.Bind(wx.EVT_BUTTON, self.OnScriptMenu, id=self.scriptBtn.GetId())
         self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnSelChanged)
         self.tree.Bind(wx.EVT_TREE_ITEM_MENU, self.OnItemMenu)
         self.tree.Bind(wx.EVT_TREE_BEGIN_DRAG, self.OnBeginDrag)
@@ -93,7 +104,7 @@ class BiblePanel(wx.Panel):
         self.splitter.Show(b is not None)
         self.empty.Show(b is None)
 
-        for btn in (self.newBtn, self.childBtn, self.renameBtn, self.deleteBtn):
+        for btn in (self.newBtn, self.childBtn, self.renameBtn, self.deleteBtn, self.scriptBtn):
             btn.Show(b is not None)
 
         self.refresh()
@@ -346,3 +357,114 @@ class BiblePanel(wx.Panel):
 
         self.guard(self.bible.move, it, parent, "creator")
         self.refresh(it.id)
+
+    # the open script's Screenplay, and the cursor
+    def script(self):
+        ctrl = self.frame.panel.ctrl
+
+        return ctrl.sp
+
+    # the script's links to the bible (film-bible/links): each command
+    # shows what it would do, and does only what the creator checks
+    def OnScriptMenu(self, event=None):
+        menu = wx.Menu()
+
+        for label, fn in self.scriptMenuItems():
+            mi = menu.Append(-1, label)
+            self.Bind(wx.EVT_MENU, fn, id=mi.GetId())
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def scriptMenuItems(self):
+        return [(_("Link scenes to sets..."), self.OnLinkSets)]
+
+    # warn if the script has scenes with no number yet: those are left out
+    # until a save numbers them
+    def unnumbered(self, sp):
+        import trelby.scenenumbers as scenenumbers
+
+        return sum(1 for _l, n in scenenumbers.scenesOf(sp) if not n)
+
+    # ask which of choices (labels) to do, those in checked ticked; the
+    # indexes chosen, or None if cancelled
+    def choose(self, title, text, choices, checked):
+        if not choices:
+            wx.MessageBox(_("Nothing to do: the bible already matches the script."), title, wx.OK, self)
+
+            return None
+
+        dlg = wx.MultiChoiceDialog(self, text, title, choices)
+        dlg.SetSelections(checked)
+        ret = dlg.GetSelections() if dlg.ShowModal() == wx.ID_OK else None
+        dlg.Destroy()
+
+        return ret
+
+    def noteUnnumbered(self, sp):
+        n = self.unnumbered(sp)
+
+        return (
+            "\n" + _("%d scenes have no number yet and are left out: save the script first.") % n
+            if n
+            else ""
+        )
+
+    # links/1: scene headings -> sets
+    def OnLinkSets(self, event=None):
+        sp = self.script()
+        links, unknown = biblelinks.setPlan(self.bible, sp)
+        choices = [_("Link scene %s to %s") % (n, it.name) for it, n in links]
+        news = list(unknown.items())
+        choices += [
+            _("New set %s (scenes %s)") % (loc, ", ".join(nums)) for loc, nums in news
+        ]
+        sel = self.choose(
+            _("Link scenes to sets"),
+            _("From the scene headings. A new set is made only if you check it.")
+            + self.noteUnnumbered(sp),
+            choices,
+            list(range(len(links))),
+        )
+
+        if sel is None:
+            return
+
+        chosenLinks = [links[i] for i in sel if i < len(links)]
+        chosenNew = dict(news[i - len(links)] for i in sel if i >= len(links))
+        self.guard(biblelinks.applyLinks, self.bible, chosenLinks)
+        self.guard(biblelinks.createSets, self.bible, chosenNew)
+        self.changed()
+
+    # the bible changed under the tree: rebuild it and the scene line
+    def changed(self):
+        self.refresh()
+        self.sceneShown = None
+        self.showScene(self.script())
+
+    # show the bible's items in the scene holding sp's cursor
+    def showScene(self, sp):
+        if self.bible is None or not self.IsShown():
+            return
+
+        num = biblelinks.sceneAt(sp, sp.line)
+        text = ""
+
+        if num:
+            parts = []
+
+            for map_ in bible.MAPS:
+                items = biblelinks.itemsInScene(self.bible, num).get(map_)
+
+                if items:
+                    parts.append(
+                        "%s: %s" % (_(MAP_LABELS[map_]), ", ".join(it.name for it in items))
+                    )
+
+            text = _("Scene %s") % num + (" - " + "; ".join(parts) if parts else "")
+
+        if (num, text) != self.sceneShown:
+            self.sceneShown = (num, text)
+            self.sceneText.SetLabel(text)
+            self.sceneText.Wrap(max(self.GetSize().width - 12, 100))
+            self.Layout()
