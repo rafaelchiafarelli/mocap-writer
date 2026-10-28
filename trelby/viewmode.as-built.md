@@ -60,7 +60,7 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:77-90`):
   `trelby/viewmode.py:525-528`; draft `trelby/viewmode.py:284-290`):
   `paperWidth / chX * fonts[NORMAL].fx` — page width in characters times the
   screen font's character width. `MyCtrl.refreshCache` derives `mm2p` from it
-  (`trelby/trelbyctrl.py:116-119`).
+  (`trelby/trelbyctrl.py:121-124`).
 - `getLineHeight`: `fontYdelta` in draft, `chY * mm2p + 1` otherwise
   (`trelby/viewmode.py:281-282`, `trelby/viewmode.py:425-428`).
 
