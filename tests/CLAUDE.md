@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 258 tests.
+objects directly and never create the wx GUI. 259 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -35,7 +35,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - `test_film.py` — file-format/layout/1: a new film's `film.json`, ids
   per kind and per space, ownership refusals, the invalid `film.json`
   fixtures of `mocap-contracts` (`fixtures/film-v1/invalid/`) refused
-  naming their field, a film with parts deleted opening with its problems.
+  naming their field, a film with parts deleted opening with its problems,
+  `problemsText`. The New film / Open film menu commands need a display:
+  checked through the real window with stubbed dialogs (2026-10-28).
 - `test_acts.py` — acts (story-structure/acts): the Act break is not in
   the PDF, the text after it moves up, the pagination still counts it,
   the screen page still shows it; `acts.actsOf` / `actAt` (no act break,

@@ -145,3 +145,11 @@ def test_an_agent_space_rule_is_checked_before_writing(tmp_path):
         f.addSpace("BAD", "x")
 
     assert [s.code for s in film.Film.open(tmp_path).index.spaces] == ["w"]
+
+
+def test_problems_text_lists_each_problem(tmp_path):
+    film.Film.create(tmp_path, "x\n")
+    (tmp_path / "script.fountain").unlink()
+    text = film.problemsText(film.Film.open(tmp_path).problems)
+
+    assert "Part 'script' (script.fountain): the file is missing" in text
