@@ -101,7 +101,12 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   items and the scenes that use it), drag an item onto another item of its
   map to make it a child or onto the map to move it to the top level; every
   change is written to the film at once, as made by `creator`. The
-  selected item's form is under the tree.
+  selected item's form is under the tree (film-bible/maps, `BibleForm`):
+  every catalog field of its map by group, each with a state button; an
+  edit is saved when the field loses the focus or on Enter, as
+  `creator-approved`; a proposal is approved from its state button, which
+  changes nothing but its state; files are copied into the item's folder
+  (Add… or a drop); a per-scene group is filled for one scene at a time.
 - `createEmptySp()` (`trelby/trelbyctrl.py:103`) starts a script with the
   default title page and header (`trelby/titles.py:13`,
   `trelby/headers.py:16`).
