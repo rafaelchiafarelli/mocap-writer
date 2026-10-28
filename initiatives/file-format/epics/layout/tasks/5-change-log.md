@@ -1,5 +1,8 @@
 ## 5. Change log
 
+- **Status:** Done (2026-10-28) — `Film.log`, `changes`, `revert` in
+  `trelby/film.py`
+
 - **Type:** code, after a `mocap-contracts` task (`change.harpia`)
 - **Depends on:** layout/1; layout/2 (decided: change log); `Change` in
   `mocap-contracts` `v0.5.0`

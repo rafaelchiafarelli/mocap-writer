@@ -13,9 +13,11 @@ import trelby
 import trelby.charmapdlg as charmapdlg
 import trelby.commandsdlg as commandsdlg
 import trelby.config as config
+import trelby.film as film
 import trelby.manual as manual
 import trelby.misc as misc
 import trelby.namesdlg as namesdlg
+import trelby.relinkdlg as relinkdlg
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
 import trelby.splash as splash
 import trelby.util as util
@@ -37,6 +39,12 @@ class MyFrame(wx.Frame):
         self.gd = gd
         self.myApp = myApp
 
+        # the open film (file-format/layout/4), a film.Film, or None
+        self.film = None
+
+        # called with no arguments when self.film changes (the bible panel)
+        self.filmListeners = []
+
         self.SetSizeHints(gd.cvars.getMin("width"), gd.cvars.getMin("height"))
 
         self.Move(gd.posX, gd.posY)
@@ -54,6 +62,9 @@ class MyFrame(wx.Frame):
         fileMenu.Append(ID_FILE_SAVE_AS, "(&A) " + _("Save As") + "...")
         fileMenu.Append(ID_FILE_CLOSE, "(&C) " + _("Close\tCTRL-W"))
         fileMenu.Append(ID_FILE_REVERT, "(&R) " + _("Revert"))
+        fileMenu.AppendSeparator()
+        fileMenu.Append(ID_FILE_NEW_FILM, _("New film") + "...")
+        fileMenu.Append(ID_FILE_OPEN_FILM, _("Open film") + "...")
         fileMenu.AppendSeparator()
         fileMenu.Append(ID_FILE_IMPORT, "(&I) " + _("Import") + "...")
         fileMenu.Append(ID_FILE_EXPORT, "(&E) " + _("Export") + "...")
@@ -310,6 +321,8 @@ class MyFrame(wx.Frame):
 
             self.Bind(wx.EVT_MENU, self.OnNewScript, id=ID_FILE_NEW)
             self.Bind(wx.EVT_MENU, self.OnOpen, id=ID_FILE_OPEN)
+            self.Bind(wx.EVT_MENU, self.OnNewFilm, id=ID_FILE_NEW_FILM)
+            self.Bind(wx.EVT_MENU, self.OnOpenFilm, id=ID_FILE_OPEN_FILM)
             self.Bind(wx.EVT_MENU, self.OnSave, id=ID_FILE_SAVE)
             self.Bind(wx.EVT_MENU, self.OnSaveScriptAs, id=ID_FILE_SAVE_AS)
             self.Bind(wx.EVT_MENU, self.OnImportScript, id=ID_FILE_IMPORT)
@@ -453,7 +466,12 @@ class MyFrame(wx.Frame):
         return newPanel
 
     def setTitle(self, text):
-        self.SetTitle("Trelby - %s" % text)
+        if self.film:
+            self.SetTitle(
+                "Trelby - %s - %s" % (_("film %s") % self.film.root.name, text)
+            )
+        else:
+            self.SetTitle("Trelby - %s" % text)
 
     def setTabText(self, panel, text):
         i = self.findPage(panel)
@@ -524,6 +542,16 @@ class MyFrame(wx.Frame):
         self.panel.ctrl.loadFile(filename)
         self.panel.ctrl.updateScreen()
         self.gd.mru.add(filename)
+
+    # select the tab holding filename, or open it like openScript
+    def showScript(self, filename):
+        for i in range(self.tabCtrl.getPageCount()):
+            if self.tabCtrl.getPage(i).ctrl.fileName == filename:
+                self.tabCtrl.selectPage(i)
+
+                return
+
+        self.openScript(filename)
 
     def checkFonts(self):
         names = ["Normal", "Bold", "Italic", "Bold-Italic"]
@@ -605,6 +633,92 @@ class MyFrame(wx.Frame):
             self.openScript(dlg.GetPath())
 
         dlg.Destroy()
+
+    # pick a folder; None if the user cancelled
+    def chooseFilmFolder(self, title):
+        dlg = wx.DirDialog(self, title, misc.scriptDir)
+        path = None
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            misc.scriptDir = os.path.dirname(path)
+
+        dlg.Destroy()
+
+        return path
+
+    def setFilm(self, f):
+        self.film = f
+        self.setTitle(self.panel.ctrl.fileNameDisplay)
+
+        for listener in self.filmListeners:
+            listener()
+
+    # File -> New film (file-format/layout/4): film.json in a folder with
+    # none, and the current script saved as the film's script
+    def OnNewFilm(self, event=None):
+        root = self.chooseFilmFolder(_("Folder for the new film"))
+
+        if root is None:
+            return
+
+        try:
+            f = film.Film.create(root, "")
+        except (film.FilmError, OSError) as e:
+            wx.MessageBox(str(e), _("Error"), wx.OK, self)
+
+            return
+
+        ctrl = self.panel.ctrl
+
+        if not ctrl.saveFile(str(f.partPath("script"))):
+            wx.MessageBox(
+                _("The film was made, but the script was not saved into it."),
+                _("New film"),
+                wx.OK,
+                self,
+            )
+
+        self.setFilm(f)
+
+    # File -> Open film (file-format/layout/4): film.json, then its script
+    # in a tab; what is missing or invalid is listed, the rest opens
+    def OnOpenFilm(self, event=None):
+        root = self.chooseFilmFolder(_("Film folder to open"))
+
+        if root is not None:
+            self.openFilm(root)
+
+    def openFilm(self, root):
+        try:
+            f = film.Film.open(root)
+        except film.FilmError as e:
+            wx.MessageBox(
+                _("This folder does not open as a film:") + "\n\n" + str(e),
+                _("Open film"),
+                wx.OK,
+                self,
+            )
+
+            return
+
+        script = f.partPath("script")
+
+        if script.exists():
+            self.showScript(str(script))
+
+        self.setFilm(f)
+
+        if f.problems:
+            dlg = relinkdlg.RelinkDlg(self, f.root, f.problems)
+            dlg.ShowModal()
+            dlg.Destroy()
+
+            # the script may have been found in the dialog
+            script = f.partPath("script")
+
+            if script.exists():
+                self.showScript(str(script))
 
     def OnSave(self, event=None):
         self.panel.ctrl.OnSave()

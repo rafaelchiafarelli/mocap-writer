@@ -1,5 +1,8 @@
 ## 1. Root index and id scheme
 
+- **Status:** Done (2026-10-28) — `trelby/film.py`, `tests/test_film.py`;
+  `mocap-contracts` `v0.5.0` as a submodule
+
 - **Type:** code, here and in `mocap-contracts`
 - **Depends on:** study/3 (decision A); a `mocap-contracts` task for
   `film.harpia` (the root index and the id rules), done and tagged
