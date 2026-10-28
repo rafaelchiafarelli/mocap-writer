@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 176 tests.
+objects directly and never create the wx GUI. 177 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -40,7 +40,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   hand through the real window, 2026-10-26).
 - `test_renderscreenplay.py` — PDF export with core fonts and with the
   custom TTF; an unusable custom font (not a font file, or no file) is an
-  `error.MiscError`; non-Latin-1 widths in Helvetica.
+  `error.MiscError`; non-Latin-1 widths in Helvetica; a printed PDF's
+  `/OpenAction` goes to the cursor's page, an export has none.
 - `test_myimport.py` — `importCeltx` (against `test.fountain` with the old
   ending) and `importTextFile` (against `test.fountain`); the real `wx`,
   with only `myimport.ImportDlg` patched to answer OK

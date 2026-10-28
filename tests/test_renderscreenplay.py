@@ -64,3 +64,26 @@ def testNonLatin1WidthInCoreFonts() -> None:
 
     assert fm.getTextWidth("Ł", 12) == fm.getTextWidth("?", 12)
     assert fm.getTextWidth("AŁ", 12) > fm.getTextWidth("A", 12)
+
+
+# "Open PDF on current page": the printed PDF's /OpenAction goes to the
+# cursor's page; an export has none (bugs/import-export/9)
+def testOpenOnCurrentPage() -> None:
+    import io
+
+    import pdfplumber
+    from pdfminer.pdftypes import resolve1
+
+    sp = u.load()
+    sp.cfg.pdfOpenOnCurrentPage = True
+    sp.line = sp.page2lines(3)[0]
+
+    with pdfplumber.open(io.BytesIO(sp.generatePDF(False))) as pdf:
+        dest = resolve1(pdf.doc.catalog["OpenAction"])
+        ids = [p.page_obj.pageid for p in pdf.pages]
+
+        # title page first, then script page 3
+        assert ids.index(dest[0].objid) == len(sp.titles.pages) + 2
+
+    with pdfplumber.open(io.BytesIO(sp.generatePDF(True))) as pdf:
+        assert "OpenAction" not in pdf.doc.catalog
