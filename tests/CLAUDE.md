@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 181 tests.
+objects directly and never create the wx GUI. 194 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -87,6 +87,10 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   delete, forced `.` / `!` / `@` / `>` only when needed, lost elements
   reported, the shared fixture saved back unchanged, the old `test.trelby`
   ending reported lost. Loads the translations itself.
+- `test_scenenumbers.py` — the numbering rule (fountain-native/scenes/1):
+  `parse`/`fmt`/`key` order, a fresh script, append, inserts after a whole
+  number and a letter, nesting, after `Z`, several in a row, no room,
+  numbers never change, `check`.
 - `test_propwords.py` — `propwords.find_prop_words`: positions, accents,
   one-letter words, punctuation, mixed case and digits, an all-caps line.
 - `test_taborder.py` — `ConfigGlobal.tabOrder`: the default cycle and its
@@ -145,7 +149,7 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   harmless, the ids still work.
 
 ## Touchpoints
-- Tests: `trelby/screenplay.py`, `trelby/config.py`, `trelby/myimport.py`,
+- Tests: `trelby/scenenumbers.py`, `trelby/screenplay.py`, `trelby/config.py`, `trelby/myimport.py`,
   `trelby/pdfimport.py`, `trelby/fountain.py`, `trelby/pdf.py`,
   the report modules, `trelby/locations.py`, `trelby/pagelist.py`,
   `trelby/util.py`.
