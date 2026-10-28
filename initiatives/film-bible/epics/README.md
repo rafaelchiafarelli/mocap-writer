@@ -1,5 +1,7 @@
 # film-bible — epics (execution order)
 
+All done 2026-10-28; the initiative gate is Rafael's (`../film-bible.md`).
+
 1. **contract** — field catalog (approved 2026-10-26) and the folder/Harpia contract (2 tasks)
 2. **tree** — the tree panel over `bible/` (1 task)
 3. **maps** — one editor per map: sets, characters, props, wardrobe (4 tasks)

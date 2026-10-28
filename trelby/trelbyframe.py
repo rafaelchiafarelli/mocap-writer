@@ -12,6 +12,8 @@ import wx.svg
 import trelby
 import trelby.charmapdlg as charmapdlg
 import trelby.commandsdlg as commandsdlg
+import trelby.bible as bible
+import trelby.biblepanel as biblepanel
 import trelby.config as config
 import trelby.film as film
 import trelby.manual as manual
@@ -41,6 +43,9 @@ class MyFrame(wx.Frame):
 
         # the open film (file-format/layout/4), a film.Film, or None
         self.film = None
+
+        # its bible (film-bible), a bible.Bible, or None
+        self.bible = None
 
         # called with no arguments when self.film changes (the bible panel)
         self.filmListeners = []
@@ -135,6 +140,7 @@ class MyFrame(wx.Frame):
         viewMenu.AppendCheckItem(
             ID_VIEW_SHOW_FORMATTING, "(&S) " + _("Show formatting")
         )
+        viewMenu.AppendCheckItem(ID_VIEW_BIBLE, "(&B) " + _("Bible") + "\tCTRL-SHIFT-B")
         viewMenu.AppendCheckItem(ID_VIEW_DARK_THEME, "(&T) " + _("Dark theme"))
         viewMenu.Check(ID_VIEW_DARK_THEME, gd.cfgGl.theme == config.THEME_DARK)
         viewMenu.Append(ID_VIEW_FULL_SCREEN, "(&F) " + _("Fullscreen") + "\tF11")
@@ -282,8 +288,16 @@ class MyFrame(wx.Frame):
 
         vsizer.Add(hsizer, 0, wx.EXPAND)
 
-        tmp = misc.MyTabCtrl2(self, -1, self.tabCtrl)
-        vsizer.Add(tmp, 1, wx.EXPAND)
+        # the bible panel and the scripts side by side (film-bible/tree/1);
+        # unsplit while the bible is hidden
+        self.splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
+        self.splitter.SetMinimumPaneSize(120)
+        self.biblePanel = biblepanel.BiblePanel(self.splitter, -1, self)
+        tmp = misc.MyTabCtrl2(self.splitter, -1, self.tabCtrl)
+        self.scriptsPane = tmp
+        self.splitter.Initialize(tmp)
+        self.biblePanel.Hide()
+        vsizer.Add(self.splitter, 1, wx.EXPAND)
 
         vsizer.Add(wx.StaticLine(self, -1), 0, wx.EXPAND)
 
@@ -360,6 +374,7 @@ class MyFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.OnViewModeChange, id=ID_VIEW_STYLE_SIDE_BY_SIDE)
             self.Bind(wx.EVT_MENU, self.OnShowFormatting, id=ID_VIEW_SHOW_FORMATTING)
             self.Bind(wx.EVT_MENU, self.OnDarkTheme, id=ID_VIEW_DARK_THEME)
+            self.Bind(wx.EVT_MENU, self.OnViewBible, id=ID_VIEW_BIBLE)
             self.Bind(wx.EVT_MENU, self.ToggleFullscreen, id=ID_VIEW_FULL_SCREEN)
             self.Bind(wx.EVT_MENU, self.OnFindNextError, id=ID_SCRIPT_FIND_ERROR)
             self.Bind(wx.EVT_MENU, self.OnPaginate, id=ID_SCRIPT_PAGINATE)
@@ -649,6 +664,9 @@ class MyFrame(wx.Frame):
 
     def setFilm(self, f):
         self.film = f
+        self.bible = bible.Bible(f) if f else None
+        self.biblePanel.setBible(self.bible)
+        self.showBible(f is not None)
         self.setTitle(self.panel.ctrl.fileNameDisplay)
 
         for listener in self.filmListeners:
@@ -714,11 +732,29 @@ class MyFrame(wx.Frame):
             dlg.ShowModal()
             dlg.Destroy()
 
-            # the script may have been found in the dialog
+            # the bible and the script may have been found in the dialog
+            f.problems = []
+            self.bible = bible.Bible(f)
+            self.biblePanel.setBible(self.bible)
             script = f.partPath("script")
 
             if script.exists():
                 self.showScript(str(script))
+
+    # show or hide the bible panel left of the scripts (View -> Bible)
+    def showBible(self, show):
+        if show and not self.splitter.IsSplit():
+            self.biblePanel.Show()
+            self.splitter.SplitVertically(
+                self.biblePanel, self.scriptsPane, self.FromDIP(biblepanel.BiblePanel.WIDTH)
+            )
+        elif not show and self.splitter.IsSplit():
+            self.splitter.Unsplit(self.biblePanel)
+
+        self.menuBar.Check(ID_VIEW_BIBLE, show)
+
+    def OnViewBible(self, event=None):
+        self.showBible(self.menuBar.IsChecked(ID_VIEW_BIBLE))
 
     def OnSave(self, event=None):
         self.panel.ctrl.OnSave()

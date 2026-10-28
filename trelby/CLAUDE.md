@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 64 modules: the
+**Role:** All of Trelby's code. One flat package of 69 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -103,10 +103,16 @@ Model and file format
   warning on a click on a number, skipped for 5 clicks after "do not show
   this again"; `check(nums) -> [Problem]` (duplicate, order, foreign,
   missing, `trelby/scenenumbers.py:170`).
-- `propwords.py` — `find_prop_words(line) -> [(start, end, word)]`
-  (`trelby/propwords.py:15`): runs of 2+ letters, accents included, that are
-  fully upper case (`trelby/propwords.py:9`); the editor underlines them in
-  Action lines, film-bible will reuse it for prop records. No wx.
+- `propwords.py` — `find_prop_words(line, typingAt) -> [(start, end,
+  run)]` (`trelby/propwords.py:23`): the props of a line, each a run of
+  consecutive fully capitalized words (accents included; a hyphen or
+  apostrophe joins a word, `trelby/propwords.py:10`) separated by spaces
+  only, so punctuation, a digit or a word not fully capitalized ends it; a
+  one-letter word sits inside a run but never starts or ends one; with
+  `typingAt` (the cursor), a run reaching the end of the line with the
+  cursor after it is left out until something ends it (film-bible/links/2,
+  rule of 2026-10-25). The editor underlines them in Action lines;
+  `biblelinks.propPlan` makes prop records from them. No wx.
 - `film.py` — a film root (file-format/layout/1), no wx except the
   version in `_origin` (`trelby/film.py:457`): `Film.open(root, owner)`
   reads `film.json` through `mocap_contracts` and lists what is missing or
@@ -135,6 +141,80 @@ Model and file format
   a missing part's `Problem` carries a `relink.Ref` (`partRef`,
   `trelby/film.py:152`) whose `apply` saves the new path in `film.json`
   (`setPartPath`, `trelby/film.py:173`).
+- `bible.py` — the film bible (film-bible/contract/2), no wx: `Bible(film)`
+  reads every `bible/<map folder>/<slug>/item.json` (children nested in
+  their parent's folder) through `mocap_contracts`; an invalid item, one
+  in the wrong map folder, a duplicate id or a parent that does not match
+  its folder is a film problem (`load` / `loadFolder`,
+  `trelby/bible.py:96-161`); a file value that points at nothing is a
+  problem with a `relink.Ref` (`checkFiles`, `trelby/bible.py:164`).
+  `Item(msg, folder)`; items by id (`get`), `children(map, parentId)` by
+  name; `create` (id from `film.newId`, folder `freeSlug`: the ASCII slug,
+  `-2`, `-3` on a clash, never a file folder name inside an item,
+  `trelby/bible.py:211-246`); `rename` and `move` move the folder and keep
+  the id (`trelby/bible.py:253-296`); `delete` with children; `addFile`
+  copies a file into the item's `photos/`, `plans/`... and returns its
+  path relative to the item (`trelby/bible.py:309`); `setValues(item,
+  field, values, state, source, by, scene, ...)` replaces a field's values
+  for a scene key, the department from the catalog, and puts the item back
+  if the contract refuses it (`trelby/bible.py:340`); `approve` changes a
+  value's state only; `link` / `unlink` scenes (wardrobe: with the
+  character); `scenes(item)`; `notProps` and `saveNotProps`. Every write
+  goes through `Film.writeText`, so ownership is checked and it is logged.
+- `bibleedit.py` — what the bible form edits (film-bible/maps), no wx:
+  `groups(map)` → `Group`s of catalog `Field`s in catalog order
+  (`trelby/bibleedit.py:42`); `text` (a field's values as text: a list
+  joined by `; `, a number without its unit, a link as the item's name,
+  `trelby/bibleedit.py:61`) and `parse` back (a comma decimal accepted, a
+  bad number a `ValueError`, `trelby/bibleedit.py:80`); `commit` stores
+  what the creator typed, if it changed, as `creator-approved`, source
+  `creator <date>`, by `creator` (`trelby/bibleedit.py:107`); `stateOf`,
+  `describe` (the state button's tooltip), `setState` (state, source and
+  revisit only; put back if the contract refuses it,
+  `trelby/bibleedit.py:159`); `linkChoices` / `setLinks` (keeps the notes
+  of the links kept); `addFiles` (into `FILE_FOLDERS[field]`, else `blend/`
+  or `files/`) / `removeFile`; `sceneChoices` (the item's scenes and the
+  open script's numbers, in script order, `trelby/bibleedit.py:245`);
+  `wornScenes`, `wornText` (`Ana in 1, 2`), `setWorn` (a wardrobe item worn
+  by a character in exactly these scenes, `trelby/bibleedit.py:277`).
+- `bibleform.py` — `BibleForm` (`trelby/bibleform.py:38`): the selected
+  item's form under the bible tree, the same for every map, built from
+  `bibleedit.groups` (`doBuild`, `trelby/bibleform.py:98`): name, id and
+  folder, aliases, scenes; per group a header and per field a label of
+  `LABEL_WIDTH`, a control by type (text, multi-line for description and
+  notes, combo box with the options for a choice, read-only text with
+  Add… for files, also a drop target, and … for links) and a state button
+  (`script` / `ok` / `proposal` / `TBD`, its menu approves a proposal or
+  sets another state, asking the scene for script-stated and the trigger
+  for TBD, `trelby/bibleform.py:324-368`); a per-scene group has a scene
+  combo box. A value is saved when its control loses the focus or Enter
+  is pressed (`OnCommit`, `trelby/bibleform.py:290`); a wardrobe item has
+  a Worn by row: pick a character, tick its scenes (`OnWorn`,
+  `trelby/bibleform.py:432`); the field being typed
+  in is saved before another item is shown (`commitFocused`).
+- `biblelinks.py` — the script's links to the bible (film-bible/links),
+  no wx; each scan returns a plan, applied only with the creator's choice:
+  `locationOf(heading)` (no INT./EXT. prefix, no time of day,
+  `trelby/biblelinks.py:28`), `norm` (case, accents, spaces ignored),
+  `findItem(b, map, name)` (name or alias); `scenesWithLines(sp)` (numbered
+  scenes only), `sceneAt(sp, line)`, `itemsInScene(b, scene)`; links/1:
+  `setPlan(b, sp)` → links for known locations and `{location: [scenes]}`
+  for unknown ones (`trelby/biblelinks.py:109`), `applyLinks`,
+  `createSets` (named as the script writes the location); links/2:
+  `propPlan(b, sp, cursorLine, cursorCol)` → links for known props and
+  `{run: [scenes]}` for runs that are no speaking or bible character, no
+  known prop and not marked "not a prop" (`trelby/biblelinks.py:188`),
+  compared by `propKey` (no case, accents, or plural `s` on a word),
+  `createProps`, `markNotProps`; links/3: `charactersByScene` (the bible
+  characters who speak in each numbered scene, `trelby/biblelinks.py:252`),
+  `linkWardrobe` / `unlinkWardrobe`, `wardrobeGaps` → `[(scene, character
+  id)]` with no wardrobe linked there (`trelby/biblelinks.py:279`);
+  links/4: `copyItem(src, item, dst, parent, by, name)` copies an item with
+  its file folders and child items into `dst` (the same bible or another
+  film's), each with a new id of `dst`'s film, no scene links and no
+  per-scene values, and, into another film, no links to other items
+  (`trelby/biblelinks.py:304`); `usedIn(b, item)` → its scenes, for the
+  warnings (`trelby/biblelinks.py:355`).
 - `relink.py` — missing files of a film (file-format/layout/3), no wx:
   `Ref(what, rel, kind, apply)` (`trelby/relink.py:24`); `kindOk` by
   extension (`KINDS`) or folder; `check(root, ref, path)` → the new film
@@ -145,7 +225,7 @@ Model and file format
   (`trelby/relink.py:122`).
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1559`).
+  (`trelby/trelbyctrl.py:1565`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -168,17 +248,43 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
-  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1114`).
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1150`).
   File → New film… / Open film… (`OnNewFilm`, `OnOpenFilm`,
-  `trelby/trelbyframe.py:659-690`) and the open film `film`, with
-  `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5).
+  `trelby/trelbyframe.py:677-708`) and the open film `film`, with
+  `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5), its
+  `bible`, and the bible panel in `splitter` with View → Bible
+  (`showBible`, film-bible/tree/1, `trelby.process.md` Stage 1).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:909-913`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:945-949`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   + `ActPanel` at the right (`trelby/trelbypanel.py:7`); the act panel is
   made before `MyCtrl`, whose constructor already updates it
   (`trelby/trelbypanel.py:28`).
+- `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:23`): the bible
+  panel (film-bible/tree/1) over `MyFrame.bible`: New / New child /
+  Rename / Delete buttons, a `wx.TreeCtrl` with one branch per map
+  (`refresh` rebuilds it from `Bible.children`, keeping the selection and
+  what was expanded, `trelby/biblepanel.py:118`), a right-click menu
+  (`menuItems`, `trelby/biblepanel.py:311`), drag and drop to change an
+  item's parent (`OnEndDrag`, `trelby/biblepanel.py:343`); under the tree
+  in a splitter, the selected item's `BibleForm` (`makeForm` / `showItem`).
+  Errors the film refuses are shown, never raised (`guard`). A line under
+  the buttons names the cursor's scene and the bible items linked to it
+  (`showScene`, called from `MyCtrl.updateCommon`,
+  `trelby/biblepanel.py:456`). From script… opens the links commands
+  (`OnScriptMenu`, `trelby/biblepanel.py:375`): each shows its plan in a
+  checklist (`choose`) and does only what is checked; Link scenes to sets
+  ticks the links to known sets and leaves new sets unticked
+  (`OnLinkSets`, `trelby/biblepanel.py:424`); Find props lists links to
+  known props (ticked) and new props (unticked), then offers to mark the
+  ones not made as not a prop for the film (`OnFindProps`,
+  `trelby/biblepanel.py:483`); Wardrobe gaps lists the characters in a
+  scene with no wardrobe there (`OnWardrobeGaps`,
+  `trelby/biblepanel.py:527`). The item menu's Copy makes `<name> copy`
+  next to it and names the scenes the original is used in (`OnCopy`,
+  `trelby/biblepanel.py:549`); Copy to another film… opens that film's
+  bible and copies into it (`OnCopyToFilm`, `trelby/biblepanel.py:569`).
 - `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
   wide, one row per act with its name, `n scenes` and a bar as long as its
   scene count against the largest act; the cursor's act highlighted; a
@@ -186,7 +292,7 @@ Application and editor (wx)
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
   `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:472`); repainted on a theme
-  change (`trelby/trelbyctrl.py:515`); `draw(dc, w, h)` does the drawing
+  change (`trelby/trelbyctrl.py:521`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
@@ -195,8 +301,9 @@ Application and editor (wx)
 - `viewmode.py` — the three screen layouts (draft, layout, side by side):
   where each line is drawn and which line/column a mouse position hits.
   Detail: [viewmode.as-built.md](viewmode.as-built.md).
-- `ids.py` — wx menu ids (`ID_FILE_NEW_FILM`, `ID_FILE_OPEN_FILM` for the film) and `idToLTMap` (right-click "Element type" ids →
-  line types, `trelby/ids.py:85`).
+- `ids.py` — wx menu ids (`ID_FILE_NEW_FILM`, `ID_FILE_OPEN_FILM`,
+  `ID_VIEW_BIBLE` for the film) and `idToLTMap` (right-click "Element type" ids →
+  line types, `trelby/ids.py:86`).
 - `misc.py` — platform flags, `progPath` / `confPath` (`misc.init`,
   `trelby/misc.py:23`), `version` (`trelby/misc.py:20`), and shared widgets:
   `MyTabCtrl` (tab bar, `trelby/misc.py:287`), `MyStatus` (status area
@@ -357,14 +464,28 @@ Data and folders
   `manual.html`, Help → Manual makes the page from `doc/manual.xml`
   (`manual.py`).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:206`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:223-228`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:212`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:229-234`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 - A missing file part other than the script (the settings record) is not
   a problem on open: it was not written yet (`trelby/film.py:85-89`).
   Missing folder parts, the script and the writer's `ids/w.json` are; with
   `ids/w.json` lost, `newId` refuses rather than start again at 1.
+- A bible item's rename or move is logged as its old `item.json` deleted
+  and the new one created; the files that moved with the folder are not
+  logged, so a revert puts the `item.json` back but not the files
+  (`Bible.moveFolder`, `trelby/bible.py:283`).
+- `BibleForm` is rebuilt without `Freeze()`: GTK aborts
+  (`gtk_text_btree_find_line_top`) when multi-line text controls are made
+  in a frozen window (found 2026-10-28). While it rebuilds, `building`
+  stops the destroyed controls' focus-loss from saving into the next item
+  (`trelby/bibleform.py:90-96`).
+- A link's note (e.g. the kind of a relationship) is kept and shown in the
+  state button's tooltip, but the form has no control to type one.
+- The editor underlines every run of capitals, character names and "not a
+  prop" words included: the underline knows nothing of the bible; Find
+  props skips them.
 - The change log holds text only: `film.json`, the id counters, the
   script (saved by `MyCtrl.saveFile`, not through `Film`) and binary files
   are not logged; an agent's own writes are not logged either (it does
