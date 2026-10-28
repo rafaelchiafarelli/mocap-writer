@@ -385,6 +385,7 @@ class BiblePanel(wx.Panel):
     def scriptMenuItems(self):
         return [
             (_("Link scenes to sets..."), self.OnLinkSets),
+            (_("Find characters..."), self.OnFindCharacters),
             (_("Find props..."), self.OnFindProps),
             (_("Wardrobe gaps..."), self.OnWardrobeGaps),
         ]
@@ -616,3 +617,30 @@ class BiblePanel(wx.Panel):
                 wx.OK,
                 self,
             )
+
+    # links/5: the speakers of the script -> characters
+    def OnFindCharacters(self, event=None):
+        sp = self.script()
+        links, new = biblelinks.characterPlan(self.bible, sp)
+        news = list(new.items())
+        choices = [_("Link %s to scene %s") % (it.name, n) for it, n in links]
+        choices += [
+            _("New character %s (scenes %s)") % (name, ", ".join(nums))
+            for name, nums in news
+        ]
+        sel = self.choose(
+            _("Find characters"),
+            _("The characters who speak. A new character is made only if you check it.")
+            + self.noteUnnumbered(sp),
+            choices,
+            list(range(len(links))),
+        )
+
+        if sel is None:
+            return
+
+        chosenLinks = [links[i] for i in sel if i < len(links)]
+        chosenNew = dict(news[i - len(links)] for i in sel if i >= len(links))
+        self.guard(biblelinks.applyLinks, self.bible, chosenLinks)
+        self.guard(biblelinks.createCharacters, self.bible, chosenNew)
+        self.changed()
