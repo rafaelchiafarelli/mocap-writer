@@ -58,7 +58,7 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:72-85`):
   `trelby/viewmode.py:496-499`; draft `trelby/viewmode.py:263-269`):
   `paperWidth / chX * fonts[NORMAL].fx` — page width in characters times the
   screen font's character width. `MyCtrl.refreshCache` derives `mm2p` from it
-  (`trelby/trelbyctrl.py:115-118`).
+  (`trelby/trelbyctrl.py:116-119`).
 - `getLineHeight`: `fontYdelta` in draft, `chY * mm2p + 1` otherwise
   (`trelby/viewmode.py:260-261`, `trelby/viewmode.py:400-403`).
 
@@ -108,7 +108,7 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:72-85`):
   `getSceneNumber` of the first line on the page, and `sceneContNr`
   (`CONTINUED (2)`) from `Screenplay.sceneContNrAt(pageNr)`, the number the
   PDF has there (`trelby/viewmode.py:346`, `trelby/viewmode.py:457`,
-  `trelby/screenplay.py:1575`).
+  `trelby/screenplay.py:1583`).
 - `ViewModeSideBySide.makeLineVisible` (`trelby/viewmode.py:547`) moves by
   whole pages: scrolling down makes the line's page the last one shown,
   up the first, otherwise (or with `recenterOnScroll`) the middle one;

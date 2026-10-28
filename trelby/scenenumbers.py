@@ -6,6 +6,8 @@
 import re
 from collections import namedtuple
 
+import trelby.screenplay as screenplay
+
 NUMBER_RE = re.compile(r"^[1-9][0-9]*$")
 LETTER_RE = re.compile(r"^[A-Z]$")
 
@@ -187,3 +189,69 @@ def check(nums):
         last = t
 
     return ret
+
+
+# the scene headings of sp, in order: [(line, num)], line the heading's
+# first line, num its number ("" if none). an empty heading is not a scene
+# (Fountain does not write it).
+def scenesOf(sp):
+    ls = sp.lines
+    ret = []
+    i = 0
+
+    while i < len(ls):
+        last = sp.getElemLastIndexFromLine(i)
+
+        if ls[i].lt == screenplay.SCENE and any(
+            ls[j].text.strip() for j in range(i, last + 1)
+        ):
+            ret.append((i, ls[i].num))
+
+        i = last + 1
+
+    return ret
+
+
+# the problems with sp's scene numbers as text for the user, "" if there
+# are none. nothing is fixed (fountain-native/scenes/2).
+def report(sp):
+    scenes = scenesOf(sp)
+    problems = check([n or None for _line, n in scenes])
+
+    if not problems:
+        return ""
+
+    def heading(p):
+        return sp.lines[scenes[p.index][0]].text
+
+    out = []
+    missing = [p for p in problems if p.kind == PROBLEM_MISSING]
+
+    for p in problems:
+        if p.kind == PROBLEM_DUPLICATE:
+            out.append(
+                _("Scene {} is numbered more than once: {}").format(
+                    p.number, heading(p)
+                )
+            )
+        elif p.kind == PROBLEM_ORDER:
+            out.append(
+                _("Scene {} is out of order: {}").format(p.number, heading(p))
+            )
+        elif p.kind == PROBLEM_FOREIGN:
+            out.append(
+                _(
+                    "Scene number {} is not in the writer's form (12, 12.A, "
+                    "12.A.1); no scene can be inserted right after it: {}"
+                ).format(p.number, heading(p))
+            )
+
+    if missing:
+        out.append(
+            _(
+                "{} of {} scenes have no number yet; they get one when the "
+                "script is saved."
+            ).format(len(missing), len(scenes))
+        )
+
+    return "\n".join(out)

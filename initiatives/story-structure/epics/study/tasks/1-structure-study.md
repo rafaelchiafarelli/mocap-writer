@@ -30,7 +30,7 @@
 ### What the writer does today (2026-10-26, after native Fountain)
 - **Act break** is an element (`@`, `trelby/screenplay.py:25`). Native
   Fountain opens and saves it as a level-1 section `# X`
-  (`trelby/fountain.py:176`, `trelby/fountain.as-built.md` table), so
+  (`trelby/fountain.py:187`, `trelby/fountain.as-built.md` table), so
   acts already round-trip. It still **prints**: caps, bold, underlined
   (`trelby/config.py:495`), like a TV `END OF ACT ONE`. File → Export →
   Fountain and the PDF importer still use the old writer, which gives it

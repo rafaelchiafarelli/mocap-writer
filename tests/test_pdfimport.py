@@ -212,7 +212,8 @@ def testSceneNumbersBecomeFountainMarks(tmp_path):
     pages = [[(72.0, 72.0, "12"), (A, 72.0, "INT. CASA - NOITE"), (552.0, 72.0, "12")]]
     lines = importPages(tmp_path, pages)
 
-    assert lines[0].text == "INT. CASA - NOITE #12#"
+    # the number is the line's num, written as Fountain's #12#
+    assert (lines[0].text, lines[0].num) == ("INT. CASA - NOITE", "12")
     assert fountainOf(lines) == "INT. CASA - NOITE #12#\n"
 
 
@@ -445,9 +446,9 @@ def testInlineSceneNumbers(tmp_path):
 
     # a number before a scene prefix is a scene number; before anything
     # else it is action text
-    assert [(ln.lt, ln.text) for ln in lines] == [
-        (screenplay.SCENE, "INT. CASA - NOITE #7A#"),
-        (screenplay.ACTION, "2. Ela conta até dois."),
+    assert [(ln.lt, ln.text, ln.num) for ln in lines] == [
+        (screenplay.SCENE, "INT. CASA - NOITE", "7A"),
+        (screenplay.ACTION, "2. Ela conta até dois.", ""),
     ]
 
 
@@ -563,9 +564,9 @@ def testDetectedNumberedHeadingWithoutIntExt(tmp_path):
     issues = []
     lines = detectPages(tmp_path, [page(*rows)], issues=issues, notes=False)
 
-    assert [(ln.lt, ln.text) for ln in lines][-2:] == [
-        (screenplay.SCENE, "- NOITE - RUA #4#"),
-        (screenplay.ACTION, "4. Fim, disse ela."),
+    assert [(ln.lt, ln.text, ln.num) for ln in lines][-2:] == [
+        (screenplay.SCENE, "- NOITE - RUA", "4"),
+        (screenplay.ACTION, "4. Fim, disse ela.", ""),
     ]
     assert "scene heading 4 has no INT./EXT.; add it" in [i.message for i in issues]
 

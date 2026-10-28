@@ -24,6 +24,7 @@ import trelby.opts as opts
 import trelby.pml as pml
 import trelby.propwords as propwords
 import trelby.reports as reports
+import trelby.scenenumbers as scenenumbers
 import trelby.screenplay as screenplay
 import trelby.spellcheck as spellcheck
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
@@ -146,6 +147,18 @@ class MyCtrl(wx.Control):
         # saved cursor position might be anywhere, so we can't just
         # display the first page
         self.makeLineVisible(self.sp.line)
+
+        # scene number problems are reported, never fixed
+        # (fountain-native/scenes/2)
+        msg = scenenumbers.report(self.sp)
+        if msg:
+            misc.showText(
+                self.gd.mainFrame,
+                _("Scene numbers in {}:").format(os.path.basename(fileName))
+                + "\n\n"
+                + msg,
+                _("Scene numbers"),
+            )
 
     # a .fountain file -> Screenplay, or None after telling the user why
     def readFountain(self, fileName):
