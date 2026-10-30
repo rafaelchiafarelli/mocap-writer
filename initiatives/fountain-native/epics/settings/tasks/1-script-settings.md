@@ -1,6 +1,8 @@
 ## 1. Per-script settings with a Fountain script
 
-- **Status:** Planned — was io/2; moved to its own epic on 2026-10-26
+- **Status:** Done (2026-10-30) — `trelby/scriptsettings.py`, saved with
+  the film's script and applied by Open film; `mocap-contracts` `v0.6.0`.
+  Was io/2; moved to its own epic on 2026-10-26
   (Rafael) so the io epic could close while this waits for layout/1.
   Re-planned after the file-format decision
   (option A, 2026-10-25): the settings are a record in the film root.
