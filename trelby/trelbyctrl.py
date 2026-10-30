@@ -203,6 +203,7 @@ class MyCtrl(wx.Control):
             self.sp.markChanged(False)
             self.gd.mru.add(fileName)
             self.saveFilmSettings(fileName)
+            self.renameFilmScenes(fileName)
 
             if res.lost:
                 self.showLost(res.lost)
@@ -229,6 +230,34 @@ class MyCtrl(wx.Control):
                 _("Error"),
                 wx.OK,
                 self.gd.mainFrame,
+            )
+
+    # scenes moved or renumbered since the last save: the film's records
+    # that name them follow, written through the film so the change log has
+    # them (fountain-native/scenes/5). outside a film there is nothing to
+    # rewrite.
+    def renameFilmScenes(self, fileName):
+        moves, self.sp.sceneMoves = self.sp.sceneMoves, {}
+        frame = self.gd.mainFrame
+        film = getattr(frame, "film", None)
+
+        if not moves or film is None or os.path.realpath(fileName) != os.path.realpath(
+            str(film.partPath("script"))
+        ):
+            return
+
+        try:
+            if frame.bible is not None:
+                frame.bible.renameScenes(moves)
+                frame.biblePanel.changed()
+        except Exception as e:
+            wx.MessageBox(
+                _("The script was saved, but the records naming its moved scenes were not:")
+                + "\n\n"
+                + str(e),
+                _("Error"),
+                wx.OK,
+                frame,
             )
 
     # give the scenes their numbers before a save (fountain-native/scenes/3).

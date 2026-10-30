@@ -51,8 +51,8 @@ Model and file format
   numbers; `copy()`. `fromStr` has no error checking and is for internal
   storage only (undo).
 - `undo.py` — undo objects: `FullCopy`, `SceneNumbers` (a `FullCopy` that
-  also restores `sceneNumbersIssued`, `trelby/undo.py:185`), `SinglePara`,
-  `ManyElems`, `AnyDifference` (`trelby/undo.py:169-291`); lines are stored as
+  also restores `sceneNumbersIssued`, `sceneTextsIssued` and `sceneMoves`, `trelby/undo.py:185`), `SinglePara`,
+  `ManyElems`, `AnyDifference` (`trelby/undo.py:169-299`); lines are stored as
   zlib-compressed strings when that is shorter (`trelby/undo.py:64`). The
   table at `trelby/undo.py:5-32` says which command uses which.
 - `titles.py` — `Titles` (list of title pages) and `TitleString` (lines of
@@ -89,17 +89,20 @@ Model and file format
   `trelby/scenenumbers.py:111`); `numberFinished(sp)` gives every
   finished heading (with text, cursor not in it; in a script with no
   number at all, every heading) its number, changing only `Line.num`, no
-  undo step (`trelby/scenenumbers.py:284`, fountain-native/scenes/6);
+  undo step (`trelby/scenenumbers.py:317`, fountain-native/scenes/6);
   `scenesOf(sp) -> [(line, num)]` (non-empty headings),
   `report(sp)` (the problems as text, shown on open); `prepareSave(sp)`
   (before a save: `OMITTED` headings for numbers given before and gone,
   numbers for new scenes, one undo step; or the reasons the save must
-  wait, `trelby/scenenumbers.py:393`); `renumberAll(sp)`
-  (`trelby/scenenumbers.py:459`); `labels(sp) -> {line: label}` (the number
+  wait, `trelby/scenenumbers.py:426`), which also takes a vanished
+  number's scene, found again with exactly its text, as moved;
+  `renumberAll(sp)` (`trelby/scenenumbers.py:512`); both add the renames
+  to `sp.sceneMoves` through `addMoves` (composed, `trelby/scenenumbers.py:224`);
+  `sceneTexts(sp)` (`trelby/scenenumbers.py:207`); `labels(sp) -> {line: label}` (the number
   shown for each heading: its number, or the one it will get in
   parentheses, `(12.A)`, or `?` when none fits; the same plan as
-  `prepareSave`, `trelby/scenenumbers.py:363`), `labelAt(labs, line)`;
-  `clickWarning`, a `ClickWarning` (`trelby/scenenumbers.py:500`): the
+  `prepareSave`, `trelby/scenenumbers.py:396`), `labelAt(labs, line)`;
+  `clickWarning`, a `ClickWarning` (`trelby/scenenumbers.py:563`): the
   warning on a click on a number, skipped for 5 clicks after "do not show
   this again"; `check(nums) -> [Problem]` (duplicate, order, foreign,
   missing, `trelby/scenenumbers.py:170`).
@@ -170,7 +173,9 @@ Model and file format
   for a scene key, the department from the catalog, and puts the item back
   if the contract refuses it (`trelby/bible.py:340`); `approve` changes a
   value's state only; `link` / `unlink` scenes (wardrobe: with the
-  character); `scenes(item)`; `notProps` and `saveNotProps`. Every write
+  character); `scenes(item)`; `renameScenes(moves)` (links and per-scene
+  values, all at once, by `writer`, `trelby/bible.py:434`); `notProps` and
+  `saveNotProps`. Every write
   goes through `Film.writeText`, so ownership is checked and it is logged.
 - `bibleedit.py` — what the bible form edits (film-bible/maps), no wx:
   `groups(map)` → `Group`s of catalog `Field`s in catalog order
@@ -242,7 +247,7 @@ Model and file format
   sends with a second press not counted twice (bugs/editor/14-16).
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1618`).
+  (`trelby/trelbyctrl.py:1647`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -309,8 +314,8 @@ Application and editor (wx)
   hint when there is no act break. Own pixel fonts, so the zoom never
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
-  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:499`); repainted on a theme
-  change (`trelby/trelbyctrl.py:548`); `draw(dc, w, h)` does the drawing
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:528`); repainted on a theme
+  change (`trelby/trelbyctrl.py:577`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
@@ -455,7 +460,7 @@ Data and folders
   keeps them in the film's settings record (`scriptsettings`,
   fountain-native/settings/1): saved with the script, applied when Open
   film opens it. Shot is written as upper case + two trailing spaces,
-  Trelby's own convention (`trelby/fountain.py:502`).
+  Trelby's own convention (`trelby/fountain.py:504`).
 - **`_` is a builtin installed by `translations.trelby_translations_load()`**
   (`trelby/translations.py:26`); no module imports it. The tests get it
   from `tests/u.py:16`.
@@ -505,6 +510,10 @@ Data and folders
 - The editor underlines every run of capitals, character names and "not a
   prop" words included: the underline knows nothing of the bible; Find
   props skips them.
+- A move is found by the scene's exact text: a scene edited as well as
+  moved is a new scene, and its records stay on the old number (now an
+  `OMITTED` heading). Renumber all removes the `OMITTED` headings, and
+  records still naming those numbers keep them (fountain-native/scenes/5).
 - The change log holds text only: `film.json`, the id counters, the
   script (saved by `MyCtrl.saveFile`, not through `Film`) and binary files
   are not logged; an agent's own writes are not logged either (it does
