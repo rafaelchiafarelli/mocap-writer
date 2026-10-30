@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 366 tests.
+objects directly and never create the wx GUI. 381 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -89,6 +89,14 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   with a move, undo takes the pending moves back, the bible records follow
   (1 → 2 and 2 → 3 at once). The save path checked through the real
   window (2026-10-30).
+- `test_annotations.py` — fountain-native/notes/1: a span inside one
+  line and across wrapped lines, a whole element and a whole scene, typing
+  before a span, an element inserted before, editing inside the quote,
+  the quote deleted (to its element), the element deleted (to its scene),
+  the script edited elsewhere (found again or unattached), a scene gone
+  then its OMITTED heading, the `.fountain` never touched, flush, shot
+  numbers never reused, renamed scenes, the anchor of a selection. The
+  menus, painting and save checked through the real window (2026-10-30).
 - `test_acts.py` — acts (story-structure/acts): the Act break is not in
   the PDF, the text after it moves up, the pagination still counts it,
   the screen page still shows it; `acts.actsOf` / `actAt` (no act break,

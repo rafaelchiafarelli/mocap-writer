@@ -12,6 +12,8 @@ import wx.svg
 import trelby
 import trelby.charmapdlg as charmapdlg
 import trelby.commandsdlg as commandsdlg
+import trelby.annotationdlg as annotationdlg
+import trelby.annotations as annotations
 import trelby.bible as bible
 import trelby.biblepanel as biblepanel
 import trelby.config as config
@@ -47,6 +49,12 @@ class MyFrame(wx.Frame):
 
         # its bible (film-bible), a bible.Bible, or None
         self.bible = None
+
+        # its annotations (fountain-native/notes/1), an
+        # annotations.Annotations, or None; shown on the script when
+        # showAnnotations
+        self.annotations = None
+        self.showAnnotations = False
 
         # called with no arguments when self.film changes (the bible panel)
         self.filmListeners = []
@@ -142,6 +150,9 @@ class MyFrame(wx.Frame):
             ID_VIEW_SHOW_FORMATTING, "(&S) " + _("Show formatting")
         )
         viewMenu.AppendCheckItem(ID_VIEW_BIBLE, "(&B) " + _("Bible") + "\tCTRL-SHIFT-B")
+        viewMenu.AppendCheckItem(
+            ID_VIEW_ANNOTATIONS, "(&A) " + _("Show annotations") + "\tCTRL-SHIFT-N"
+        )
         viewMenu.AppendCheckItem(ID_VIEW_DARK_THEME, "(&T) " + _("Dark theme"))
         viewMenu.Check(ID_VIEW_DARK_THEME, gd.cfgGl.theme == config.THEME_DARK)
         viewMenu.Append(ID_VIEW_FULL_SCREEN, "(&F) " + _("Fullscreen") + "\tF11")
@@ -152,6 +163,10 @@ class MyFrame(wx.Frame):
         scriptMenu.Append(
             ID_SCRIPT_RENUMBER, "(&R) " + _("Renumber all scenes") + "..."
         )
+        scriptMenu.AppendSeparator()
+        scriptMenu.Append(ID_SCRIPT_ANNOTATE, _("Annotate") + "...\tCTRL-SHIFT-A")
+        scriptMenu.Append(ID_SCRIPT_ANNOTATIONS_HERE, _("Annotations here") + "...")
+        scriptMenu.Append(ID_SCRIPT_ANNOTATIONS_UNATTACHED, _("Unattached annotations") + "...")
         scriptMenu.AppendSeparator()
         scriptMenu.Append(
             ID_SCRIPT_AUTO_COMPLETION, "(&A) " + _("Auto-completion") + "..."
@@ -376,6 +391,12 @@ class MyFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.OnShowFormatting, id=ID_VIEW_SHOW_FORMATTING)
             self.Bind(wx.EVT_MENU, self.OnDarkTheme, id=ID_VIEW_DARK_THEME)
             self.Bind(wx.EVT_MENU, self.OnViewBible, id=ID_VIEW_BIBLE)
+            self.Bind(wx.EVT_MENU, self.OnViewAnnotations, id=ID_VIEW_ANNOTATIONS)
+            self.Bind(wx.EVT_MENU, self.OnAnnotate, id=ID_SCRIPT_ANNOTATE)
+            self.Bind(wx.EVT_MENU, self.OnAnnotationsHere, id=ID_SCRIPT_ANNOTATIONS_HERE)
+            self.Bind(
+                wx.EVT_MENU, self.OnAnnotationsUnattached, id=ID_SCRIPT_ANNOTATIONS_UNATTACHED
+            )
             self.Bind(wx.EVT_MENU, self.ToggleFullscreen, id=ID_VIEW_FULL_SCREEN)
             self.Bind(wx.EVT_MENU, self.OnFindNextError, id=ID_SCRIPT_FIND_ERROR)
             self.Bind(wx.EVT_MENU, self.OnPaginate, id=ID_SCRIPT_PAGINATE)
@@ -669,6 +690,7 @@ class MyFrame(wx.Frame):
     def setFilm(self, f):
         self.film = f
         self.bible = bible.Bible(f) if f else None
+        self.annotations = annotations.Annotations(f) if f else None
         self.biblePanel.setBible(self.bible)
         self.showBible(f is not None)
         self.setTitle(self.panel.ctrl.fileNameDisplay)
@@ -736,6 +758,7 @@ class MyFrame(wx.Frame):
             self.loadFilmSettings(f)
 
         self.setFilm(f)
+        self.listUnattached(f)
 
         if f.problems:
             dlg = relinkdlg.RelinkDlg(self, f.root, f.problems)
@@ -745,6 +768,7 @@ class MyFrame(wx.Frame):
             # the bible and the script may have been found in the dialog
             f.problems = []
             self.bible = bible.Bible(f)
+            self.annotations = annotations.Annotations(f)
             self.biblePanel.setBible(self.bible)
             script = f.partPath("script")
 
@@ -760,6 +784,185 @@ class MyFrame(wx.Frame):
             scriptsettings.loadFor(f, ctrl.sp)
             ctrl.sp.markChanged(False)
             ctrl.updateScreen()
+
+    # the annotations whose text the opened script no longer has (edited in
+    # another tool) are film problems, listed with the rest
+    def listUnattached(self, f):
+        ctrl = self.panel.ctrl
+
+        if self.annotations is None or not self.isFilmScript(ctrl):
+            return
+
+        for rid, p in self.annotations.resolve(ctrl.sp, editing=False).items():
+            if not p.attached:
+                f.problem(_("Annotation %s") % rid, self.annotations.rel(rid), p.why)
+
+    # whether ctrl holds the open film's script
+    def isFilmScript(self, ctrl):
+        return self.film is not None and os.path.realpath(ctrl.fileName or "") == os.path.realpath(
+            str(self.film.partPath("script"))
+        )
+
+    # the annotations need the film's script in the current tab
+    def annotationsReady(self):
+        if self.annotations is None or not self.isFilmScript(self.panel.ctrl):
+            wx.MessageBox(
+                _("Annotations belong to a film's script: open the film (File -> Open film) and use its script's tab."),
+                _("Annotations"),
+                wx.OK,
+                self,
+            )
+
+            return False
+
+        return True
+
+    def OnViewAnnotations(self, event=None):
+        self.showAnnotations = self.menuBar.IsChecked(ID_VIEW_ANNOTATIONS)
+        self.panel.ctrl.updateScreen()
+
+    # Script -> Annotate: the selection's text, or the cursor's element
+    def OnAnnotate(self, event=None):
+        if not self.annotationsReady():
+            return
+
+        ctrl = self.panel.ctrl
+        anchor = annotations.anchorAt(ctrl.sp)
+
+        if anchor is None:
+            wx.MessageBox(
+                _("Put the cursor in a numbered scene (a new scene gets its number when the script is saved)."),
+                _("Annotations"),
+                wx.OK,
+                self,
+            )
+
+            return
+
+        scene, element, quote, occurrence = anchor
+        where = _("Scene %s, element %d") % (scene, element) + (
+            ": \"%s\"" % quote if quote else _(" (the whole element)")
+        )
+        dlg = annotationdlg.AnnotationDlg(self, None, where, self.bible)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            try:
+                values = dlg.values()
+                a = self.annotations.add(
+                    dlg.kindWord(), scene, element, quote, occurrence, dlg.text.GetValue().strip()
+                )
+
+                if values:
+                    a.values.extend(values)
+                    self.annotations.save(a, "creator")
+            except Exception as e:
+                wx.MessageBox(str(e), _("Annotations"), wx.OK, self)
+
+        dlg.Destroy()
+        ctrl.updateScreen()
+
+    def editAnnotation(self, rid):
+        a = self.annotations.records[rid]
+        anc = a.anchor
+        where = _("Scene %s") % anc.scene
+
+        if anc.HasField("element"):
+            where += _(", element %d") % anc.element
+
+        if anc.HasField("quote"):
+            where += ": \"%s\"" % anc.quote
+
+        dlg = annotationdlg.AnnotationDlg(self, a, where, self.bible)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            old = type(a)()
+            old.CopyFrom(a)
+
+            try:
+                values = dlg.values()
+                text = dlg.text.GetValue().strip()
+
+                if text:
+                    a.text = text
+                else:
+                    a.ClearField("text")
+
+                del a.values[:]
+                a.values.extend(values)
+                self.annotations.save(a, "creator")
+            except Exception as e:
+                a.CopyFrom(old)
+                wx.MessageBox(str(e), _("Annotations"), wx.OK, self)
+
+        dlg.Destroy()
+
+    # the list of annotations and what the creator does with one
+    def annotationList(self, title, ids, canAttach):
+        items = [(rid, self.annotations.describe(self.annotations.records[rid])) for rid in ids]
+
+        if not items:
+            wx.MessageBox(_("There are none."), title, wx.OK, self)
+
+            return
+
+        dlg = annotationdlg.AnnotationListDlg(self, title, items, canAttach)
+        chosen = dlg.chosen if dlg.ShowModal() == wx.ID_OK else None
+        dlg.Destroy()
+
+        if chosen is None:
+            return
+
+        action, rid = chosen
+
+        try:
+            if action == "edit":
+                self.editAnnotation(rid)
+            elif action == "delete":
+                if wx.MessageBox(
+                    _("Delete this annotation?"), title, wx.YES_NO | wx.NO_DEFAULT, self
+                ) == wx.YES:
+                    self.annotations.delete(rid)
+            elif action == "attach":
+                anchor = annotations.anchorAt(self.panel.ctrl.sp)
+
+                if anchor is None:
+                    wx.MessageBox(_("Put the cursor in a numbered scene first."), title, wx.OK, self)
+                else:
+                    self.annotations.move(rid, *anchor)
+        except Exception as e:
+            wx.MessageBox(str(e), title, wx.OK, self)
+
+        self.panel.ctrl.updateScreen()
+
+    # Script -> Annotations here: on the cursor's text, element or scene
+    def OnAnnotationsHere(self, event=None):
+        if not self.annotationsReady():
+            return
+
+        sp = self.panel.ctrl.sp
+        places = self.annotations.resolve(sp)
+        anchor = annotations.anchorAt(sp)
+        ids = []
+
+        for rid, p in places.items():
+            a = self.annotations.records[rid]
+            onLine = any(l == sp.line for l, _c1, _c2 in p.spans)
+            onScene = anchor and not p.spans and p.attached and a.anchor.scene == anchor[0]
+
+            if onLine or onScene:
+                ids.append(rid)
+
+        self.annotationList(_("Annotations here"), ids, False)
+
+    # Script -> Unattached annotations: those not found in the script, to
+    # re-attach at the cursor or delete
+    def OnAnnotationsUnattached(self, event=None):
+        if not self.annotationsReady():
+            return
+
+        places = self.annotations.resolve(self.panel.ctrl.sp, editing=False)
+        ids = [rid for rid, p in places.items() if not p.attached]
+        self.annotationList(_("Unattached annotations"), ids, True)
 
     # show or hide the bible panel left of the scripts (View -> Bible)
     def showBible(self, show):
