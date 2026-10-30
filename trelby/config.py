@@ -115,6 +115,7 @@ DARK_COLORS = {
     "autoCompBgColor": (92, 76, 20),
     "noteColor": (66, 52, 38),
     "sceneHatchColor": (78, 88, 110),
+    "annotationColor": (92, 76, 28),
     "pagebreakColor": (70, 70, 70),
     "pagebreakNoAdjustColor": (70, 70, 70),
     "tabTextColor": (220, 220, 220),
@@ -1298,6 +1299,9 @@ class ConfigGlobal:
         v.addColor(
             "sceneHatch", 160, 176, 210, "SceneHeadingHatch", _("Scene heading hatch")
         )
+        # the tint behind annotated text when annotations are shown
+        # (fountain-native/notes/1)
+        v.addColor("annotation", 255, 236, 179, "Annotation", _("Annotated text"))
         v.addColor("pagebreak", 221, 221, 221, "PageBreakLine", _("Page-break line"))
         v.addColor(
             "pagebreakNoAdjust",
@@ -1637,6 +1641,9 @@ class ConfigGui:
         self.sceneHatchBrush = wx.Brush(
             self.sceneHatchColor, wx.BRUSHSTYLE_BDIAGONAL_HATCH
         )
+
+        self.annotationBrush = wx.Brush(self.annotationColor)
+        self.annotationPen = wx.Pen(self.annotationColor)
 
         self.noteBrush = wx.Brush(self.noteColor)
         self.notePen = wx.Pen(self.noteColor)

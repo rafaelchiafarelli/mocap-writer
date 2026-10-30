@@ -65,8 +65,8 @@ Chocolatey from `choco/`).
 - `choco/`, `debian/` — upstream packaging (their `CLAUDE.md`).
 - `.github/` — holds only `workflows/` (`.github/workflows/CLAUDE.md`).
 - `third_party/mocap-contracts/` — git submodule pinned to a tag
-  (`v0.5.0`): the film root formats (`film.harpia`, `bible.harpia`,
-  `change.harpia`); on `PYTHONPATH` in the image (`docker/Dockerfile`), not
+  (`v0.6.0`): the film root formats (`film.harpia`, `bible.harpia`,
+  `change.harpia`, `script_settings.harpia`, `annotation.harpia`); on `PYTHONPATH` in the image (`docker/Dockerfile`), not
   installed, since a hashed lock can't hold a `git+` URL. Its own docs
   are inside it.
 - `initiatives/` — planning: initiatives, epics, tasks, the bug backlog
