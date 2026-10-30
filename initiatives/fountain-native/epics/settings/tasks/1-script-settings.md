@@ -5,6 +5,9 @@
   Re-planned after the file-format decision
   (option A, 2026-10-25): the settings are a record in the film root.
 
+- **Go-ahead (Rafael, 2026-10-30):** the `script_settings` message in
+  `mocap-contracts`, released with `annotation` as `v0.6.0`.
+
 - **Type:** code
 - **Depends on:** io/1; file-format/layout/1 (root index, part
   ownership); a `mocap-contracts` task for a `script_settings` message,

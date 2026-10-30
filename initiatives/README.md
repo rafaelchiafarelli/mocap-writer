@@ -20,4 +20,6 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 
 9. **import-to-film** — an import ends in a complete film: Import into film, one review of the bible the script offers, a report (planned 2026-10-28; three decisions for Rafael in `import-to-film/import-to-film.md`)
 
+10. **architecture** — learn how mocap-writer is built: interactive explainer pages, one per layer, from the as-built docs (planned 2026-10-30)
+
 `film-bible` needs `fountain-native/scenes` (scene numbers). `preprod-link` needs `film-bible`. `film-bible`, `preprod-link` and `fountain-native/settings/1` (per-script settings, was io/2) need `file-format/layout/1`. `pdf-import`, `editor-ux` and `spellcheck` need nothing.

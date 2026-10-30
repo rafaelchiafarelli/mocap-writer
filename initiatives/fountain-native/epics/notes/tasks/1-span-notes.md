@@ -57,3 +57,19 @@
   edited outside the writer: quote re-found, or listed as unattached;
   the button on and off; the Fountain file byte-identical after
   annotating
+
+### Decided: the `annotation` message (Rafael, 2026-10-30)
+
+Go-ahead for `mocap-contracts` (release `v0.6.0`), and the **generic**
+shape, like the bible (film-bible contract/2): an `Annotation` record
+(`annotations/<id>.json`, id `annotation-<space>-<n>`) holds its `kind`
+(note, character direction, prop direction, special effect, set direction,
+sound direction, general direction, transition, shot), its `anchor` (scene
+number, element index in the scene, the quoted text and which occurrence
+of it, none for a whole element), a short `text`, who made it (`by`), and
+`values`: the same `BibleValue`s as the bible (state, source, department,
+by, revisit), checked against an **annotation catalog** shipped as data
+(the kinds' fields of film-bible contract/1, "Scene annotations"). A shot
+carries its permanent number `S<n>` per scene; the next number of each
+scene is kept in `annotations/shot-counters.json`, so a number never comes
+back. Not chosen: one typed message per kind (every field a schema change).

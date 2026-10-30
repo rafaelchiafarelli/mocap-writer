@@ -2,9 +2,16 @@
 
 - **Type:** code
 - **Depends on:** 3; the first records that name scenes: film-bible
-  contract/2 (bible links), fountain-native/notes/1 (annotations),
-  preprod-link contract/1 (scene index). **Not ready:** no such record
-  exists yet, so there is nothing to rewrite.
+  contract/2 (bible links and per-scene values, done 2026-10-28);
+  fountain-native/notes/1 (annotations) adds its anchors when it lands;
+  preprod-link contract/1 (scene index) later.
+- **Decided (Rafael, 2026-10-30): records follow the save.** The records
+  are rewritten when the save gives the moved scenes their new numbers
+  (or by Renumber all), written through the film, so the change log has
+  them; Undo in the editor changes only the script, and a rewrite is taken
+  back by reverting it in the change log. Not chosen: an editor undo that
+  also writes the records back (it would tie the undo chain to files on
+  disk).
 - **Decided (Rafael, 2026-10-26, in task 1, now in git history):** a move (cut and paste)
   rewrites every record that named the old number to the new one, as one
   undoable change; Renumber all rewrites every record that names a scene;

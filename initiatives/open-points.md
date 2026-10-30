@@ -52,11 +52,9 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 ## Work waiting on something else
 
 - **`mocap-contracts` tasks, none planned yet** (Rafael's go-ahead
-  needed, another repository): `script_settings`
-  (fountain-native/settings/1), `annotation` (fountain-native/notes/1), `scene_index`
-  (preprod-link/contract/1), `change_set` (preprod-link/contract/2).
-- **fountain-native/scenes/5** (a move and Renumber all rewrite the
-  records that name scenes) waits for the first such records.
+  needed, another repository): `scene_index` (preprod-link/contract/1),
+  `change_set` (preprod-link/contract/2). `script_settings` and
+  `annotation` got the go-ahead on 2026-10-30 (`v0.6.0`).
 - **fountain-native/settings/1** waits for `script_settings` (file-format
   is done, 2026-10-28).
 - **fountain-native/notes/1** waits for `annotation` (scenes/1–4 done
