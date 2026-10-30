@@ -116,7 +116,7 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:77-90`):
   before the page (`trelby/viewmode.py:329`, `trelby/viewmode.py:472`), and `sceneContNr`
   (`CONTINUED (2)`) from `Screenplay.sceneContNrAt(pageNr)`, the number the
   PDF has there (`trelby/viewmode.py:370`, `trelby/viewmode.py:485`,
-  `trelby/screenplay.py:1580`).
+  `trelby/screenplay.py:1591`).
 - `ViewModeSideBySide.makeLineVisible` (`trelby/viewmode.py:576`) moves by
   whole pages: scrolling down makes the line's page the last one shown,
   up the first, otherwise (or with `recenterOnScroll`) the middle one;

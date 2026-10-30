@@ -428,6 +428,33 @@ class Bible:
 
         return nums
 
+    # rename scenes in every record that names them (fountain-native/
+    # scenes/5): moves is {old number: new number}, applied all at once so
+    # 1 -> 2 and 2 -> 3 never meet. returns the items changed.
+    def renameScenes(self, moves, by="writer"):
+        changed = []
+
+        for it in self.items.values():
+            touched = False
+
+            for l in it.msg.links:
+                if l.scene in moves:
+                    l.scene = moves[l.scene]
+                    touched = True
+
+            for v in it.msg.values:
+                if v.HasField("scene") and v.scene in moves:
+                    v.scene = moves[v.scene]
+                    touched = True
+
+            if touched:
+                changed.append(it)
+
+        for it in changed:
+            self.save(it, by)
+
+        return changed
+
     def saveNotProps(self, by=None):
         rel = self.base() + "/" + cb.NOT_PROPS_FILE
         self.film.writeText(rel, mc.to_json(mc.NotProps(words=self.notProps)), by)

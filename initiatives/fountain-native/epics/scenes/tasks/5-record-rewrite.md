@@ -1,5 +1,9 @@
 ## 5. Moves and Renumber all rewrite the records that name scenes
 
+- **Status:** Done (2026-10-30) — a move is found at the save by the
+  scene's exact text (no clipboard tracking); `sp.sceneMoves`,
+  `Bible.renameScenes`; annotations join when notes/1 lands
+
 - **Type:** code
 - **Depends on:** 3; the first records that name scenes: film-bible
   contract/2 (bible links and per-scene values, done 2026-10-28);
