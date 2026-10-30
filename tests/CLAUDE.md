@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 354 tests.
+objects directly and never create the wx GUI. 361 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -77,6 +77,13 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   double-click after the second press), the word and the element a double
   and a triple click select. The real clicks checked through the window
   (2026-10-28).
+- `test_scriptsettings.py` — fountain-native/settings/1: the writer's
+  defaults equal `mocap-contracts`' `script-v1` fixture byte for byte;
+  settings changed → record → reopened equal (title layout included); a
+  title page edited elsewhere opens from Fountain with a problem; out of
+  range refused; the film round trip with the script text unchanged and
+  the record in the change log; an invalid record or none keeps the
+  defaults. The menu path checked through the real window (2026-10-30).
 - `test_acts.py` — acts (story-structure/acts): the Act break is not in
   the PDF, the text after it moves up, the pagination still counts it,
   the screen page still shows it; `acts.actsOf` / `actAt` (no act break,

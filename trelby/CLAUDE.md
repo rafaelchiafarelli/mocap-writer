@@ -1,6 +1,6 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 70 modules: the
+**Role:** All of Trelby's code. One flat package of 71 modules: the
 screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
 (`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
@@ -113,6 +113,17 @@ Model and file format
   cursor after it is left out until something ends it (film-bible/links/2,
   rule of 2026-10-25). The editor underlines them in Action lines;
   `biblelinks.propPlan` makes prop records from them. No wx.
+- `scriptsettings.py` — a script's settings as the film's
+  `settings/script-settings.json` (fountain-native/settings/1), no wx:
+  `toRecord(sp, fountainTitle)` → a `mocap_contracts.ScriptSettings` with
+  every field (`trelby/scriptsettings.py:114`); `apply(sp, record,
+  fountainTitle)` puts it into `sp.cfg`, headers, completion lists,
+  locations, the script's words and, while the script's Fountain title
+  block is the one the layout was saved with, the title pages; else the
+  title page stays as Fountain built it and a problem is returned
+  (`trelby/scriptsettings.py:201`); `saveFor(film, sp)` /
+  `loadFor(film, sp)` (an invalid record is a film problem and the script
+  keeps the defaults, `trelby/scriptsettings.py:318-347`).
 - `film.py` — a film root (file-format/layout/1), no wx except the
   version in `_origin` (`trelby/film.py:457`): `Film.open(root, owner)`
   reads `film.json` through `mocap_contracts` and lists what is missing or
@@ -231,7 +242,7 @@ Model and file format
   sends with a second press not counted twice (bugs/editor/14-16).
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1596`).
+  (`trelby/trelbyctrl.py:1618`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -254,14 +265,14 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
-  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1150`).
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1170`).
   File → New film… / Open film… (`OnNewFilm`, `OnOpenFilm`,
-  `trelby/trelbyframe.py:677-708`) and the open film `film`, with
+  `trelby/trelbyframe.py:681-718`) and the open film `film`, with
   `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5), its
   `bible`, and the bible panel in `splitter` with View → Bible
   (`showBible`, film-bible/tree/1, `trelby.process.md` Stage 1).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:945-949`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:965-969`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   + `ActPanel` at the right (`trelby/trelbypanel.py:7`); the act panel is
@@ -298,8 +309,8 @@ Application and editor (wx)
   hint when there is no act break. Own pixel fonts, so the zoom never
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
-  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:477`); repainted on a theme
-  change (`trelby/trelbyctrl.py:526`); `draw(dc, w, h)` does the drawing
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:499`); repainted on a theme
+  change (`trelby/trelbyctrl.py:548`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
@@ -439,10 +450,11 @@ Data and folders
 
 ## Key facts / gotchas
 - **A `.fountain` keeps no per-script settings** (page setup, element
-  styles, auto-completion, locations, script dictionary, headers): they are
-  defaults after opening one. Page setup and styles can be kept with
-  Script → Settings → Save as / Load. The rest is planned as a record in
-  the film root (fountain-native/settings/1, waits for file-format/layout/1). Shot is written as upper case + two trailing spaces,
+  styles, auto-completion, locations, script dictionary, headers, title
+  layout): a script opened on its own opens with defaults. A film's script
+  keeps them in the film's settings record (`scriptsettings`,
+  fountain-native/settings/1): saved with the script, applied when Open
+  film opens it. Shot is written as upper case + two trailing spaces,
   Trelby's own convention (`trelby/fountain.py:502`).
 - **`_` is a builtin installed by `translations.trelby_translations_load()`**
   (`trelby/translations.py:26`); no module imports it. The tests get it
@@ -471,8 +483,8 @@ Data and folders
   `manual.html`, Help → Manual makes the page from `doc/manual.xml`
   (`manual.py`).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:212`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:229-234`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:213`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:230-235`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 - A missing file part other than the script (the settings record) is not

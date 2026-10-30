@@ -20,6 +20,7 @@ import trelby.manual as manual
 import trelby.misc as misc
 import trelby.namesdlg as namesdlg
 import trelby.relinkdlg as relinkdlg
+import trelby.scriptsettings as scriptsettings
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
 import trelby.splash as splash
 import trelby.util as util
@@ -558,15 +559,18 @@ class MyFrame(wx.Frame):
         self.panel.ctrl.updateScreen()
         self.gd.mru.add(filename)
 
-    # select the tab holding filename, or open it like openScript
+    # select the tab holding filename, or open it like openScript; True if
+    # it was opened now
     def showScript(self, filename):
         for i in range(self.tabCtrl.getPageCount()):
             if self.tabCtrl.getPage(i).ctrl.fileName == filename:
                 self.tabCtrl.selectPage(i)
 
-                return
+                return False
 
         self.openScript(filename)
+
+        return True
 
     def checkFonts(self):
         names = ["Normal", "Bold", "Italic", "Bold-Italic"]
@@ -689,7 +693,13 @@ class MyFrame(wx.Frame):
 
         ctrl = self.panel.ctrl
 
-        if not ctrl.saveFile(str(f.partPath("script"))):
+        if ctrl.saveFile(str(f.partPath("script"))):
+            # the film was not open yet when the script was saved
+            try:
+                scriptsettings.saveFor(f, ctrl.sp)
+            except Exception as e:
+                wx.MessageBox(str(e), _("Error"), wx.OK, self)
+        else:
             wx.MessageBox(
                 _("The film was made, but the script was not saved into it."),
                 _("New film"),
@@ -722,8 +732,8 @@ class MyFrame(wx.Frame):
 
         script = f.partPath("script")
 
-        if script.exists():
-            self.showScript(str(script))
+        if script.exists() and self.showScript(str(script)):
+            self.loadFilmSettings(f)
 
         self.setFilm(f)
 
@@ -738,8 +748,18 @@ class MyFrame(wx.Frame):
             self.biblePanel.setBible(self.bible)
             script = f.partPath("script")
 
-            if script.exists():
-                self.showScript(str(script))
+            if script.exists() and self.showScript(str(script)):
+                self.loadFilmSettings(f)
+
+    # the film's settings record into its script's tab, just opened and the
+    # current one (fountain-native/settings/1)
+    def loadFilmSettings(self, f):
+        ctrl = self.panel.ctrl
+
+        if os.path.realpath(ctrl.fileName or "") == os.path.realpath(str(f.partPath("script"))):
+            scriptsettings.loadFor(f, ctrl.sp)
+            ctrl.sp.markChanged(False)
+            ctrl.updateScreen()
 
     # show or hide the bible panel left of the scripts (View -> Bible)
     def showBible(self, show):
