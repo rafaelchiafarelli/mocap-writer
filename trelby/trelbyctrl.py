@@ -93,6 +93,10 @@ class MyCtrl(wx.Control):
     def clearVars(self):
         self.mouseSelectActive = False
 
+        # the annotations placed at the last paint, {id: Place}, for the
+        # hover text (fountain-native/notes/1)
+        self.annotationPlaces = {}
+
         # counts clicks: two select the word, three the element
         # (bugs/editor/14-16)
         self.clicks = clicks.ClickCounter()
@@ -204,6 +208,7 @@ class MyCtrl(wx.Control):
             self.gd.mru.add(fileName)
             self.saveFilmSettings(fileName)
             self.renameFilmScenes(fileName)
+            self.saveFilmAnnotations(fileName)
 
             if res.lost:
                 self.showLost(res.lost)
@@ -250,6 +255,9 @@ class MyCtrl(wx.Control):
             if frame.bible is not None:
                 frame.bible.renameScenes(moves)
                 frame.biblePanel.changed()
+
+            if frame.annotations is not None:
+                frame.annotations.renameScenes(moves)
         except Exception as e:
             wx.MessageBox(
                 _("The script was saved, but the records naming its moved scenes were not:")
@@ -259,6 +267,53 @@ class MyCtrl(wx.Control):
                 wx.OK,
                 frame,
             )
+
+    # the annotations' anchors as the saved script has them: placed again
+    # and the ones that moved written (fountain-native/notes/1)
+    def saveFilmAnnotations(self, fileName):
+        frame = self.gd.mainFrame
+
+        if getattr(frame, "annotations", None) is None or not frame.isFilmScript(self):
+            return
+
+        try:
+            frame.annotations.resolve(self.sp)
+            frame.annotations.flush()
+        except Exception as e:
+            wx.MessageBox(
+                _("The script was saved, but its annotations' places were not:") + "\n\n" + str(e),
+                _("Error"),
+                wx.OK,
+                frame,
+            )
+
+    # the annotations to draw on this script, {line: [(c1, c2)]} and the
+    # lines to mark, or None when they are not shown
+    def annotationMarks(self):
+        frame = self.gd.mainFrame
+
+        if not getattr(frame, "showAnnotations", False) or frame.annotations is None:
+            self.annotationPlaces = {}
+
+            return None
+
+        if not frame.isFilmScript(self):
+            self.annotationPlaces = {}
+
+            return None
+
+        self.annotationPlaces = frame.annotations.resolve(self.sp)
+        spans = {}
+        marks = set()
+
+        for p in self.annotationPlaces.values():
+            for l, c1, c2 in p.spans:
+                spans.setdefault(l, []).append((c1, c2))
+
+            if p.attached and p.line is not None:
+                marks.add(p.line)
+
+        return (spans, marks)
 
     # give the scenes their numbers before a save (fountain-native/scenes/3).
     # returns False if the save must wait: a duplicate number or a scene
@@ -787,6 +842,23 @@ class MyCtrl(wx.Control):
     def OnMotion(self, event):
         if event.LeftIsDown():
             self.OnLeftDown(event, mark=True)
+        elif self.annotationPlaces:
+            self.annotationTip(event.GetPosition())
+
+    # the hover text of the annotations under the pointer
+    def annotationTip(self, pos):
+        line, col = self.gd.vm.pos2linecol(self, pos.x, pos.y)
+        an = self.gd.mainFrame.annotations
+        ids = an.at(self.annotationPlaces, line, col) if line is not None and an else []
+        tip = "\n\n".join(an.describe(an.records[rid]) for rid in ids if rid in an.records)
+
+        if tip != getattr(self, "lastTip", ""):
+            self.lastTip = tip
+
+            if tip:
+                self.SetToolTip(tip)
+            else:
+                self.UnsetToolTip()
 
     def OnRightDown(self, event):
         pos = event.GetPosition()
@@ -1746,6 +1818,8 @@ class MyCtrl(wx.Control):
                 dc.DrawLine(dp.x1 + 1, dp.y2 + 1, dp.x2 + 1, dp.y2 + 1)
                 dc.DrawLine(dp.x2 + 1, dp.y1 + 1, dp.x2 + 1, dp.y2 + 2)
 
+        amarks = self.annotationMarks()
+
         for t in strings:
             i = t.line
             y = t.y
@@ -1763,6 +1837,20 @@ class MyCtrl(wx.Control):
                     dc.DrawRectangle(
                         t.x - 5, y, self.sp.cfg.getType(l.lt).width * fx + 10, lineh
                     )
+
+                # annotated text, tinted, and a mark in the margin where an
+                # annotation starts, when annotations are shown
+                if amarks:
+                    dc.SetPen(self.gd.cfgGui.annotationPen)
+                    dc.SetBrush(self.gd.cfgGui.annotationBrush)
+
+                    for c1, c2 in amarks[0].get(i, []):
+                        dc.DrawRectangle(t.x + c1 * fx, y, max(c2 - c1, 1) * fx, lineh)
+
+                    if i in amarks[1]:
+                        dc.SetPen(self.gd.cfgGui.textPen)
+                        dc.SetBrush(self.gd.cfgGui.annotationBrush)
+                        dc.DrawRectangle(t.x - 14, y + 2, 7, lineh - 4)
 
                 if l.lt == screenplay.NOTE:
                     dc.SetPen(self.gd.cfgGui.notePen)

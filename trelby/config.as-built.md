@@ -9,14 +9,14 @@ one-character file codes. All saved settings go through `mypickle.Vars`
 
 | object | scope | saved in | holds |
 |---|---|---|---|
-| `Config` (`trelby/config.py:433`) | one script | the script's `#Begin-Config` section | element layout and styles, paper, margins, font size, PDF options, `(MORE)`/`CONTINUED` strings, saved cursor |
-| `ConfigGlobal` (`trelby/config.py:669`) | the program | `<confPath>/default.conf` | Enter/Tab table, Tab cycle, keyboard commands, screen fonts and line height, colors, editor behaviour, PDF viewer, splash time |
-| `ConfigGui` (`trelby/config.py:1590`) | the program, not saved | — | wx `Colour`/`Pen`/`Brush`/`Font` objects built from `ConfigGlobal` (wx objects cannot be deep-copied) |
+| `Config` (`trelby/config.py:434`) | one script | the script's `#Begin-Config` section | element layout and styles, paper, margins, font size, PDF options, `(MORE)`/`CONTINUED` strings, saved cursor |
+| `ConfigGlobal` (`trelby/config.py:670`) | the program | `<confPath>/default.conf` | Enter/Tab table, Tab cycle, keyboard commands, screen fonts and line height, colors, editor behaviour, PDF viewer, splash time |
+| `ConfigGui` (`trelby/config.py:1594`) | the program, not saved | — | wx `Colour`/`Pen`/`Brush`/`Font` objects built from `ConfigGlobal` (wx objects cannot be deep-copied) |
 
 ## Classes
 
-- `TypeInfo(lt, char, name)` (`trelby/config.py:144`) — fixed facts about a
-  line type. Built once by `_init()` (`trelby/config.py:1776-1795`):
+- `TypeInfo(lt, char, name)` (`trelby/config.py:145`) — fixed facts about a
+  line type. Built once by `_init()` (`trelby/config.py:1783-1802`):
 
   | type | code | name |
   |---|---|---|
@@ -32,32 +32,32 @@ one-character file codes. All saved settings go through `mypickle.Vars`
 
   Line-break codes (`trelby/config.py:22-28`): `>` space, `+` space2, `&`
   none, `|` forced, `.` last.
-- `TextType` (`trelby/config.py:158`) — `isCaps`, `isBold`, `isItalic`,
+- `TextType` (`trelby/config.py:159`) — `isCaps`, `isBold`, `isItalic`,
   `isUnderlined`.
-- `Type(lt)` (`trelby/config.py:180`) — per script and type:
+- `Type(lt)` (`trelby/config.py:181`) — per script and type:
   `beforeSpacing` (0–50) and `intraSpacing` (0–20) in tenths of a line,
   `indent` (0–80) and `width` (5–80) in characters, and two `TextType`s,
-  `screen` and `export` (`trelby/config.py:192-205`). Saved as
+  `screen` and `export` (`trelby/config.py:193-206`). Saved as
   `Element/<Name>/...`.
-- `TypeGlobal(lt)` (`trelby/config.py:229`) — `newTypeEnter`, `newTypeTab`
-  (`trelby/config.py:244-245`), saved by type name (`ElementNameVar`). What
+- `TypeGlobal(lt)` (`trelby/config.py:230`) — `newTypeEnter`, `newTypeTab`
+  (`trelby/config.py:245-246`), saved by type name (`ElementNameVar`). What
   Tab / Shift+Tab convert to is not per type: it is
   `ConfigGlobal.tabOrder` (see Tab cycle below). Old configs still carry
   `Element/<Name>/NextTypeTab` / `PrevTypeTab`; they are ignored.
-- `Command` (`trelby/config.py:266`) — `name`, `desc`, `defKeys`, `keys`
+- `Command` (`trelby/config.py:267`) — `name`, `desc`, `defKeys`, `keys`
   (ints from `util.Key.toInt`), `isMovement`, `isFixed` (not saved, not
   rebindable), `isMenu`, `scrollDirection`. `load` drops bindings to plain
-  input characters (`trelby/config.py:347-354`).
-- `FontInfo` (`trelby/config.py:358`) — a `wx.Font` and its character
+  input characters (`trelby/config.py:348-355`).
+- `FontInfo` (`trelby/config.py:359`) — a `wx.Font` and its character
   width/height in pixels.
-- `PDFFontInfo(name, style)` (`trelby/config.py:368`) — per script, one of
+- `PDFFontInfo(name, style)` (`trelby/config.py:369`) — per script, one of
   `Normal`, `Bold`, `Italic`, `Bold-Italic`: PDF name and TTF file to embed;
   `refresh` strips characters not allowed in PostScript names
-  (`trelby/config.py:423`).
+  (`trelby/config.py:424`).
 
 ## Defaults
 
-- Per-script element layout (`Config.__init__`, `trelby/config.py:446-513`):
+- Per-script element layout (`Config.__init__`, `trelby/config.py:447-514`):
 
   | type | before | indent | width | screen | export |
   |---|---|---|---|---|---|
@@ -71,70 +71,72 @@ one-character file codes. All saved settings go through `mypickle.Vars`
   | Act break | 10 | 25 | 10 | caps, bold, underlined | caps, underlined |
   | Note | 10 | 5 | 55 | italic | italic |
 
-- Per-script page (`Config.setupVars`, `trelby/config.py:528-594`): A4
+- Per-script page (`Config.setupVars`, `trelby/config.py:529-595`): A4
   210 × 297 mm, margins top 12.7 / bottom 25.4 / left 38.1 / right 25.4 mm,
   font size 12 pt, keep ≥ 2 action and ≥ 2 dialogue lines at a page
   bottom, scene continueds off, scene numbers off, PDF TOC on, open PDF on
   current page on, notes outlined, strings `(MORE)`, `(CONTINUED)`,
   `CONTINUED:`, ` (cont'd)`.
-- Global (`ConfigGlobal.setupVars`, `trelby/config.py:1202-1328`): splash
+- Global (`ConfigGlobal.setupVars`, `trelby/config.py:1203-1332`): splash
   3 s, draft line height `fontYdelta` 18 px, screen zoom 100 % (`zoom`,
-  50–300, `trelby/config.py:1213`), mouse wheel 4 lines,
+  50–300, `trelby/config.py:1214`), mouse wheel 4 lines,
   re-paginate every 1 s, check errors before export, capitalize sentences
   and `i`, open scripts at the saved position, overwrite selection on
   typing, page-break indicators "real" only, theme Light (`theme`,
-  `trelby/config.py:1226`).
-- Tab cycle `tabOrder` (`trelby/config.py:1215-1223`): Scene → Action →
+  `trelby/config.py:1227`).
+- Tab cycle `tabOrder` (`trelby/config.py:1216-1224`): Scene → Action →
   Character → Dialogue (`TAB_ORDER_DEFAULT`, `trelby/config.py:94`), saved
   as `TabOrder` (a count, then `TabOrder/<n>:<element name>`).
-- Enter/Tab table: `trelby/config.py:694-738` (also printed in
+- Enter/Tab table: `trelby/config.py:695-739` (also printed in
   `../trelby.process.md`, stage 3).
 - Screen fonts: empty in `setupVars`, filled by `setDefaultFonts`
-  (`trelby/config.py:1557`): `Monospace 12` (+ Bold / Italic / Bold Italic)
+  (`trelby/config.py:1561`): `Monospace 12` (+ Bold / Italic / Bold Italic)
   on Unix, Courier New with LOGFONT height `-13` on Windows. They are
   stored unzoomed; the zoom is applied in `ConfigGui`.
 
 ## Key functions
 
-- `Config.load(s)` / `save()` (`trelby/config.py:598-621`),
-  `Config.recalc(doAll)` (`trelby/config.py:632`): clamps every numeric
+- `Config.load(s)` / `save()` (`trelby/config.py:599-622`),
+  `Config.recalc(doAll)` (`trelby/config.py:633`): clamps every numeric
   value to its range, cleans strings, zeroes top/bottom margins if less than
   100 mm of paper would be left, and computes `linesOnPage`
-  (`trelby/config.py:651-654`).
-- `ConfigGlobal.load` / `save` (`trelby/config.py:1332-1385`): colors are
+  (`trelby/config.py:652-655`).
+- `ConfigGlobal.load` / `save` (`trelby/config.py:1336-1389`): colors are
   loaded and saved per theme from `themeColors` (see Themes below); every
   other setting through `cvars`. `recalc`
   (clamps numbers and cleans `tabOrder`: repeats dropped, fewer than two
-  entries → the default, `trelby/config.py:1419-1429`), `addShiftKeys` (Shift+key aliases
-  for movement commands, so Shift selects, `trelby/config.py:1481`),
-  `removeKey`, `getConflictingKeys` (`trelby/config.py:1510`),
-  `setDefaults` (`trelby/config.py:1538`), `findPDFViewer`
-  (`trelby/config.py:1581`).
-- Zoom (`trelby/config.py:1452-1474`): `setZoom(z)` snaps to `ZOOM_STEP`
+  entries → the default, `trelby/config.py:1423-1433`), `addShiftKeys` (Shift+key aliases
+  for movement commands, so Shift selects, `trelby/config.py:1485`),
+  `removeKey`, `getConflictingKeys` (`trelby/config.py:1514`),
+  `setDefaults` (`trelby/config.py:1542`), `findPDFViewer`
+  (`trelby/config.py:1585`).
+- Zoom (`trelby/config.py:1456-1478`): `setZoom(z)` snaps to `ZOOM_STEP`
   (10) and clamps to `ZOOM_MIN`–`ZOOM_MAX` (50–300, `trelby/config.py:74-77`),
   returning whether it changed; `zoomIn` / `zoomOut` / `zoomReset` step
   from it; `zoomScale(val)` scales a screen size by `zoom / 100`. The
   commands `ZoomIn` (Ctrl `+`, Ctrl Shift `+`, Ctrl `=`), `ZoomOut`
   (Ctrl `-`) and `ZoomReset` (Ctrl `0`) are menu-type commands, so they run
-  `MyFrame.On<Name>` (`trelby/config.py:1175-1196`).
-- Tab cycle (`trelby/config.py:1434-1450`): `nextTypeTab(lt)` /
+  `MyFrame.On<Name>` (`trelby/config.py:1176-1197`).
+- Tab cycle (`trelby/config.py:1438-1454`): `nextTypeTab(lt)` /
   `prevTypeTab(lt)` step `tabOrder` forward / backward, wrapping around; an
   element outside the cycle enters it at Action (or at the first entry if
   Action is not in it).
-- Themes (`trelby/config.py:1388-1417`): `getThemeDefault(theme, name)`
+- Themes (`trelby/config.py:1392-1421`): `getThemeDefault(theme, name)`
   (light: the `addColor` value; dark: `DARK_COLORS`), `storeThemeColors` /
   `loadThemeColors` copy the color attributes to / from the active theme's
   entry of `themeColors`, `setTheme(t)` stores, switches and loads,
   returning whether it changed.
-- `ConfigGui.__init__(cfgGl)` (`trelby/config.py:1598`): one
+- `ConfigGui.__init__(cfgGl)` (`trelby/config.py:1602`): one
   `<name>Color` attribute per color setting, pens and brushes (among them
+  `annotationBrush` / `annotationPen` of the `annotation` color, light
+  255,236,179, dark 92,76,28, `trelby/config.py:1304`;
   `sceneHatchBrush`, a `BDIAGONAL_HATCH` of the `sceneHatch` color, light
-  160,176,210, dark 78,88,110, `trelby/config.py:1299`), and the four
-  screen fonts, each `Scaled` by `zoom / 100` (`trelby/config.py:1707-1709`),
+  160,176,210, dark 78,88,110, `trelby/config.py:1300`), and the four
+  screen fonts, each `Scaled` by `zoom / 100` (`trelby/config.py:1714-1716`),
   and `fontYdelta`, the draft row height at the current zoom
-  (`trelby/config.py:1719`); `tt2fi(textType)` picks the font by bold/italic
-  (`trelby/config.py:1722`); `lt2textColor(lt)` (`trelby/config.py:1726`).
-- Module functions (`trelby/config.py:1730-1772`): `getTIs`, `char2lb`,
+  (`trelby/config.py:1726`); `tt2fi(textType)` picks the font by bold/italic
+  (`trelby/config.py:1729`); `lt2textColor(lt)` (`trelby/config.py:1733`).
+- Module functions (`trelby/config.py:1737-1779`): `getTIs`, `char2lb`,
   `lb2char`, `lb2str`, `char2lt`, `lt2char`, `name2ti`, `lt2ti`.
 
 ## Extension points
@@ -143,21 +145,21 @@ one-character file codes. All saved settings go through `mypickle.Vars`
   `ConfigGlobal.__init__` Enter/Tab row, `ChangeTo<Type>` command; the full
   list of places is in `screenplay.as-built.md` (Extension points).
 - **Tab order** — `newTypeEnter` / `newTypeTab` per type
-  (`trelby/config.py:694-738`, editable in Settings → Elements,
+  (`trelby/config.py:695-739`, editable in Settings → Elements,
   `trelby/configpages/elementsglobalpanel.py:6`) and the one `tabOrder`
   cycle (config file only, no settings page). Global, not per script.
 - **Colors** — `v.addColor(name, r, g, b, saveName, description)` in
-  `ConfigGlobal.setupVars` (`trelby/config.py:1274-1326`). `addColor`
+  `ConfigGlobal.setupVars` (`trelby/config.py:1275-1330`). `addColor`
   appends `Color` to the attribute name (`trelby/mypickle.py:93-96`), so
   `text` → `cfgGl.textColor` and `cfgGui.textColor`. The settings page lists
   every color var automatically (`trelby/configpages/colorspanel.py:8`).
   Per-element text colors `text<Name>Color` exist for each type but are used
-  only when `useCustomElemColors` is on (`trelby/trelbyctrl.py:1848-1851`).
+  only when `useCustomElemColors` is on (`trelby/trelbyctrl.py:1936-1939`).
   A new color also needs its dark value in `DARK_COLORS`
   (`tests/test_theme.py` fails otherwise).
 - **Themes** — `theme` (`THEME_LIGHT` 0 / `THEME_DARK` 1,
   `trelby/config.py:79-91`) chooses which set the color attributes hold.
-  `ConfigGlobal.themeColors` (`trelby/config.py:683`) keeps every theme's
+  `ConfigGlobal.themeColors` (`trelby/config.py:684`) keeps every theme's
   colors, `{theme: {attribute: MyColor}}`; the active theme's colors are
   the attributes themselves (what `ConfigGui` and the colors page use),
   its `themeColors` entry is refreshed on save and on switch. The dark
@@ -169,8 +171,8 @@ one-character file codes. All saved settings go through `mypickle.Vars`
   `docker/run.sh` from `Theme:1` at start, so it changes on restart; the
   script view changes at once.
 - **Screen fonts / zoom** — `fontNormal` … `fontBoldItalic`
-  (`trelby/config.py:1265-1268`) are `wx.NativeFontInfo` strings; draft
-  line spacing is `fontYdelta` (`trelby/config.py:1209`). Layout modes scale
+  (`trelby/config.py:1266-1269`) are `wx.NativeFontInfo` strings; draft
+  line spacing is `fontYdelta` (`trelby/config.py:1210`). Layout modes scale
   page millimeters to pixels from the normal font's character width
   (`trelby/viewmode.py:430-433`), so scaling the fonts is the zoom: the
   `zoom` setting scales the `wx.Font`s and `fontYdelta` in `ConfigGui`
@@ -182,17 +184,17 @@ one-character file codes. All saved settings go through `mypickle.Vars`
 ## Gotchas
 
 - **`ConfigGlobal.commands` must be in alphabetical order**:
-  `setDefaults` raises `ConfigError` otherwise (`trelby/config.py:1540-1551`).
+  `setDefaults` raises `ConfigError` otherwise (`trelby/config.py:1544-1555`).
 - Under `TRELBY_TESTING` `wx` is a `Mock` and `commands` is empty
-  (`trelby/config.py:14-19`, `trelby/config.py:741-744`).
+  (`trelby/config.py:14-19`, `trelby/config.py:742-745`).
 - The color for Act break is the attribute `textAct breakColor` (with a
   space) and the save key `Color/TextAct breakFG`, built from the type name
-  (`trelby/config.py:1318-1326`, `trelby/config.py:1617`).
+  (`trelby/config.py:1322-1330`, `trelby/config.py:1621`).
 - `Config.load` and `ConfigGlobal.load` never raise: unknown keys are
   ignored, bad values fall back to defaults and are clamped
-  (`trelby/config.py:596-609`).
+  (`trelby/config.py:597-610`).
 - `ConfigGlobal` setting `scriptDir` defaults to `misc.progPath`
-  (`trelby/config.py:1271`), so `misc.init()` must have run before
+  (`trelby/config.py:1272`), so `misc.init()` must have run before
   `ConfigGlobal.setupVars` (first instantiation).
 
 ## Tests
