@@ -70,6 +70,15 @@ class Screenplay:
         # the next save (scenenumbers.prepareSave)
         self.sceneNumbersIssued = set()
 
+        # the text of each scene as it was issued, {number: text}, to tell a
+        # moved scene on the next save (fountain-native/scenes/5)
+        self.sceneTextsIssued = {}
+
+        # scenes renamed since the last save, {old number: new number}: a
+        # move or Renumber all. the save rewrites the film's records that
+        # name them, then empties it (fountain-native/scenes/5)
+        self.sceneMoves = {}
+
         # cursor position: line and column
         self.line = 0
         self.column = 0
@@ -168,6 +177,8 @@ class Screenplay:
         sp.scDict = copy.deepcopy(self.scDict)
         sp.fountainSource = self.fountainSource
         sp.sceneNumbersIssued = set(self.sceneNumbersIssued)
+        sp.sceneTextsIssued = dict(self.sceneTextsIssued)
+        sp.sceneMoves = dict(self.sceneMoves)
 
         sp.lines = [ln.copy() for ln in self.lines]
 
