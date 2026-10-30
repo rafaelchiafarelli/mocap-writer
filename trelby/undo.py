@@ -187,21 +187,29 @@ class SceneNumbers(FullCopy):
         FullCopy.__init__(self, sp)
 
         self.issuedBefore = set(sp.sceneNumbersIssued)
+        self.textsBefore = dict(sp.sceneTextsIssued)
+        self.movesBefore = dict(sp.sceneMoves)
 
     def setAfter(self, sp):
         FullCopy.setAfter(self, sp)
 
         self.issuedAfter = set(sp.sceneNumbersIssued)
+        self.textsAfter = dict(sp.sceneTextsIssued)
+        self.movesAfter = dict(sp.sceneMoves)
 
     def undo(self, sp):
         FullCopy.undo(self, sp)
 
         sp.sceneNumbersIssued = set(self.issuedBefore)
+        sp.sceneTextsIssued = dict(self.textsBefore)
+        sp.sceneMoves = dict(self.movesBefore)
 
     def redo(self, sp):
         FullCopy.redo(self, sp)
 
         sp.sceneNumbersIssued = set(self.issuedAfter)
+        sp.sceneTextsIssued = dict(self.textsAfter)
+        sp.sceneMoves = dict(self.movesAfter)
 
 
 # stores a single modified paragraph

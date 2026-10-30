@@ -33,6 +33,7 @@ from typing import List, Optional, Tuple
 
 import trelby.pml as pml
 import trelby.screenplay as screenplay
+import trelby.scenenumbers as scenenumbers
 import trelby.titles as titles
 import trelby.util as util
 from trelby.line import Line
@@ -490,6 +491,7 @@ def load(text: str, cfgGl):
     src.titlesKey = titlesKey(sp.titles)
     sp.fountainSource = src
     sp.sceneNumbersIssued = {ln.num for ln in sp.lines if ln.num}
+    sp.sceneTextsIssued = scenenumbers.sceneTexts(sp)
 
     sp.reformatAll()
     sp.paginate()

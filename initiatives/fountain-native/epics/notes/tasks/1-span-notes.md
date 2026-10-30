@@ -1,5 +1,10 @@
 ## 1. Notes on spans of text
 
+- **Status:** Done (2026-10-30) — `trelby/annotations.py`,
+  `trelby/annotationdlg.py`, Script → Annotate…, View → Show annotations;
+  `mocap-contracts` `v0.6.0`. Anchors follow the text when it is placed
+  (each paint while shown, each save), not keystroke by keystroke
+
 - **Type:** code
 - **Depends on:** io/1; scenes/1 (an annotation names its scene by
   number); file-format/layout/1 (the `annotations/` part and the

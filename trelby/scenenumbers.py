@@ -202,6 +202,39 @@ def check(nums):
 # the scene headings of sp, in order: [(line, num)], line the heading's
 # first line, num its number ("" if none). an empty heading is not a scene
 # (Fountain does not write it).
+# {number: text} of sp's numbered scenes, the text being every element's
+# text from the heading to the next scene, the number left out
+def sceneTexts(sp):
+    heads = scenesOf(sp)
+    out = {}
+
+    for k, (line, num) in enumerate(heads):
+        if not num:
+            continue
+
+        end = heads[k + 1][0] if k + 1 < len(heads) else len(sp.lines)
+        out[num] = "\n".join(sp.lines[i].text for i in range(line, end))
+
+    return out
+
+
+# add the renames in moves ({old: new}) to the ones pending since the last
+# save, composing them: a scene moved 12 -> 15 then renumbered 15 -> 9 is
+# 12 -> 9
+def addMoves(sp, moves):
+    out = {}
+    mids = set(sp.sceneMoves.values())
+
+    for old, mid in sp.sceneMoves.items():
+        out[old] = moves.get(mid, mid)
+
+    for old, new in moves.items():
+        if old not in mids and old not in out:
+            out[old] = new
+
+    sp.sceneMoves = {o: n for o, n in out.items() if o != n}
+
+
 def scenesOf(sp):
     ls = sp.lines
     ret = []
@@ -424,6 +457,7 @@ def prepareSave(sp):
 
     if not (stray or omitted or given):
         sp.sceneNumbersIssued = present
+        sp.sceneTextsIssued = sceneTexts(sp)
 
         return []
 
@@ -442,7 +476,26 @@ def prepareSave(sp):
         if at <= sp.line:
             sp.line += 1
 
+    # a scene whose number vanished and a new scene with exactly its text
+    # are the same scene, moved: its records follow it (scenes/5). the old
+    # number still gets its OMITTED heading.
+    moves = {}
+    texts = sceneTexts(sp)
+    newByText = {}
+
+    for _line, n in given:
+        newByText.setdefault(texts.get(n), []).append(n)
+
+    for _k, n in omitted:
+        same = newByText.get(sp.sceneTextsIssued.get(n), [])
+
+        if len(same) == 1:
+            moves[n] = same.pop()
+
+    addMoves(sp, moves)
+
     sp.sceneNumbersIssued = {n for _line, n in scenesOf(sp) if n}
+    sp.sceneTextsIssued = texts
     sp.paginate()
     sp.markChanged()
 
@@ -460,6 +513,7 @@ def renumberAll(sp):
     u = undo.SceneNumbers(sp)
     ls = sp.lines
     keep = []
+    numOf = {id(ln): ln.num for ln in ls if ln.num}
     i = 0
 
     while i < len(ls):
@@ -477,15 +531,24 @@ def renumberAll(sp):
     if not keep:
         keep.append(Line(screenplay.LB_LAST, screenplay.SCENE))
 
+    # each kept heading's number before, by its index in keep
+    before = {i: numOf[id(ln)] for i, ln in enumerate(keep) if id(ln) in numOf}
+
     sp.lines = keep
+    renames = {}
 
     for ln in keep:
         ln.num = ""
 
     for k, (line, _n) in enumerate(scenesOf(sp)):
+        if before.get(line):
+            renames[before[line]] = str(k + 1)
+
         keep[line].num = str(k + 1)
 
+    addMoves(sp, renames)
     sp.sceneNumbersIssued = {ln.num for ln in keep if ln.num}
+    sp.sceneTextsIssued = sceneTexts(sp)
     sp.validatePos()
     sp.clearMark()
     sp.paginate()
