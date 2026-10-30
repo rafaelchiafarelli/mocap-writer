@@ -5,6 +5,9 @@ Everything still open, in one list, to pick the work up again (Rafael,
 is settled, record the decision there and remove its line here. Bugs are
 not listed: they are the backlog in `bugs/bugs.md`.
 
+Settled on 2026-10-30 and removed from here: fountain-native settings/1,
+scenes/5 and notes/1, done (`mocap-contracts` `v0.6.0`).
+
 Settled on 2026-10-28 and removed from here: file-format, done (its five
 `film.json` rules and the `bible` and `change` messages are in
 `mocap-contracts` `v0.5.0`); how the film keeps its
@@ -55,10 +58,6 @@ numbered `S1`, `S2` per scene; "needs review" not stored
   needed, another repository): `scene_index` (preprod-link/contract/1),
   `change_set` (preprod-link/contract/2). `script_settings` and
   `annotation` got the go-ahead on 2026-10-30 (`v0.6.0`).
-- **fountain-native/settings/1** waits for `script_settings` (file-format
-  is done, 2026-10-28).
-- **fountain-native/notes/1** waits for `annotation` (scenes/1–4 done
-  2026-10-27).
 - **preprod-link** can start: film-bible is implemented (its gate is
   open, above).
 
