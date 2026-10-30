@@ -26,6 +26,7 @@ import trelby.clicks as clicks
 import trelby.propwords as propwords
 import trelby.reports as reports
 import trelby.scenenumbers as scenenumbers
+import trelby.scriptsettings as scriptsettings
 import trelby.screenplay as screenplay
 import trelby.spellcheck as spellcheck
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
@@ -201,6 +202,7 @@ class MyCtrl(wx.Control):
             self.setFile(fileName)
             self.sp.markChanged(False)
             self.gd.mru.add(fileName)
+            self.saveFilmSettings(fileName)
 
             if res.lost:
                 self.showLost(res.lost)
@@ -208,6 +210,26 @@ class MyCtrl(wx.Control):
             return True
         else:
             return False
+
+    # the script is the open film's script: its settings go to the film's
+    # settings record too (fountain-native/settings/1)
+    def saveFilmSettings(self, fileName):
+        film = getattr(self.gd.mainFrame, "film", None)
+
+        if film is None or os.path.realpath(fileName) != os.path.realpath(
+            str(film.partPath("script"))
+        ):
+            return
+
+        try:
+            scriptsettings.saveFor(film, self.sp)
+        except Exception as e:
+            wx.MessageBox(
+                _("The script was saved, but its settings were not:") + "\n\n" + str(e),
+                _("Error"),
+                wx.OK,
+                self.gd.mainFrame,
+            )
 
     # give the scenes their numbers before a save (fountain-native/scenes/3).
     # returns False if the save must wait: a duplicate number or a scene
