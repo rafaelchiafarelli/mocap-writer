@@ -19,8 +19,10 @@ Chocolatey from `choco/`).
 - `CLAUDE.md` — this file.
 - `trelby.process.md` — stage-by-stage spec of the program.
 - `trelby.py` — launcher run from the source tree.
-- `README.md` — why the fork exists, how to run it with Docker, then
-  upstream's README.
+- `README.md` — why the fork exists, what mocap-writer adds (one line
+  each), where the architecture overview is, and From source (clone with
+  the submodule, `docker/run.sh`, `docker/test.sh`); no links to upstream
+  and none of upstream's README (Rafael, 2026-10-31).
 - `README.dev` — upstream's developer notes: data-file preparation
   (`make dist`), a Windows build (marked out of date), test mode.
 - `TODO` — upstream's to-do list (version in too many places, undo tests).
@@ -91,5 +93,5 @@ Chocolatey from `choco/`).
 
 ## Touchpoints
 - Upstream: `git fetch upstream && git merge upstream/master`
-  (`upstream` = `https://github.com/trelby/trelby.git`), from `README.md`.
+  (`upstream` = `https://github.com/trelby/trelby.git`, a git remote).
 - Mocap Studio: `mocap-studio` holds this repository as a submodule.

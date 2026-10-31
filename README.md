@@ -1,8 +1,7 @@
 # mocap-writer
 
-**This is a fork of [Trelby](https://github.com/trelby/trelby)** (GPL-2.0),
-the open-source screenplay writer in Python, adapted as the script editor of
-Mocap Studio.
+The script editor of Mocap Studio: a fork of the Trelby screenplay writer
+(GPL-2.0), in Python.
 
 **Why a fork of Trelby.** Mocap Studio turns a film's script into a shot
 list, 3D blocking and storyboards, and the script is the source of truth for
@@ -11,70 +10,45 @@ all of that. We want it written in a real screenwriting tool whose output is
 Trelby is the open-source editor that fits the project: it is Python (the
 project's language), runs on Windows and Linux, and its GPL-2.0 license
 allows commercial use. Proprietary tools such as Celtx were rejected because
-they keep the script in a closed format on their servers.
+they keep the script in a closed format on their servers. This fork stays
+under GPL-2.0.
 
-What changes here is driven by the Mocap Studio workflow (planning lives in
-`initiatives/`, process in `.claude/skills/mocap-workflow/`). Upstream
-updates are pulled with `git fetch upstream && git merge upstream/master`
-(`upstream` = `https://github.com/trelby/trelby.git`). This fork stays under
-GPL-2.0; Trelby's original README follows.
+## What mocap-writer adds
 
-**Running it.** Only Docker is needed on the host (Windows 11 with WSL2, or a
-Linux desktop); nothing else gets installed:
+- Fountain as the native format, saved byte for byte where nothing changed.
+- Permanent scene numbers (`12`, `12.A`, `OMITTED`); records follow moved scenes.
+- PDF import of existing scripts into Fountain, with a report of doubtful spots.
+- A film is a folder of checked records (`mocap-contracts`, Harpia), with a change log.
+- The film bible: sets, characters, props and wardrobe, linked to scenes.
+- Annotations and shots kept outside the script text, anchored by scene and quote.
+- Sync to spec (F5): scene index and change sets for the pre-production agents.
+- Review of the agents' proposals: approve, reject or edit.
+- Acts as markers, with a panel of act sizes.
+- Front matter: title page, overview, pitch and argument pages.
+- Import into film: the original kept, the bible reviewed, a report.
+- Brazilian Portuguese spell checking (Hunspell pt-BR).
+- Editor: zoom, dark theme, Tab order, horizontal scrolling.
+- Runs and is tested in Docker, from a hashed lockfile.
+
+How it is built: `doc/architecture/index.html` (for people) and
+`doc/architecture.md` (for AI agents). Planning lives in `initiatives/`,
+process in `.claude/skills/mocap-workflow/`.
+
+## From source
+
+Only Docker is needed on the host (Windows 11 with WSL2, or a Linux
+desktop); nothing else gets installed.
 
 ```bash
+git clone --recurse-submodules git@github.com:rafaelchiafarelli/mocap-writer.git
+cd mocap-writer
 docker/run.sh [work-dir]   # builds the image on first use, then opens the window
+docker/test.sh             # runs the test suite
 ```
 
-`work-dir` (default: the current directory) is where scripts are opened and
-saved; settings persist in `~/.config/mocap-writer`. The image
+`work-dir` (default: the current directory) is where scripts and films are
+opened and saved; settings persist in `~/.config/mocap-writer`. The image
 (`docker/Dockerfile`, hashed `docker/requirements.lock`) holds only the
-environment: the repository is mounted, so code edits need no rebuild.
-
----
-
-## Trelby (upstream README)
-## Screenplay writing software
-Trelby is a screenplay writing program. See https://www.trelby.org/ for
-more details.
-
-### About this project
-This project has recently been updated by merging the fork: https://github.com/limburgher/trelby.
-
-Updates include:
-- a conversion to Python 3
-- enhancements
-- updating the Windows packaging to provide a Windows build (still in progress)
-
-### Installation
-
-#### Fedora
-
-sudo dnf install trelby
-
-#### Windows (Chocolatey)
-
-Once chocolatey is set up (https://chocolatey.org/install):
-
-`choco install trelby`
-
-#### Flatpak
-
-`flatpak install trelby`
-
-#### From PyPi
-
-`pip (or pip3) install trelby`
-
-#### From source
-
-1. git clone https://github.com/trelby/trelby.git
-
-2. cd trelby
-
-3. pip3 install -r requirements.txt  
-   *Depending on your python version, you might run into https://github.com/wxWidgets/Phoenix/issues/2296. We recommend executing `pip3 install attrdict3` before installing the requirements in that case. If that still doesn't work, we recommend upgrading your python version.*
-
-4. make
-
-5. ./trelby.py
+environment: the repository is mounted, so code edits need no rebuild. A
+clone made without `--recurse-submodules` needs
+`git submodule update --init` once (`third_party/mocap-contracts`).
