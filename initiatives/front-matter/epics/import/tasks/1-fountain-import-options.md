@@ -1,6 +1,6 @@
 ## 1. Fountain import options
 
-- **Status:** Scheduled (Rafael, 2026-10-31; was fountain-native/import/1,
+- **Status:** Done (2026-10-31) — `fountain.importOptions`, `MyCtrl.askFountainOptions`; the title page into the film's front matter on Import into film; checked through the real window. Scheduled by Rafael 2026-10-31 (was fountain-native/import/1,
   Future since 2026-10-26).
 - **Why:** Import → Fountain reads a file exactly like Open
   (fountain-native/io/5). Upstream's importer, deleted in io/5, asked four
