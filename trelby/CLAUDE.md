@@ -156,7 +156,7 @@ Model and file format
   `loadFor(film, sp)` (an invalid record is a film problem and the script
   keeps the defaults, `trelby/scriptsettings.py:318-346`).
 - `film.py` — a film root (file-format/layout/1), no wx except the
-  version in `_origin` (`trelby/film.py:457`): `Film.open(root, owner)`
+  version in `_origin` (`trelby/film.py:470`): `Film.open(root, owner)`
   reads `film.json` through `mocap_contracts` and lists what is missing or
   invalid as `Problem(what, where, why)` in `film.problems`
   (`trelby/film.py:79`); only a missing or invalid `film.json` raises
@@ -171,18 +171,34 @@ Model and file format
   record in a part other than the script and the history appends a
   `Change` (time, `by`, path, record id, op, before, after) to
   `history/<yyyy-mm>.jsonl` when this program owns the history
-  (file-format/layout/5, `logs` / `log`, `trelby/film.py:293-342`); an
+  (file-format/layout/5, `logs` / `log`, `trelby/film.py:293-355`), except
+  the files built from the script (`derived`: the bible part's
+  `scene-index.json` and `sync/`, `trelby/film.py:307`); an
   unchanged write logs nothing; `changes(by)` reads the log, oldest
-  first (`trelby/film.py:345`); `revert(changes, by)` puts records back,
-  newest first, and is itself logged (`trelby/film.py:371`).
+  first (`trelby/film.py:358`); `revert(changes, by)` puts records back,
+  newest first, and is itself logged (`trelby/film.py:384`).
   `newId(kind, space)` saves the counter before it
-  returns the id (`trelby/film.py:389`); `addSpace(code, owner, path)`
+  returns the id (`trelby/film.py:402`); `addSpace(code, owner, path)`
   adds an agent's space and its `proposals-<code>` part, checked by the
-  contract before anything is written (`trelby/film.py:424`);
-  `problemsText(problems)`, the problems as text (`trelby/film.py:448`);
+  contract before anything is written (`trelby/film.py:437`);
+  `problemsText(problems)`, the problems as text (`trelby/film.py:461`);
   a missing part's `Problem` carries a `relink.Ref` (`partRef`,
   `trelby/film.py:152`) whose `apply` saves the new path in `film.json`
   (`setPartPath`, `trelby/film.py:173`).
+- `sceneindex.py` — the scene index for the mocap-preprod agents
+  (preprod-link/contract/1), no wx: `build(sp, b)` → a
+  `mocap_contracts.SceneIndex` (`trelby/sceneindex.py:165`): the script's
+  sha256 (its Fountain text) and per numbered scene (`biblelinks.scenesWithLines`) its
+  number, order, heading parts as written (`headingParts`,
+  `trelby/sceneindex.py:30`), the linked set (the one named like the
+  location, else the first by name), the speakers (`speaks` on) then the
+  bible characters and script speakers named in Action as whole words
+  (`speaks` off), the prop words as Find props reads them (no character,
+  not "not a prop"), bible ids when known, page and line range (from 1),
+  and the sha256 of the scene's text (`sceneText`: one element per line, a
+  blank line between, `trelby/sceneindex.py:45`); `write(film, b, sp)`
+  into `<bible part>/scene-index.json` by `writer`, not logged
+  (`trelby/sceneindex.py:192`).
 - `openfilms.py` — the films open in the window (bugs/editor/20), no wx:
   `OpenFilm(film)` holds the film with its `Bible` and `Annotations`
   (`reload` reads both again, `trelby/openfilms.py:12`); `OpenFilms` keeps

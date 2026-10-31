@@ -1,5 +1,6 @@
 ## 1. Scene index
 
+- **Status:** Done (2026-10-31) — `trelby/sceneindex.py` (`build`, `write`), `mocap-contracts` `v0.7.0` (`scene_index.harpia`).
 - **Type:** code, here and in `mocap-contracts`
 - **Depends on:** fountain-native/scenes/1 (scene numbers); film-bible/contract/2
   (bible library, to resolve known characters and props);
