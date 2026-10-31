@@ -299,7 +299,20 @@ class Film:
             and history
             and p.name not in ("history", cf.SCRIPT_PART)
             and self.owns(history.path)
+            and not self.derived(rel)
         )
+
+    # True for the files built from the script by code, never edited
+    # (preprod-link): the scene index and the sync folder in the bible part
+    def derived(self, rel):
+        p = self.part("bible")
+
+        if not p:
+            return False
+
+        base = p.path.rstrip("/") + "/"
+
+        return rel == base + "scene-index.json" or rel.startswith(base + "sync/")
 
     # append one Change to history/<yyyy-mm>.jsonl
     def log(self, rel, op, before, after, by):
