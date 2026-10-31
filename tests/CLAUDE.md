@@ -36,8 +36,10 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   per kind and per space, ownership refusals, the invalid `film.json`
   fixtures of `mocap-contracts` (`fixtures/film-v1/invalid/`) refused
   naming their field, a film with parts deleted opening with its problems,
-  `problemsText`. The New film / Open film menu commands need a display:
-  checked through the real window with stubbed dialogs (2026-10-28).
+  `problemsText`, a new film's `front-matter` part not written yet and no
+  problem (front-matter/contract/1). The New film / Open film menu
+  commands need a display: checked through the real window with stubbed
+  dialogs (2026-10-28).
 - `test_relink.py` — file-format/layout/3: a film whose parts moved into
   `archive/`: one found file's pattern finds the rest and the next open
   has no problems; nothing is written before an accept; skip keeps it
