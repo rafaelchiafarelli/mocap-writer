@@ -1225,6 +1225,14 @@ class MyFrame(wx.Frame):
 
             return None
 
+        # the imported title page goes into the film's front matter, and the
+        # script is saved with the block written from it
+        # (front-matter/import/1)
+        try:
+            frontmatter.syncTitle(f, ctrl.sp)
+        except Exception as e:
+            wx.MessageBox(str(e), _("Front matter"), wx.OK, self)
+
         if ctrl.saveFile(str(f.partPath("script"))):
             try:
                 scriptsettings.saveFor(f, ctrl.sp)

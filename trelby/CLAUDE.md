@@ -414,7 +414,7 @@ Model and file format
   sends with a second press not counted twice (bugs/editor/14-16).
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1757`).
+  (`trelby/trelbyctrl.py:1788`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -437,13 +437,13 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
-  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1599`).
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1607`).
   File → Import (`OnImportScript`: with a film open, into this film, into
   a new folder or just open it) and Import into film… (`OnImportIntoFilm`,
-  `importIntoNewFilm`: import, New film, the script saved, the original
+  `importIntoNewFilm`: import, New film, the imported title page into its front matter (`frontmatter.syncTitle`), the script saved, the original
   copied into `source/`, `trelby/trelbyframe.py:1209`, then the bible
   review with new items ticked and the import report, `reviewImport`,
-  `trelby/trelbyframe.py:1248`;
+  `trelby/trelbyframe.py:1256`;
   into this film: the review over the film's bible, new items without
   scenes);
   File → New film… / Open film… (`OnNewFilm`, `OnOpenFilm`,
@@ -466,7 +466,7 @@ Application and editor (wx)
   film the annotations whose text is gone join the film's problems
   (`listUnattached`, `trelby/trelbyframe.py:841`).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:1394-1398`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:1402-1406`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   + `ActPanel` at the right (`trelby/trelbypanel.py:9`); the act panel is
@@ -514,8 +514,8 @@ Application and editor (wx)
   hint when there is no act break. Own pixel fonts, so the zoom never
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
-  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:600`); repainted on a theme
-  change (`trelby/trelbyctrl.py:649`); `draw(dc, w, h)` does the drawing
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:631`); repainted on a theme
+  change (`trelby/trelbyctrl.py:680`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
