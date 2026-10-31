@@ -1,5 +1,6 @@
 ## 3. The import report
 
+- **Status:** Done (2026-10-31) — `importfilm.report`, `trelby/importreportdlg.py` at the end of Import into film; checked through the real window.
 - **Type:** code
 - **Depends on:** 1, 2
 - **Contract:**

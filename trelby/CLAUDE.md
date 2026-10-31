@@ -252,14 +252,20 @@ Model and file format
 - `importfilm.py` — an import that ends in a film (import-to-film), no
   wx: `copySource(f, path)` copies the imported file into the film's
   `source/` part, added with `Film.addPart` when the film has none
-  (`trelby/importfilm.py:18`); not logged (binary). flow/2: `plan(b, sp)`
+  (`trelby/importfilm.py:21`); not logged (binary). flow/2: `plan(b, sp)`
   → three `Section(map, links, new)` (sets, characters, props; a name
-  made a character is not offered as a prop, `trelby/importfilm.py:48`),
+  made a character is not offered as a prop, `trelby/importfilm.py:51`),
   `Section.lines()` (links first); `apply(b, sections, chosen, notProps,
   linkScenes)` makes the chosen links and new items in one go (without
   `linkScenes`, an import into an open film, new items get no scenes and
   nothing is linked) and marks the new props left unticked "not a prop"
-  when asked (`trelby/importfilm.py:63`).
+  when asked (`trelby/importfilm.py:66`). flow/3: `importNotes(sp)` (the
+  lines of `IMPORT:` notes), `report(b, sp, made)` → the report's text:
+  scenes and their numbers, the scenes with no number yet, `IMPORT:`
+  notes to check, the items made per map, the wardrobe gaps, the scenes
+  with no set (`trelby/importfilm.py:103`).
+- `importreportdlg.py` — `ImportReportDlg`: the report's text, Go to the
+  first `IMPORT:` note, Save… (a `.txt`), OK.
 - `biblereviewdlg.py` — `BibleReviewDlg`: the bible review, one
   checklist per map (links ticked; new items ticked when `tickNew`), a
   "not a prop" switch, Create / Cancel; `review(parent, b, sp, tickNew,
@@ -394,19 +400,20 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
-  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1584`).
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1592`).
   File → Import (`OnImportScript`: with a film open, into this film, into
   a new folder or just open it) and Import into film… (`OnImportIntoFilm`,
   `importIntoNewFilm`: import, New film, the script saved, the original
-  copied into `source/`, `trelby/trelbyframe.py:1201`, then the bible
-  review with new items ticked, `reviewImport`, `trelby/trelbyframe.py:1240`;
+  copied into `source/`, `trelby/trelbyframe.py:1202`, then the bible
+  review with new items ticked and the import report, `reviewImport`,
+  `trelby/trelbyframe.py:1241`;
   into this film: the review over the film's bible, new items without
   scenes);
   File → New film… / Open film… (`OnNewFilm`, `OnOpenFilm`,
-  `trelby/trelbyframe.py:746-783`); every open film in `openFilms`, and
+  `trelby/trelbyframe.py:747-784`); every open film in `openFilms`, and
   the current tab's film `film` (`showFilm` on a tab switch and on the
   current tab's file change, `filmOf`, `scriptFileChanged`,
-  `trelby/trelbyframe.py:716-743`, bugs/editor/20), with
+  `trelby/trelbyframe.py:717-744`, bugs/editor/20), with
   `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5), its
   `bible`, and the bible panel in `splitter` with View → Bible
   (`showBible`, film-bible/tree/1, `trelby.process.md` Stage 1); its
@@ -414,15 +421,15 @@ Application and editor (wx)
   Annotations here…, Unattached annotations…, Sync to spec… (F5, also a
   toolbar button: the film's script only; an unsaved script is saved
   first, after asking; then `sync.run` and the `SyncDlg`, `OnSyncToSpec`,
-  `trelby/trelbyframe.py:867`), Review proposals… (`ReviewDlg` over the
+  `trelby/trelbyframe.py:868`), Review proposals… (`ReviewDlg` over the
   film's bible and its latest change set, `OnReview`,
-  `trelby/trelbyframe.py:908`) (`OnAnnotate`,
-  `trelby/trelbyframe.py:922`, `OnAnnotationsHere`,
-  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:1035-1063`); on Open
+  `trelby/trelbyframe.py:909`) (`OnAnnotate`,
+  `trelby/trelbyframe.py:923`, `OnAnnotationsHere`,
+  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:1036-1064`); on Open
   film the annotations whose text is gone join the film's problems
-  (`listUnattached`, `trelby/trelbyframe.py:833`).
+  (`listUnattached`, `trelby/trelbyframe.py:834`).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:1379-1383`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:1387-1391`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   + `ActPanel` at the right (`trelby/trelbypanel.py:9`); the act panel is
@@ -652,8 +659,8 @@ Data and folders
   `manual.html`, Help → Manual makes the page from `doc/manual.xml`
   (`manual.py`).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:242`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:258-263`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:243`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:259-264`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 - A missing file part other than the script (the settings record) is not
