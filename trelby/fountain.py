@@ -43,6 +43,10 @@ SCENE_RE = re.compile(r"^(INT\.?/EXT|INT/EXT|EXT/INT|I/E|INT|EXT|EST)[. ]", re.I
 # trailing scene number, "#12#", "#1A#", "#I-1-A#"
 SCENE_NUMBER_RE = re.compile(r"\s*#[A-Za-z0-9.\-]+#\s*$")
 
+# scene number typed at the start of a forced heading by other tools,
+# ".12. INT. ROOM" or ".12A. INT. ROOM" (bugs/import-export/11)
+TYPED_NUMBER_RE = re.compile(r"^(\d+[A-Z]*)\.\s+(\S.*)$")
+
 # trailing dual-dialogue mark on a character cue
 DUAL_RE = re.compile(r"\s*\^\s*$")
 
@@ -64,6 +68,9 @@ class Element:
     pre: str = ""
     # scene number or dual-dialogue mark, kept when the element is edited
     decor: str = ""
+    # scene number typed before a forced heading's text; the save writes
+    # the heading in canonical form, with "#n#"
+    typedNum: str = ""
 
 
 @dataclass
@@ -167,7 +174,8 @@ def _splitSuffix(s: str, rx: re.Pattern) -> Tuple[str, str]:
 
 
 # classify one paragraph (lines without line endings) into elements:
-# [(lt, text, decor, number of lines)]
+# [(lt, text, decor, number of lines)]; a forced heading's typed number is
+# left in its text (see parse)
 def classify(lines: List[str]) -> List[Tuple[int, str, str, int]]:
     first = lines[0]
     s = first.strip()
@@ -319,6 +327,12 @@ def parse(text: str) -> Source:
                     decor,
                 )
             )
+            e = src.elements[-1]
+            m = TYPED_NUMBER_RE.match(e.text) if lt == screenplay.SCENE else None
+
+            if m and e.raw.lstrip().startswith(".") and not e.decor:
+                e.typedNum, e.text = m.group(1), m.group(2)
+
             pending = ""
             k += cnt
 
@@ -470,7 +484,7 @@ def toLines(src: Source) -> List[Line]:
 
         for i, part in enumerate(parts):
             lb = screenplay.LB_LAST if i == len(parts) - 1 else screenplay.LB_FORCED
-            num = sceneNum(e.decor) if (i == 0 and e.lt == screenplay.SCENE) else ""
+            num = (sceneNum(e.decor) or e.typedNum) if (i == 0 and e.lt == screenplay.SCENE) else ""
             ret.append(Line(lb, e.lt, part, num))
 
     if not ret:
@@ -572,7 +586,11 @@ def generate(sp) -> Result:
 
         return (lt, text, num)
 
+    # a typed number never matches, so its heading is written again
     def oldKey(e):
+        if e.typedNum:
+            return key(e.lt, e.text, "typed " + e.typedNum)
+
         return key(e.lt, e.text, sceneNum(e.decor) if e.lt == screenplay.SCENE else "")
 
     cur = [key(*el) for el in elementsOf(sp) if el[1].strip()]

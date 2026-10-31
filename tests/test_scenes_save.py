@@ -269,3 +269,42 @@ def testRenumberAllWithCursorInOmitted():
     sp._validate()
 
     assert 0 <= sp.line < len(sp.lines)
+
+
+# a number typed before a forced heading's text, as other tools write it,
+# is the scene's number; the save writes it as "#n#" and leaves the rest
+# of the file as it was (bugs/import-export/11)
+TYPED = """.1. INT. SPACESHIP
+
+They fly.
+
+.3. INT. SPACESHIP - LATER
+
+Still.
+
+.12A. FLASHBACK
+
+Old.
+"""
+
+
+def testTypedNumberBeforeAForcedHeading():
+    sp = u.loadString(TYPED)
+
+    assert scenes(sp) == [
+        ("INT. SPACESHIP", "1"),
+        ("INT. SPACESHIP - LATER", "3"),
+        ("FLASHBACK", "12A"),
+    ]
+    assert save(sp) == (
+        "INT. SPACESHIP #1#\n\nThey fly.\n\n"
+        "INT. SPACESHIP - LATER #3#\n\nStill.\n\n"
+        ".FLASHBACK #12A#\n\nOld.\n"
+    )
+
+
+def testTypedNumberOnlyOnAForcedHeadingWithoutOne():
+    sp = u.loadString("INT. ROOM #4#\n\n.5. INT. HALL #6#\n\n1. Not a heading.\n")
+
+    assert scenes(sp) == [("INT. ROOM", "4"), ("5. INT. HALL", "6")]
+    assert sp.lines[-1].lt == scr.ACTION

@@ -237,7 +237,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   read back), a heading turned into Action, a scene made and removed
   between saves, cut and paste, copy, no room and duplicates stop the
   save, one undo step with `sceneNumbersIssued`, Renumber all and its
-  undo, the cursor in a removed `OMITTED`.
+  undo, the cursor in a removed `OMITTED`; a number typed before a forced
+  heading (`.1. INT. X`) read as its number and saved as `#1#`
+  (bugs/import-export/11).
 - `test_scenes_screen.py` — scene numbers shown (fountain-native/scenes/4):
   `labels` / `labelAt` (`(1.A)` for a scene not numbered yet, `?` with no
   room), the PDF's numbers left and right of each heading and none when
