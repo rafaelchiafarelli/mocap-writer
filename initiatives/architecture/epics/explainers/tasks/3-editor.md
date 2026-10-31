@@ -1,5 +1,6 @@
 ## 3. The editor and the window
 
+- **Status:** Done (2026-10-31) — published privately: https://claude.ai/artifact/KyZacNpzPJsvbTkca2gHAj (page `editor.html`), built from the as-built docs at commit 959bc3c.
 - **Type:** explainer page
 - **Contract:**
   - In: `trelby/trelbyctrl.as-built.md`, `trelby/viewmode.as-built.md`,
