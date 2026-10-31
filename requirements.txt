@@ -1,6 +1,0 @@
-setuptools
-wxPython>=4.1.0
-lxml
-reportlab
-pdfplumber
-pytest>=7.0

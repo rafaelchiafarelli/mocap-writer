@@ -83,8 +83,8 @@ pytest result.
 - `trelby/manual.html` is still never built in the image (the repo is
   read-only); Help → Manual makes the page from `doc/manual.xml` with lxml
   and `docbook-xsl` each time it opens (`trelby/manual.py`).
-- Upstream's `../requirements.txt` and the GitHub workflow still install
-  unpinned packages; the lockfile here is what Mocap Studio uses.
+- This is the only environment: upstream's `requirements.txt`, PyPI
+  packaging and GitHub CI were removed (2026-10-31).
 
 ## Touchpoints
 - Used by: whoever runs or tests the program; `tests/CLAUDE.md`.
