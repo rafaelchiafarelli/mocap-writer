@@ -702,3 +702,93 @@ def generate(sp) -> Result:
                         lost.append(cur[k][:2])
 
     return Result(text, newSrc, lost)
+
+
+# Import -> Fountain options (front-matter/import/1), applied to the text
+# before load: what a script written by another tool needs to become the
+# writer's. nothing is guessed: each option is the user's.
+_BOLD_RE = re.compile(r"\*\*(?=\S)(.+?[*_]*)(?<=\S)\*\*")
+_ITALIC_RE = re.compile(r"\*([^\s].*?)\*(?!\*)")
+_UNDERLINE_RE = re.compile(r"_(?=\S)([^_]+)(?<=\S)_")
+_SECTION_RE = re.compile(r"^\s*(#{2,})\s*(.*?)\s*$")
+_SYNOPSIS_RE = re.compile(r"^\s*=(?!==)\s*(.*?)\s*$")
+
+
+def _unmark(s):
+    s = s.replace("\\*", "\x00")
+
+    for r in (_BOLD_RE, _ITALIC_RE, _UNDERLINE_RE):
+        s = r.sub(r"\1", s)
+
+    return s.replace("\x00", "\\*")
+
+
+# text with the chosen options: strip (emphasis markup *, **, _ removed
+# from the body), notes (sections below level 1 and synopses become Note
+# elements; a level-1 section stays an act break), titleAsAction (the
+# title page's lines become forced Action at the top), keepTitle (False:
+# the title page is dropped, unless titleAsAction)
+def importOptions(text, strip=False, notes=False, titleAsAction=False, keepTitle=True):
+    if not (strip or notes or titleAsAction) and keepTitle:
+        return text
+
+    src = parse(text)
+    eol = src.eol
+    title = src.title
+    body = text[len(src.bom):]
+    body = body[len(title):] if title and body.startswith(title) else body
+    out = []
+    inBoneyard = False
+
+    for ln in body.splitlines():
+        if "/*" in ln:
+            inBoneyard = True
+
+        if not inBoneyard:
+            m = _SECTION_RE.match(ln)
+            n = _SYNOPSIS_RE.match(ln)
+
+            if notes and m and m.group(2):
+                out += ["", "[[" + m.group(2) + "]]", ""]
+
+                continue
+
+            if notes and n and n.group(1):
+                out += ["", "[[" + n.group(1) + "]]", ""]
+
+                continue
+
+            if strip:
+                ln = _unmark(ln)
+
+        if "*/" in ln:
+            inBoneyard = False
+
+        out.append(ln)
+
+    joined = "\n".join(out)
+
+    if notes:
+        # the blank lines doubled around a new note collapse to one
+        joined = re.sub(r"\n{3,}", "\n\n", joined)
+
+    if body.endswith(("\n", "\r")):
+        joined += "\n"
+
+    head = ""
+
+    if title and titleAsAction:
+        lines = []
+
+        for key, values in parseTitle(title):
+            values = [v for v in values if v]
+            lines.append("!" + key + (": " + ", ".join(values) if values else ":"))
+
+        head = eol.join(lines) + eol + eol
+        joined = joined.lstrip("\n")
+    elif title and keepTitle:
+        head = title
+    else:
+        joined = joined.lstrip("\n")
+
+    return src.bom + head + joined.replace("\n", eol)
