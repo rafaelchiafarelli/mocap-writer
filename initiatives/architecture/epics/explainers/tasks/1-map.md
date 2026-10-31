@@ -1,5 +1,6 @@
 ## 1. The map
 
+- **Status:** Done (2026-10-31) — published privately: https://claude.ai/artifact/KyZacNpzPJsvbTkca2gHAj (page `index.html`), built from the as-built docs at commit 959bc3c.
 - **Type:** explainer page (no code)
 - **Contract:**
   - In: `CLAUDE.md` (root), `trelby/CLAUDE.md`, `trelby.process.md`
