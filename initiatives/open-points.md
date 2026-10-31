@@ -29,9 +29,6 @@ Rafael, 2026-10-31: finish every open initiative in one stretch; gates
 that wait only on him are waived ("waive and close"); bugs are fixed only
 when they get in the way.
 
-- **`mocap-contracts` `v0.7.0`** — `scene_index` (preprod-link/contract/1),
-  `change_set` (preprod-link/contract/2) and `front_matter`
-  (front-matter/contract/1): go-ahead from Rafael, 2026-10-31.
 - **import-to-film** — decisions taken 2026-10-31
   ([import-to-film](import-to-film/import-to-film.md)).
 - **front-matter** — planned 2026-10-31
@@ -41,8 +38,20 @@ when they get in the way.
 
 - **How agents write proposals** — (a) they write `item.json` and the
   writer refuses an invalid file, or (b) a validating `bible propose`
-  command; deferred to the mocap-preprod planning
-  ([preprod-link](preprod-link/preprod-link.md)).
+  command; deferred to the mocap-preprod planning (preprod-link, done
+  2026-10-31: git log -- initiatives/preprod-link).
+
+## Work for another repository
+
+- **mocap-preprod, the agents' side of preprod-link** (to be planned
+  there): pin `mocap-contracts` `v0.7.0`; the specialists read
+  `bible/scene-index.json`, `bible/` and the latest
+  `bible/sync/*-changes.json`, and cite scene numbers and item ids; after
+  a sync a specialist works only on what the change set touched; how
+  proposals are written (the decision above); the Copilot adapters
+  regenerated with `scripts/sync_agents.py` in the same commit as each
+  agent change. preprod-link's gate (a specialist run citing the ids) was
+  waived with the others on 2026-10-31.
 - **Story structure** — models and beats wait for a later talk with an
   agent (story-structure study/1, in git history: git log --
   initiatives/story-structure).
@@ -57,7 +66,7 @@ when they get in the way.
 
 fountain-native (a real scene's round trip; numbering tried in the
 editor), film-bible (Rafael on the neutral sample; the agents' half is in
-preprod-link's gate) story-structure (the act panel on a script) and spellcheck (Rafael's pt-BR scripts):
+preprod-link's gate) story-structure (the act panel on a script), spellcheck (Rafael's pt-BR scripts) and preprod-link (Rafael's sync on the sample; a specialist run):
 closed without them. pdf-import's real-script import stays a film
 session's.
 

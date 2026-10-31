@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Sync to spec (preprod-link/sync/2): two arrows in a circle; made for mocap-writer -->
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <path style="fill:#000000" d="M16 4a12 12 0 0 1 10.4 6H22v3h9V4h-3v3.6A15 15 0 0 0 1.1 14h3A12 12 0 0 1 16 4z"/>
+  <path style="fill:#000000" d="M16 28a12 12 0 0 1-10.4-6H10v-3H1v9h3v-3.6A15 15 0 0 0 30.9 18h-3A12 12 0 0 1 16 28z"/>
+</svg>
