@@ -14,7 +14,7 @@ run.
 - Line types (`trelby/screenplay.py:17-25`): `SCENE` 1, `ACTION` 2,
   `CHARACTER` 3, `DIALOGUE` 4, `PAREN` 5, `TRANSITION` 6, `SHOT` 7, `NOTE` 8,
   `ACTBREAK` 9. The values are written nowhere: files use the one-character
-  codes from `config._init` (`trelby/config.py:1783-1802`).
+  codes from `config._init` (`trelby/config.py:1791-1810`).
 - The constants are defined **before** the imports
   (`trelby/screenplay.py:4-47`) because `config` and `line` import
   `screenplay` back (circular import).
@@ -171,7 +171,7 @@ Export
 
 - **Element types.** A new type needs: a constant here
   (`trelby/screenplay.py:17-25`); a code character and name in
-  `config._init` (`trelby/config.py:1783`); per-script defaults in
+  `config._init` (`trelby/config.py:1791`); per-script defaults in
   `Config.__init__` (`trelby/config.py:447-514`); an Enter/Tab row in
   `ConfigGlobal.__init__` (`trelby/config.py:695-739`); a `ChangeTo<Type>`
   command in the alphabetical command list (`trelby/config.py:742`), a

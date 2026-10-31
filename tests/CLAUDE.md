@@ -63,6 +63,12 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   per-scene values, links shown by name keep their notes, files added and
   removed. The `BibleForm` needs a display: checked through the real
   window (2026-10-28).
+- `test_spellcheck.py` — spellcheck/pt-br/1: a correct pt-BR scene
+  (accents, plurals, conjugated verbs, INT.) has no unknown word in pt-BR;
+  a misspelled word found and `xícara` suggested; English unchanged; the
+  user's words known and suggested in both languages; a missing dictionary
+  gives the message; the setting round-trips, an old or bad value is
+  `en`. pt-BR needs the image's `hunspell-pt-br` (`docker/test.sh`).
 - `test_linkbyhand.py` — film-bible/links/6: scene labels (number and
   heading, a scene gone from the script kept), `setScenes` writes the
   difference once and keeps per-scene values, nothing written when
