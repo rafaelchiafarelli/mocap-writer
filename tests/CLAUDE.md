@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 381 tests.
+objects directly and never create the wx GUI. 385 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
 upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
@@ -212,6 +212,12 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `.fountain` (any case) is read by `readFountain` like Open and the tab
   stays untitled and modified; an unreadable one changes nothing; other
   formats are picked by their extension in any case.
+- `test_openfilms.py` — bugs/editor/20: two films open, each script
+  finds its own film, a root opened again replaced; tab switches (fake
+  frame) show each tab's film, bible and annotations, and a script of no
+  film none; a save of a tab that is not the current one renames its own
+  film's records only. The real window checked with copies of two films
+  (2026-10-31).
 - `test_saveall.py` — `MyFrame.saveAll` on fake tabs: every modified tab
   is saved, and one left unsaved (Save As cancelled) calls the exit off.
 - `test_wxnames.py` — every `wx.<name>` used in `trelby/` exists in the

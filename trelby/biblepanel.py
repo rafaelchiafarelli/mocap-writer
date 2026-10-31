@@ -75,7 +75,7 @@ class BiblePanel(wx.Panel):
         self.empty = wx.StaticText(
             self,
             -1,
-            _("No film is open.\nFile -> New film or Open film\nto keep a bible."),
+            _("This tab's script is not a film's.\nFile -> New film or Open film\nto keep a bible."),
         )
         vsizer.Add(self.empty, 0, wx.ALL, 8)
 
@@ -103,6 +103,14 @@ class BiblePanel(wx.Panel):
         self.form.setItem(item)
 
     def setBible(self, b):
+        if b is not self.bible and self.bible is not None:
+            # another film's bible (bugs/editor/20): what is being typed is
+            # saved into its own film, and nothing stays selected, since
+            # ids like set-w-1 repeat from film to film
+            self.form.commitFocused()
+            self.tree.DeleteAllItems()
+            self.nodes = {}
+
         self.bible = b
         self.splitter.Show(b is not None)
         self.empty.Show(b is None)
@@ -582,8 +590,12 @@ class BiblePanel(wx.Panel):
         if root is None:
             return
 
+        # a film open in the window is copied into through its own bible,
+        # so its tab sees the copy
+        of = self.frame.openFilms.at(root)
+
         try:
-            other = bible.Bible(film.Film.open(root))
+            other = of.bible if of else bible.Bible(film.Film.open(root))
         except Exception as e:
             wx.MessageBox(str(e), _("Bible"), wx.OK, self)
 

@@ -14,13 +14,13 @@ import trelby.charmapdlg as charmapdlg
 import trelby.commandsdlg as commandsdlg
 import trelby.annotationdlg as annotationdlg
 import trelby.annotations as annotations
-import trelby.bible as bible
 import trelby.biblepanel as biblepanel
 import trelby.config as config
 import trelby.film as film
 import trelby.manual as manual
 import trelby.misc as misc
 import trelby.namesdlg as namesdlg
+import trelby.openfilms as openfilms
 import trelby.relinkdlg as relinkdlg
 import trelby.scriptsettings as scriptsettings
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
@@ -44,7 +44,11 @@ class MyFrame(wx.Frame):
         self.gd = gd
         self.myApp = myApp
 
-        # the open film (file-format/layout/4), a film.Film, or None
+        # every film opened or made (file-format/layout/4); a tab belongs to
+        # the film whose script it holds (bugs/editor/20)
+        self.openFilms = openfilms.OpenFilms()
+
+        # the current tab's film, a film.Film, or None
         self.film = None
 
         # its bible (film-bible), a bible.Bible, or None
@@ -622,6 +626,7 @@ class MyFrame(wx.Frame):
 
     def OnPageChange(self, page):
         self.panel = self.tabCtrl.getPage(page)
+        self.showFilm(self.filmOf(self.panel.ctrl))
         self.panel.ctrl.SetFocus()
         self.panel.ctrl.updateCommon()
         self.setTitle(self.panel.ctrl.fileNameDisplay)
@@ -687,16 +692,41 @@ class MyFrame(wx.Frame):
 
         return path
 
+    # f opened or made: kept with the open films (one from the same root
+    # replaced) and shown with its bible when its script is the current tab
     def setFilm(self, f):
+        self.openFilms.add(f)
+        self.showFilm(self.filmOf(self.panel.ctrl))
+        self.showBible(True)
+
+    # the open film whose script ctrl holds, an openfilms.OpenFilm, or None
+    def filmOf(self, ctrl):
+        return self.openFilms.withScript(ctrl.fileName)
+
+    # the current tab's film (an OpenFilm, or None for a script of no film)
+    # becomes film, bible and annotations, in the bible panel and the title
+    def showFilm(self, of):
+        f, b = (of.film, of.bible) if of else (None, None)
+
+        if f is self.film and b is self.bible:
+            return
+
         self.film = f
-        self.bible = bible.Bible(f) if f else None
-        self.annotations = annotations.Annotations(f) if f else None
-        self.biblePanel.setBible(self.bible)
-        self.showBible(f is not None)
+        self.bible = b
+        self.annotations = of.annotations if of else None
+        self.biblePanel.setBible(b)
         self.setTitle(self.panel.ctrl.fileNameDisplay)
 
         for listener in self.filmListeners:
             listener()
+
+    # a tab's file changed (open, Save As, a new script): the current tab's
+    # film follows it
+    def scriptFileChanged(self, ctrl):
+        panel = getattr(self, "panel", None)
+
+        if panel is not None and panel.ctrl is ctrl:
+            self.showFilm(self.filmOf(ctrl))
 
     # File -> New film (file-format/layout/4): film.json in a folder with
     # none, and the current script saved as the film's script
@@ -767,13 +797,13 @@ class MyFrame(wx.Frame):
 
             # the bible and the script may have been found in the dialog
             f.problems = []
-            self.bible = bible.Bible(f)
-            self.annotations = annotations.Annotations(f)
-            self.biblePanel.setBible(self.bible)
+            self.openFilms.at(f.root).reload()
             script = f.partPath("script")
 
             if script.exists() and self.showScript(str(script)):
                 self.loadFilmSettings(f)
+
+            self.showFilm(self.filmOf(self.panel.ctrl))
 
     # the film's settings record into its script's tab, just opened and the
     # current one (fountain-native/settings/1)
@@ -797,11 +827,9 @@ class MyFrame(wx.Frame):
             if not p.attached:
                 f.problem(_("Annotation %s") % rid, self.annotations.rel(rid), p.why)
 
-    # whether ctrl holds the open film's script
+    # whether ctrl holds an open film's script
     def isFilmScript(self, ctrl):
-        return self.film is not None and os.path.realpath(ctrl.fileName or "") == os.path.realpath(
-            str(self.film.partPath("script"))
-        )
+        return self.filmOf(ctrl) is not None
 
     # the annotations need the film's script in the current tab
     def annotationsReady(self):

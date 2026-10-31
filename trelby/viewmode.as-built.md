@@ -95,8 +95,8 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:77-90`):
 - **A new view mode**: subclass `ViewMode`, implement the seven methods,
   add a `VIEWMODE_*` constant and instance in `GlobalData`
   (`trelby/globaldata.py:25-29`, `trelby/globaldata.py:79-83`), a menu item
-  and handler in `MyFrame` (`trelby/trelbyframe.py:134-146`,
-  `trelby/trelbyframe.py:1174-1210`), and widen the `ViewMode` range in
+  and handler in `MyFrame` (`trelby/trelbyframe.py:138-150`,
+  `trelby/trelbyframe.py:1202-1238`), and widen the `ViewMode` range in
   `GlobalData` (`trelby/globaldata.py:62-68`).
 
 ## Gotchas
