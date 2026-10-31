@@ -5,6 +5,11 @@ Everything still open, in one list, to pick the work up again (Rafael,
 is settled, record the decision there and remove its line here. Bugs are
 not listed: they are the backlog in `bugs/bugs.md`.
 
+Settled on 2026-10-31 and removed from here: how agents write
+proposals (through an MCP tool into the film's workflow database,
+`workflow-link`); the agents' side of preprod-link, planned in
+`mocap-preprod` `initiatives/preprod-link/`.
+
 Settled on 2026-10-30 and removed from here: fountain-native settings/1,
 scenes/5 and notes/1, done (`mocap-contracts` `v0.6.0`).
 
@@ -25,29 +30,21 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 
 ## Ready to implement
 
+- **workflow-link** (planned 2026-10-31), after `mocap-contracts`
+  `v0.8.0` (`workflow-records`).
+
 Rafael, 2026-10-31: finish every open initiative in one stretch; gates
 that wait only on him are waived ("waive and close"); bugs are fixed only
-when they get in the way. Every initiative was done on 2026-10-31;
-nothing is waiting to be implemented in this repository.
+when they get in the way. Every initiative planned before that
+was done on 2026-10-31.
 
 ## Decisions for Rafael
 
-- **How agents write proposals** — (a) they write `item.json` and the
-  writer refuses an invalid file, or (b) a validating `bible propose`
-  command; deferred to the mocap-preprod planning (preprod-link, done
-  2026-10-31: git log -- initiatives/preprod-link).
+- **Versioning** — what a version of the film is and where each part
+  of the workflow records it (`versioning/versioning.md`).
 
 ## Work for another repository
 
-- **mocap-preprod, the agents' side of preprod-link** (to be planned
-  there): pin `mocap-contracts` `v0.7.0`; the specialists read
-  `bible/scene-index.json`, `bible/` and the latest
-  `bible/sync/*-changes.json`, and cite scene numbers and item ids; after
-  a sync a specialist works only on what the change set touched; how
-  proposals are written (the decision above); the Copilot adapters
-  regenerated with `scripts/sync_agents.py` in the same commit as each
-  agent change. preprod-link's gate (a specialist run citing the ids) was
-  waived with the others on 2026-10-31.
 - **Story structure** — models and beats wait for a later talk with an
   agent (story-structure study/1, in git history: git log --
   initiatives/story-structure).
