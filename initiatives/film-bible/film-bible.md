@@ -1,7 +1,8 @@
 # film-bible — mocap-writer
 
-**Status:** Implemented (2026-10-28) — every task done (contract, tree,
-maps, links); the initiative gate waits for Rafael (below). The maps are
+**Status:** In progress — implemented 2026-10-28 (contract, tree, maps,
+links 1–5); links/6, linking scenes by hand, planned 2026-10-31 and
+ready to implement; then the initiative gate, Rafael's (below). The maps are
 folders in the film's `bible/` part, read and written through
 `mocap-contracts` `v0.5.0` (`bible.harpia`, `catalog/bible-v1.json`).
 
@@ -16,15 +17,15 @@ another film, linked or not.
 Fountain script never holds map data; the maps point to scene **numbers** (permanent, the scene's identity).
 
 **Scope:** the field catalog, the contract, the tree panel, one editor per map,
-links (scene ↔ set, prop words → props, wardrobe ↔ character × scene), copy
-with warnings.
+links (scene ↔ set, prop words → props, wardrobe ↔ character × scene, and
+by hand from an item or a scene), copy with warnings.
 
 **Out of scope:** AI filling the maps (mocap-preprod agents propose, the
 creator approves: their output lands in these same records with state
 `proposal`); 3D asset making; the scene map's own view of shots (mocap-previz).
 
 **Initiative gate:** on the neutral sample, Rafael creates one item of each
-map, links it to scenes, copies one to a second film root, and the
+map, links it to scenes (From script and by hand), copies one to a second film root, and the
 mocap-preprod agents can read the records.
 
 Epics: `epics/README.md`.
