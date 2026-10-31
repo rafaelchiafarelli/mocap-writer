@@ -5,12 +5,13 @@
 FROM ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
 # GTK3 and the libraries the prebuilt wxPython wheel links against; fonts for the editor;
 # evince (GPL-2.0+) shows Print and report PDFs, docbook-xsl (permissive DocBook XSL
-# licence) turns doc/manual.xml into the Help → Manual page.
+# licence) turns doc/manual.xml into the Help → Manual page; librsvg2-common (LGPL-2.1+)
+# lets GTK load its SVG theme assets, the check marks among them (bugs/tooling/10).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 python3-venv \
         libgtk-3-0t64 libnotify4 libsm6 libxtst6 libsdl2-2.0-0 libcurl4t64 libpcre2-32-0 \
-        libgl1 libglu1-mesa libegl1 \
+        libgl1 libglu1-mesa libegl1 librsvg2-common \
         fonts-dejavu-core fonts-liberation \
         evince docbook-xsl \
     && rm -rf /var/lib/apt/lists/*
