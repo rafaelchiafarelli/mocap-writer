@@ -156,7 +156,7 @@ Model and file format
   `loadFor(film, sp)` (an invalid record is a film problem and the script
   keeps the defaults, `trelby/scriptsettings.py:318-346`).
 - `film.py` — a film root (file-format/layout/1), no wx except the
-  version in `_origin` (`trelby/film.py:470`): `Film.open(root, owner)`
+  version in `_origin` (`trelby/film.py:483`): `Film.open(root, owner)`
   reads `film.json` through `mocap_contracts` and lists what is missing or
   invalid as `Problem(what, where, why)` in `film.problems`
   (`trelby/film.py:79`); only a missing or invalid `film.json` raises
@@ -164,27 +164,28 @@ Model and file format
   scriptText)` writes `film.json` with `DEFAULT_PARTS`, the `w` space,
   `ids/w.json` and the folder parts (`trelby/film.py:121`).
   `partOf` / `ownerOf` (prefix by segment, `film.json` → writer,
-  `ids/<code>.json` → its space's owner, `trelby/film.py:201-231`);
+  `ids/<code>.json` → its space's owner, `trelby/film.py:214-244`);
   `writeText` (atomic, through a temp file) and `deleteFile` refuse with
   `OwnerError` a path this program does not own (`checkWrite`,
-  `trelby/film.py:237`). Every `writeText` / `deleteFile` of a text
+  `trelby/film.py:250`). Every `writeText` / `deleteFile` of a text
   record in a part other than the script and the history appends a
   `Change` (time, `by`, path, record id, op, before, after) to
   `history/<yyyy-mm>.jsonl` when this program owns the history
-  (file-format/layout/5, `logs` / `log`, `trelby/film.py:293-355`), except
+  (file-format/layout/5, `logs` / `log`, `trelby/film.py:306-368`), except
   the files built from the script (`derived`: the bible part's
-  `scene-index.json` and `sync/`, `trelby/film.py:307`); an
+  `scene-index.json` and `sync/`, `trelby/film.py:320`); an
   unchanged write logs nothing; `changes(by)` reads the log, oldest
-  first (`trelby/film.py:358`); `revert(changes, by)` puts records back,
-  newest first, and is itself logged (`trelby/film.py:384`).
+  first (`trelby/film.py:371`); `revert(changes, by)` puts records back,
+  newest first, and is itself logged (`trelby/film.py:397`).
   `newId(kind, space)` saves the counter before it
-  returns the id (`trelby/film.py:402`); `addSpace(code, owner, path)`
+  returns the id (`trelby/film.py:415`); `addSpace(code, owner, path)`
   adds an agent's space and its `proposals-<code>` part, checked by the
-  contract before anything is written (`trelby/film.py:437`);
-  `problemsText(problems)`, the problems as text (`trelby/film.py:461`);
+  contract before anything is written (`trelby/film.py:450`);
+  `problemsText(problems)`, the problems as text (`trelby/film.py:474`);
   a missing part's `Problem` carries a `relink.Ref` (`partRef`,
   `trelby/film.py:152`) whose `apply` saves the new path in `film.json`
-  (`setPartPath`, `trelby/film.py:173`).
+  (`setPartPath`, `trelby/film.py:173`); `addPart(name, rel)` adds a
+  part, checked by the contract, its folder made (`trelby/film.py:187`).
 - `sceneindex.py` — the scene index for the mocap-preprod agents
   (preprod-link/contract/1), no wx: `build(sp, b)` → a
   `mocap_contracts.SceneIndex` (`trelby/sceneindex.py:165`): the script's
@@ -248,6 +249,10 @@ Model and file format
   list (scene or `all: 1, 3`, item, field, value, why, source); A
   approves, R rejects (after asking), E or Enter edits, Ctrl+A selects
   all; the approved needs-review lines leave the list for the session.
+- `importfilm.py` — an import that ends in a film (import-to-film), no
+  wx: `copySource(f, path)` copies the imported file into the film's
+  `source/` part, added with `Film.addPart` when the film has none
+  (`trelby/importfilm.py:12`); not logged (binary).
 - `openfilms.py` — the films open in the window (bugs/editor/20), no wx:
   `OpenFilm(film)` holds the film with its `Bible` and `Annotations`
   (`reload` reads both again, `trelby/openfilms.py:12`); `OpenFilms` keeps
@@ -354,7 +359,7 @@ Model and file format
   sends with a second press not counted twice (bugs/editor/14-16).
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1723`).
+  (`trelby/trelbyctrl.py:1726`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -377,12 +382,16 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
-  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1466`).
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1561`).
+  File → Import (`OnImportScript`: with a film open, into this film, into
+  a new folder or just open it) and Import into film… (`OnImportIntoFilm`,
+  `importIntoNewFilm`: import, New film, the script saved, the original
+  copied into `source/`, `trelby/trelbyframe.py:1188`);
   File → New film… / Open film… (`OnNewFilm`, `OnOpenFilm`,
-  `trelby/trelbyframe.py:742-779`); every open film in `openFilms`, and
+  `trelby/trelbyframe.py:745-782`); every open film in `openFilms`, and
   the current tab's film `film` (`showFilm` on a tab switch and on the
   current tab's file change, `filmOf`, `scriptFileChanged`,
-  `trelby/trelbyframe.py:712-739`, bugs/editor/20), with
+  `trelby/trelbyframe.py:715-742`, bugs/editor/20), with
   `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5), its
   `bible`, and the bible panel in `splitter` with View → Bible
   (`showBible`, film-bible/tree/1, `trelby.process.md` Stage 1); its
@@ -390,15 +399,15 @@ Application and editor (wx)
   Annotations here…, Unattached annotations…, Sync to spec… (F5, also a
   toolbar button: the film's script only; an unsaved script is saved
   first, after asking; then `sync.run` and the `SyncDlg`, `OnSyncToSpec`,
-  `trelby/trelbyframe.py:863`), Review proposals… (`ReviewDlg` over the
+  `trelby/trelbyframe.py:866`), Review proposals… (`ReviewDlg` over the
   film's bible and its latest change set, `OnReview`,
-  `trelby/trelbyframe.py:904`) (`OnAnnotate`,
-  `trelby/trelbyframe.py:918`, `OnAnnotationsHere`,
-  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:1031-1059`); on Open
+  `trelby/trelbyframe.py:907`) (`OnAnnotate`,
+  `trelby/trelbyframe.py:921`, `OnAnnotationsHere`,
+  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:1034-1062`); on Open
   film the annotations whose text is gone join the film's problems
-  (`listUnattached`, `trelby/trelbyframe.py:829`).
+  (`listUnattached`, `trelby/trelbyframe.py:832`).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:1261-1265`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:1356-1360`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   + `ActPanel` at the right (`trelby/trelbypanel.py:9`); the act panel is
@@ -442,8 +451,8 @@ Application and editor (wx)
   hint when there is no act break. Own pixel fonts, so the zoom never
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
-  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:586`); repainted on a theme
-  change (`trelby/trelbyctrl.py:635`); `draw(dc, w, h)` does the drawing
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:589`); repainted on a theme
+  change (`trelby/trelbyctrl.py:638`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
@@ -455,7 +464,7 @@ Application and editor (wx)
 - `ids.py` — wx menu ids (`ID_FILE_NEW_FILM`, `ID_FILE_OPEN_FILM`,
   `ID_VIEW_BIBLE`, `ID_VIEW_ANNOTATIONS`, `ID_SCRIPT_ANNOTATE...`,
   `ID_SCRIPT_SYNC`, `ID_SCRIPT_REVIEW` for the film) and `idToLTMap` (right-click "Element type" ids →
-  line types, `trelby/ids.py:92`).
+  line types, `trelby/ids.py:93`).
 - `misc.py` — platform flags, `progPath` / `confPath` (`misc.init`,
   `trelby/misc.py:23`), `version` (`trelby/misc.py:20`), and shared widgets:
   `MyTabCtrl` (tab bar, `trelby/misc.py:287`), `MyStatus` (status area
@@ -627,8 +636,8 @@ Data and folders
   `manual.html`, Help → Manual makes the page from `doc/manual.xml`
   (`manual.py`).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:239`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:255-260`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:241`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:257-262`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 - A missing file part other than the script (the settings record) is not
