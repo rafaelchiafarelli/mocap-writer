@@ -1,5 +1,6 @@
 ## 6. Around the code: tests, Docker, planning
 
+- **Status:** Done (2026-10-31) — published privately: https://claude.ai/artifact/KyZacNpzPJsvbTkca2gHAj (page `around.html`), built from the as-built docs at commit 959bc3c.
 - **Type:** explainer page
 - **Contract:**
   - In: `docker/CLAUDE.md`, `tests/CLAUDE.md`, the mocap-workflow skill
