@@ -57,4 +57,3 @@ action otherwise). Prefixes are compared upper-cased and literally, so
 ## Touchpoints
 - Read by: `trelby/pdfimport.py` (CLI `--profile`),
   `tests/test_pdfimport.py` (every profile here must parse).
-- Packaged through `setup.cfg` (`pdfprofiles/*`).

@@ -2,14 +2,7 @@
 *.pyc
 *.pyo
 .trelby/
-*.trelby
-.tox/
-MANIFEST
-.pybuild/
 
 # virtual environment and IDE stuff
 /venv/
 /.vscode/
-
-#Choco
-*.nupkg
