@@ -1,5 +1,6 @@
 ## 1. The pages printed before the script
 
+- **Status:** Done (2026-10-31) — `frontmatter.addPages` / `overviewLines` / `titlePages`, `Screenplay.frontPages` set by `MyCtrl.makePDF`; checked through the real window (a sample PDF in the review folder).
 - **Type:** code
 - **Depends on:** record/1, title/1; `acts.actsOf`; the bible
 - **Contract:**
