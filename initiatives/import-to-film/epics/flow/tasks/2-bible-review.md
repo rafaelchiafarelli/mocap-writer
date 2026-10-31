@@ -1,5 +1,6 @@
 ## 2. The bible review
 
+- **Status:** Done (2026-10-31) — `importfilm.plan` / `apply`, `trelby/biblereviewdlg.py`, opened at the end of Import into film, on Import → Into this film (no scenes), and from From script → Review all…; checked through the real window.
 - **Type:** code
 - **Depends on:** 1; film-bible/links/1, 2 and 5 (`setPlan`,
   `propPlan`, `characterPlan`); Rafael's decisions 1 and 2

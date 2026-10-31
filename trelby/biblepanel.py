@@ -404,7 +404,24 @@ class BiblePanel(wx.Panel):
             (_("Find characters..."), self.OnFindCharacters),
             (_("Find props..."), self.OnFindProps),
             (_("Wardrobe gaps..."), self.OnWardrobeGaps),
+            (_("Review all..."), self.OnReviewAll),
         ]
+
+    # import-to-film/flow/2: sets, characters and props in one review; new
+    # items unticked, as in the other From script commands
+    def OnReviewAll(self, event=None):
+        import trelby.biblereviewdlg as biblereviewdlg
+
+        sp = self.script()
+        made = self.guard(
+            biblereviewdlg.review, self, self.bible, sp, False, True, self.noteUnnumbered(sp).strip()
+        )
+
+        if made == {}:
+            wx.MessageBox(_("Nothing to do: the bible already matches the script."),
+                          _("Bible"), wx.OK, self)
+
+        self.changed()
 
     # warn if the script has scenes with no number yet: those are left out
     # until a save numbers them

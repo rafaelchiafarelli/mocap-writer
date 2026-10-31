@@ -15,8 +15,11 @@ import trelby.commandsdlg as commandsdlg
 import trelby.annotationdlg as annotationdlg
 import trelby.annotations as annotations
 import trelby.biblepanel as biblepanel
+import trelby.biblereviewdlg as biblereviewdlg
 import trelby.config as config
 import trelby.film as film
+import trelby.importfilm as importfilm
+import trelby.importreportdlg as importreportdlg
 import trelby.manual as manual
 import trelby.misc as misc
 import trelby.namesdlg as namesdlg
@@ -89,6 +92,7 @@ class MyFrame(wx.Frame):
         fileMenu.Append(ID_FILE_OPEN_FILM, _("Open film") + "...")
         fileMenu.AppendSeparator()
         fileMenu.Append(ID_FILE_IMPORT, "(&I) " + _("Import") + "...")
+        fileMenu.Append(ID_FILE_IMPORT_FILM, _("Import into film") + "...")
         fileMenu.Append(ID_FILE_EXPORT, "(&E) " + _("Export") + "...")
         fileMenu.AppendSeparator()
         fileMenu.Append(ID_FILE_PRINT, "(&P) " + _("Print (via PDF)") + "\tCTRL-P")
@@ -367,6 +371,7 @@ class MyFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.OnSave, id=ID_FILE_SAVE)
             self.Bind(wx.EVT_MENU, self.OnSaveScriptAs, id=ID_FILE_SAVE_AS)
             self.Bind(wx.EVT_MENU, self.OnImportScript, id=ID_FILE_IMPORT)
+            self.Bind(wx.EVT_MENU, self.OnImportIntoFilm, id=ID_FILE_IMPORT_FILM)
             self.Bind(wx.EVT_MENU, self.OnExportScript, id=ID_FILE_EXPORT)
             self.Bind(wx.EVT_MENU, self.OnCloseScript, id=ID_FILE_CLOSE)
             self.Bind(wx.EVT_MENU, self.OnRevertScript, id=ID_FILE_REVERT)
@@ -1078,7 +1083,8 @@ class MyFrame(wx.Frame):
     def OnSaveScriptAs(self, event=None):
         self.panel.ctrl.OnSaveScriptAs()
 
-    def OnImportScript(self, event=None):
+    # the file to import, or None
+    def askImportFile(self):
         dlg = wx.FileDialog(
             self,
             _("File to import"),
@@ -1115,15 +1121,135 @@ class MyFrame(wx.Frame):
             style=wx.FD_OPEN,
         )
 
+        path = None
+
         if dlg.ShowModal() == wx.ID_OK:
             misc.scriptDir = dlg.GetDirectory()
+            path = dlg.GetPath()
 
-            if not self.tabCtrl.getPage(self.findPage(self.panel)).ctrl.isUntouched():
-                self.panel = self.createNewPanel()
+        dlg.Destroy()
 
-            self.panel.ctrl.importFile(dlg.GetPath())
-            self.panel.ctrl.updateScreen()
+        return path
 
+    # import path into a tab (a new one unless the current one is
+    # untouched); returns its ctrl, or None when the import failed
+    def importIntoTab(self, path):
+        if not self.tabCtrl.getPage(self.findPage(self.panel)).ctrl.isUntouched():
+            self.panel = self.createNewPanel()
+
+        ok = self.panel.ctrl.importFile(path)
+        self.panel.ctrl.updateScreen()
+
+        return self.panel.ctrl if ok else None
+
+    # File -> Import. with a film open (import-to-film, decision 3): into
+    # this film, into a new folder (a new film), or just open it
+    def OnImportScript(self, event=None):
+        path = self.askImportFile()
+
+        if path is None:
+            return
+
+        pick = None
+
+        if self.film is not None:
+            choices = [_("Into this film"), _("Into a new folder (a new film)"), _("Just open it")]
+            dlg = wx.SingleChoiceDialog(
+                self, _("Import %s:") % os.path.basename(path), _("Import"), choices
+            )
+            pick = dlg.GetSelection() if dlg.ShowModal() == wx.ID_OK else None
+            dlg.Destroy()
+
+            if pick is None:
+                return
+
+            if pick == 1:
+                root = self.chooseFilmFolder(_("Folder for the new film"))
+
+                if root is not None:
+                    self.importIntoNewFilm(path, root)
+
+                return
+
+        ctrl = self.importIntoTab(path)
+
+        if ctrl is not None and self.film is not None and pick == 0:
+            # into this film: its bible gets the new items; this script's
+            # scene numbers are not the film's, so no scene is linked
+            biblereviewdlg.review(
+                self, self.bible, ctrl.sp, True, False,
+                _("Into this film's bible. The imported script is not the film's script, "
+                  "so the new items are made without scenes."),
+            )
+            self.biblePanel.changed()
+
+    # File -> Import into film (import-to-film/flow/1)
+    def OnImportIntoFilm(self, event=None):
+        path = self.askImportFile()
+
+        if path is None:
+            return
+
+        root = self.chooseFilmFolder(_("Folder for the new film"))
+
+        if root is not None:
+            self.importIntoNewFilm(path, root)
+
+    # import path, then make the film in root as New film does: the script
+    # saved as its script.fountain (every scene numbered) and the original
+    # copied into its source part. a failed or cancelled import makes no
+    # film. returns the film, or None
+    def importIntoNewFilm(self, path, root):
+        if os.path.exists(os.path.join(root, "film.json")):
+            wx.MessageBox(_("%s already holds a film.") % root, _("Import into film"), wx.OK, self)
+
+            return None
+
+        ctrl = self.importIntoTab(path)
+
+        if ctrl is None:
+            return None
+
+        try:
+            f = film.Film.create(root, "")
+            importfilm.copySource(f, path)
+        except (film.FilmError, film.OwnerError, OSError) as e:
+            wx.MessageBox(str(e), _("Error"), wx.OK, self)
+
+            return None
+
+        if ctrl.saveFile(str(f.partPath("script"))):
+            try:
+                scriptsettings.saveFor(f, ctrl.sp)
+            except Exception as e:
+                wx.MessageBox(str(e), _("Error"), wx.OK, self)
+        else:
+            wx.MessageBox(
+                _("The film was made, but the script was not saved into it."),
+                _("Import into film"),
+                wx.OK,
+                self,
+            )
+
+        self.setFilm(f)
+        self.reviewImport(ctrl)
+
+        return f
+
+    # the end of an import into a new film: the bible review, new items
+    # ticked (import-to-film/flow/2, decision 1), then the report (flow/3)
+    def reviewImport(self, ctrl):
+        b = self.openFilms.at(self.film.root).bible if self.film else None
+
+        if b is None:
+            return
+
+        made = biblereviewdlg.review(self, b, ctrl.sp, True)
+        self.biblePanel.changed()
+        dlg = importreportdlg.ImportReportDlg(
+            self, ctrl, importfilm.report(b, ctrl.sp, made or {})
+        )
+        dlg.ShowModal()
         dlg.Destroy()
 
     def OnExportScript(self, event=None):
