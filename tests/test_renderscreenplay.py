@@ -87,3 +87,25 @@ def testOpenOnCurrentPage() -> None:
 
     with pdfplumber.open(io.BytesIO(sp.generatePDF(True))) as pdf:
         assert "OpenAction" not in pdf.doc.catalog
+
+
+# a watermark's rotated text keeps its accents (bugs/import-export/8)
+def testWatermarkKeepsAccents() -> None:
+    import io
+
+    import pdfplumber
+
+    import trelby.pdf as pdf
+    import trelby.pml as pml
+
+    doc = pml.Document(210, 297)
+    pg = pml.Page(doc)
+    pg.add(pml.TextOp("CÓPIA DE JOÃO", 50, 150, 40, pml.COURIER, angle=45))
+    pg.add(pml.TextOp("AÇÃO", 20, 20, 12, pml.COURIER))
+    doc.add(pg)
+
+    with pdfplumber.open(io.BytesIO(pdf.generate(doc))) as f:
+        chars = f.pages[0].chars
+
+    # the watermark first, as drawn
+    assert "".join(c["text"] for c in chars) == "CÓPIA DE JOÃOAÇÃO"
