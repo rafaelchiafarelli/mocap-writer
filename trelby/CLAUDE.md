@@ -221,15 +221,33 @@ Model and file format
   in their order); sync/3: `affected(b, cs)` → `Affected(item, value,
   scene)` for every bible value whose scene (per-scene) or source (the
   scene number that states it) is a scene the sync changed, a move alone
-  not counted (`changedScenes`, `trelby/sync.py:125`), never stored and no
+  not counted (`changedScenes`, `trelby/sync.py:124`), never stored and no
   state changed; `affectedText` (`needs review: Ana — Occupation: nurse`).
 - `syncdlg.py` — `SyncDlg` (`trelby/syncdlg.py:11`), Sync to spec's
   change panel (preprod-link/sync/2), modeless: a header (first sync /
   `n` changes / nothing changed), a tree with one branch per scene
   (`Scene 12 — INT. SALA`), one line per change and, in bold, the bible
-  values that need review there (`sync.affected`); a double click goes to
+  values that need review there (`sync.affected`); Review… opens
+  `ReviewDlg` with the run's changes; a double click goes to
   the scene (`OnGoto`); Accept calls `sync.accept` and turns into
   Accepted; nothing in the bible changes from it.
+- `review.py` — the review queue (preprod-link/review/1), no wx:
+  `queue(b, changes)` → `Entry(item, value, why)` for every value in
+  state proposal or TBD and, with a change set, every value
+  `sync.affected` lists (`needs review`), once each, by scene with the
+  item-level values last (`trelby/review.py:53`); `latestChanges(film)`
+  (the newest `<bible part>/sync/*-changes.json`); `appliesTo` (an
+  item-level value's scenes: all of its item's); `approve` (creator-approved,
+  source kept; a needs-review value keeps its state), `reject` (the value
+  removed and the one it replaced put back, found in the change log by
+  `previous`, `trelby/review.py:122`; the contract holds one value per
+  field and scene, so a proposal replaces the value), `edit` (the
+  creator's text, creator-approved); each item written once per batch,
+  put back if the contract refuses it (`_apply`).
+- `reviewdlg.py` — `ReviewDlg` (`trelby/reviewdlg.py:15`), modeless: one
+  list (scene or `all: 1, 3`, item, field, value, why, source); A
+  approves, R rejects (after asking), E or Enter edits, Ctrl+A selects
+  all; the approved needs-review lines leave the list for the session.
 - `openfilms.py` — the films open in the window (bugs/editor/20), no wx:
   `OpenFilm(film)` holds the film with its `Bible` and `Annotations`
   (`reload` reads both again, `trelby/openfilms.py:12`); `OpenFilms` keeps
@@ -359,12 +377,12 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
-  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1447`).
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1466`).
   File → New film… / Open film… (`OnNewFilm`, `OnOpenFilm`,
-  `trelby/trelbyframe.py:738-775`); every open film in `openFilms`, and
+  `trelby/trelbyframe.py:742-779`); every open film in `openFilms`, and
   the current tab's film `film` (`showFilm` on a tab switch and on the
   current tab's file change, `filmOf`, `scriptFileChanged`,
-  `trelby/trelbyframe.py:708-735`, bugs/editor/20), with
+  `trelby/trelbyframe.py:712-739`, bugs/editor/20), with
   `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5), its
   `bible`, and the bible panel in `splitter` with View → Bible
   (`showBible`, film-bible/tree/1, `trelby.process.md` Stage 1); its
@@ -372,13 +390,15 @@ Application and editor (wx)
   Annotations here…, Unattached annotations…, Sync to spec… (F5, also a
   toolbar button: the film's script only; an unsaved script is saved
   first, after asking; then `sync.run` and the `SyncDlg`, `OnSyncToSpec`,
-  `trelby/trelbyframe.py:859`) (`OnAnnotate`,
-  `trelby/trelbyframe.py:899`, `OnAnnotationsHere`,
-  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:1012-1040`); on Open
+  `trelby/trelbyframe.py:863`), Review proposals… (`ReviewDlg` over the
+  film's bible and its latest change set, `OnReview`,
+  `trelby/trelbyframe.py:904`) (`OnAnnotate`,
+  `trelby/trelbyframe.py:918`, `OnAnnotationsHere`,
+  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:1031-1059`); on Open
   film the annotations whose text is gone join the film's problems
-  (`listUnattached`, `trelby/trelbyframe.py:825`).
+  (`listUnattached`, `trelby/trelbyframe.py:829`).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:1242-1246`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:1261-1265`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   + `ActPanel` at the right (`trelby/trelbypanel.py:9`); the act panel is
@@ -434,8 +454,8 @@ Application and editor (wx)
   Detail: [viewmode.as-built.md](viewmode.as-built.md).
 - `ids.py` — wx menu ids (`ID_FILE_NEW_FILM`, `ID_FILE_OPEN_FILM`,
   `ID_VIEW_BIBLE`, `ID_VIEW_ANNOTATIONS`, `ID_SCRIPT_ANNOTATE...`,
-  `ID_SCRIPT_SYNC` for the film) and `idToLTMap` (right-click "Element type" ids →
-  line types, `trelby/ids.py:91`).
+  `ID_SCRIPT_SYNC`, `ID_SCRIPT_REVIEW` for the film) and `idToLTMap` (right-click "Element type" ids →
+  line types, `trelby/ids.py:92`).
 - `misc.py` — platform flags, `progPath` / `confPath` (`misc.init`,
   `trelby/misc.py:23`), `version` (`trelby/misc.py:20`), and shared widgets:
   `MyTabCtrl` (tab bar, `trelby/misc.py:287`), `MyStatus` (status area
@@ -607,8 +627,8 @@ Data and folders
   `manual.html`, Help → Manual makes the page from `doc/manual.xml`
   (`manual.py`).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:236`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:252-257`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:239`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:255-260`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 - A missing file part other than the script (the settings record) is not

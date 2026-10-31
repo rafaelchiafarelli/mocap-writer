@@ -78,7 +78,7 @@ like Open, through `fountain.load` (fountain-native/io/5).
   list[Line] | None` here that meets the contract above, an `elif` on the
   file-name ending in `MyCtrl.importFile` (`trelby/trelbyctrl.py:411-424`, by the lower-cased extension),
   and an entry in the import dialog's wildcard
-  (`trelby/trelbyframe.py:1067-1095`). PDF followed this path, with the
+  (`trelby/trelbyframe.py:1086-1114`). PDF followed this path, with the
   wx-free work in its own module (`pdfimport.py`).
 
 ## Gotchas
