@@ -54,6 +54,10 @@ class Screenplay:
         self.headers = headers.Headers()
         self.locations = locations.Locations()
         self.titles = titles.Titles()
+
+        # callable(doc) adding pages after the title pages and returning
+        # how many, or None (a film's front matter, front-matter/print/1)
+        self.frontPages = None
         self.scDict = spellcheck.Dict()
 
         self.lines = [Line(LB_LAST, SCENE)]
@@ -521,10 +525,13 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
         pager = mypager.Pager(self.cfg)
         self.titles.generatePages(pager.doc)
 
+        # a film's front matter pages (front-matter/print/1), set by MyCtrl
+        front = self.frontPages(pager.doc) if self.frontPages else 0
+
         pager.doc.showTOC = self.cfg.pdfShowTOC
 
         if not isExport and self.cfg.pdfOpenOnCurrentPage:
-            pager.doc.defPage = len(self.titles.pages) + self.line2page(self.line) - 1
+            pager.doc.defPage = len(self.titles.pages) + front + self.line2page(self.line) - 1
 
         for i in range(1, len(self.pages)):
             pg = self.generatePMLPage(pager, i, True, True)

@@ -100,7 +100,7 @@ block → no title page.
   they are written as `.OMITTED #n#`.
 - `generate(sp)` → `Result(text, source, lost)`; the caller writes `text`
   (UTF-8) and stores `source` (`MyCtrl.saveFile`,
-  `trelby/trelbyctrl.py:196`).
+  `trelby/trelbyctrl.py:204`).
 
 ## Gotchas
 
@@ -121,7 +121,7 @@ block → no title page.
 - Emphasis (`*`, `**`, `_`), inline notes and inline boneyard stay in the
   text as typed characters; the editor shows them as they are.
 - Only UTF-8 files open (`MyCtrl.loadFile` shows an error otherwise,
-  `trelby/trelbyctrl.py:140`); the BOM and the line ending of the first line
+  `trelby/trelbyctrl.py:141`); the BOM and the line ending of the first line
   are kept, and new lines are written with that line ending.
 - It is the program's only Fountain reader and writer (fountain-native/io/5):
   Import → Fountain reads through `load` like Open (the tab stays
@@ -131,9 +131,17 @@ block → no title page.
 
 ## Touchpoints
 
+- `importOptions(text, strip, notes, titleAsAction, keepTitle)`
+  (`trelby/fountain.py:731`, front-matter/import/1): the text for an
+  import with the user's options: emphasis markup (`*`, `**`, `_`) removed
+  from the body (the title page and the boneyard left alone); sections
+  below level 1 and synopses as `[[note]]` paragraphs (a level-1 section
+  stays an act break); the title page's lines as forced Action (`!Key:
+  value`) at the top; the title page dropped. No option: the text
+  unchanged.
 - Called by: `MyCtrl.readFountain` (Open and Import) / `saveFile` /
-  `OnExportScript` (`trelby/trelbyctrl.py:174`, `trelby/trelbyctrl.py:196`,
-  `trelby/trelbyctrl.py:1486-1492`); `pdfimport.main`
+  `OnExportScript` (`trelby/trelbyctrl.py:175`, `trelby/trelbyctrl.py:204`,
+  `trelby/trelbyctrl.py:1541-1547`); `pdfimport.main`
   (`trelby/pdfimport.py:1151`); `tests/test_fountain.py`,
   `tests/test_pdfimport.py`.
 - Uses: `screenplay` constants and `Screenplay`, `titles`, `pml`, `util`,

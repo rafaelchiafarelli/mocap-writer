@@ -41,7 +41,7 @@ watermarks, the dialogue chart and script comparison all build PML and call
   (`trelby/pdf.py:239-252`).
 - `getFontForFlags(flags)` (`trelby/pdf.py:321`): if the script configured a
   custom font for that style (`doc.fonts`, filled from `Config.pdfFonts` by
-  `Screenplay.generatePML`, `trelby/screenplay.py:537-541`), registers the
+  `Screenplay.generatePML`, `trelby/screenplay.py:544-548`), registers the
   TTF with ReportLab once and returns its name; otherwise the core font.
   The underline bit is masked with `& 15`.
 - Screen layout and PDF use the same text widths: `fontinfo` gives core-font
@@ -64,7 +64,7 @@ watermarks, the dialogue chart and script comparison all build PML and call
   `pml`, not `trelby.util`; nothing uses it.
 - "Open PDF on current page": `Screenplay.generatePML` sets `doc.defPage`
   to the cursor's page (0-based, title pages counted) when printing, not
-  when exporting (`trelby/screenplay.py:526-527`); while drawing that page
+  when exporting (`trelby/screenplay.py:533-534`); while drawing that page
   `generate` bookmarks it and points the catalog's `/OpenAction` at the
   destination, a plain go-to (`trelby/pdf.py:279-286`). Viewers that
   ignore `/OpenAction` still open on page 1.
@@ -78,9 +78,9 @@ watermarks, the dialogue chart and script comparison all build PML and call
   draws nothing (`trelby/pdf.py:120-123`).
 - A custom font that cannot be used (a name with no file, or a file
   ReportLab cannot read) raises `error.MiscError` (`trelby/pdf.py:334-353`);
-  Export, Print (`MyCtrl.makePDF`, `trelby/trelbyctrl.py:1515`) and
+  Export, Print (`MyCtrl.makePDF`, `trelby/trelbyctrl.py:1574`) and
   Watermark show it in a message box. The script settings only send a
-  font that has a file (`trelby/screenplay.py:537-541`).
+  font that has a file (`trelby/screenplay.py:544-548`).
 - Text widths for Helvetica/Times use Latin-1 tables; a character above
   U+00FF is measured like `?` (`trelby/fontinfo.py:50-65`); the core fonts
   cannot draw it.

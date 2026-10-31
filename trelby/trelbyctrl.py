@@ -15,6 +15,7 @@ import trelby.dialoguechart as dialoguechart
 import trelby.error as error
 import trelby.finddlg as finddlg
 import trelby.fountain as fountain
+import trelby.frontmatter as frontmatter
 import trelby.gutil as gutil
 import trelby.headersdlg as headersdlg
 import trelby.locationsdlg as locationsdlg
@@ -171,13 +172,20 @@ class MyCtrl(wx.Control):
             )
 
     # a .fountain file -> Screenplay, or None after telling the user why
-    def readFountain(self, fileName):
+    # options: the Import -> Fountain options (fountain.importOptions
+    # keywords), applied to the text before it is read; None for Open
+    def readFountain(self, fileName, options=None):
         data = util.loadFile(fileName, self.gd.mainFrame, binary=True)
         if data is None:
             return None
 
         try:
-            return fountain.load(data.decode("UTF-8"), self.gd.cfgGl)
+            text = data.decode("UTF-8")
+
+            if options:
+                text = fountain.importOptions(text, **options)
+
+            return fountain.load(text, self.gd.cfgGl)
         except UnicodeDecodeError:
             self.loadError(_("The file is not UTF-8 text."))
 
@@ -198,6 +206,16 @@ class MyCtrl(wx.Control):
 
         if not self.numberScenes():
             return False
+
+        of = self.openFilm()
+
+        if of is not None:
+            # a film's script: the title block comes from the front matter
+            # (front-matter/title/1)
+            try:
+                frontmatter.syncTitle(of.film, self.sp)
+            except Exception as e:
+                wx.MessageBox(str(e), _("Front matter"), wx.OK, self.gd.mainFrame)
 
         res = fountain.generate(self.sp)
 
@@ -393,12 +411,36 @@ class MyCtrl(wx.Control):
 
         misc.showText(self.gd.mainFrame, msg, _("Warning"))
 
+    # the Import -> Fountain options (front-matter/import/1) as
+    # fountain.importOptions keywords, or None if cancelled; nothing ticked
+    # but the title page, which a film's import puts in its front matter
+    def askFountainOptions(self):
+        items = [
+            ("strip", misc.CheckBoxItem(_("Remove emphasis markup (*, **, _)"), False)),
+            ("notes", misc.CheckBoxItem(_("Sections and synopses as notes"), False)),
+            ("titleAsAction", misc.CheckBoxItem(_("Title page lines as action"), False)),
+            ("keepTitle", misc.CheckBoxItem(
+                _("Keep the title page (in a film: into its front matter)"), True)),
+        ]
+        dlg = misc.CheckBoxDlg(
+            self.gd.mainFrame, _("Fountain import options"), [i for _k, i in items],
+            _("Import options:"), False,
+        )
+        ok = dlg.ShowModal() == wx.ID_OK
+        dlg.Destroy()
+
+        return {k: i.selected for k, i in items} if ok else None
+
     # returns True when the file was imported
     def importFile(self, fileName):
         # a .fountain is read like Open (fountain-native/io/5); the tab
         # stays untitled, as after every import
         if fileName.lower().endswith(".fountain"):
-            sp = self.readFountain(fileName)
+            options = self.askFountainOptions()
+            if options is None:
+                return False
+
+            sp = self.readFountain(fileName, options)
             if sp is None:
                 return False
 
@@ -922,6 +964,19 @@ class MyCtrl(wx.Control):
         dlg.Destroy()
 
     def OnTitlesDlg(self):
+        # a film's title page is its front matter (front-matter/title/1)
+        if self.openFilm() is not None:
+            wx.MessageBox(
+                _("In a film the title page is edited in the front matter: the first node of the bible panel."),
+                _("Title pages"),
+                wx.OK,
+                self.gd.mainFrame,
+            )
+            self.gd.mainFrame.showBible(True)
+            self.gd.mainFrame.biblePanel.selectFrontMatter()
+
+            return
+
         dlg = titlesdlg.TitlesDlg(
             self.gd.mainFrame, copy.deepcopy(self.sp.titles), self.sp.cfg, self.gd.cfgGl
         )
@@ -1517,6 +1572,13 @@ class MyCtrl(wx.Control):
     # the script as PDF, or None after telling the user why (a custom PDF
     # font that cannot be used, pdf.getFontForFlags)
     def makePDF(self, sp, isExport):
+        of = self.openFilm()
+
+        if of is not None:
+            # a film's front matter after the title page (front-matter/print/1)
+            fm = frontmatter.load(of.film)
+            sp.frontPages = lambda doc: frontmatter.addPages(doc, fm, of.bible, sp)
+
         try:
             return sp.generatePDF(isExport)
         except error.TrelbyError as e:

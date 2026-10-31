@@ -7,6 +7,7 @@ import trelby.bibleedit as bibleedit
 import trelby.misc as misc
 import trelby.biblelinks as biblelinks
 import trelby.bibleform as bibleform
+import trelby.frontmatterform as frontmatterform
 
 # the bible panel (film-bible/tree/1): left of the script, one tree per map
 # (sets, characters, props, wardrobe) like a file explorer, over the open
@@ -76,6 +77,10 @@ class BiblePanel(wx.Panel):
         )
 
         self.form = self.makeForm(self.splitter)
+        # the front matter's form takes the item form's place when its node
+        # is selected (front-matter/record/1)
+        self.fmForm = frontmatterform.FrontMatterForm(self.splitter, -1, self)
+        self.fmForm.Hide()
         self.splitter.SplitHorizontally(self.tree, self.form, 220)
 
         vsizer.Add(self.splitter, 1, wx.EXPAND)
@@ -108,7 +113,31 @@ class BiblePanel(wx.Panel):
         return bibleform.BibleForm(parent, -1, self)
 
     def showItem(self, item):
+        self.showLower(self.form)
         self.form.setItem(item)
+
+    # the form under the tree: the item form or the front matter's
+    def showLower(self, win):
+        cur = self.splitter.GetWindow2()
+
+        if cur is not win:
+            if cur is self.form:
+                self.form.commitFocused()
+            else:
+                self.fmForm.commitFocused()
+
+            self.splitter.ReplaceWindow(cur, win)
+            cur.Hide()
+            win.Show()
+
+    def selectFrontMatter(self):
+        for n, key in self.nodes.items():
+            if key[0] == "front":
+                self.tree.SelectItem(n)
+
+    def showFrontMatter(self):
+        self.showLower(self.fmForm)
+        self.fmForm.setFilm(self.bible.film)
 
     def setBible(self, b):
         if b is not self.bible and self.bible is not None:
@@ -116,6 +145,7 @@ class BiblePanel(wx.Panel):
             # saved into its own film, and nothing stays selected, since
             # ids like set-w-1 repeat from film to film
             self.form.commitFocused()
+            self.fmForm.commitFocused()
             self.tree.DeleteAllItems()
             self.nodes = {}
 
@@ -134,7 +164,7 @@ class BiblePanel(wx.Panel):
     def refresh(self, selectId=None):
         if selectId is None:
             sel = self.selected()
-            selectId = sel[1] if sel else None
+            selectId = (sel[1] if sel[0] != "front" else "front") if sel else None
 
         expanded = {
             self.nodes[n] for n in self.nodes if self.tree.IsExpanded(n)
@@ -150,6 +180,11 @@ class BiblePanel(wx.Panel):
             return
 
         toSelect = None
+        fmNode = self.tree.AppendItem(root, _("Front matter"))
+        self.nodes[fmNode] = ("front", None)
+
+        if selectId == "front":
+            toSelect = fmNode
 
         for map_ in bible.MAPS:
             mapNode = self.tree.AppendItem(root, _(MAP_LABELS[map_]))
@@ -200,14 +235,14 @@ class BiblePanel(wx.Panel):
     def selectedMap(self):
         sel = self.selected()
 
-        if not sel:
+        if not sel or sel[0] == "front":
             return None
 
         return sel[1] if sel[0] == "map" else self.bible.get(sel[1]).map
 
     def updateButtons(self):
         sel = self.selected()
-        self.newBtn.Enable(bool(sel))
+        self.newBtn.Enable(bool(sel and sel[0] != "front"))
         self.childBtn.Enable(bool(sel and sel[0] == "item"))
         self.renameBtn.Enable(bool(sel and sel[0] == "item"))
         self.deleteBtn.Enable(bool(sel and sel[0] == "item"))
@@ -216,7 +251,12 @@ class BiblePanel(wx.Panel):
         self.updateButtons()
 
         if self.bible is not None:
-            self.showItem(self.selectedItem())
+            sel = self.selected()
+
+            if sel and sel[0] == "front":
+                self.showFrontMatter()
+            else:
+                self.showItem(self.selectedItem())
 
     # run fn, showing what the film refused instead of crashing
     def guard(self, fn, *args):
@@ -325,6 +365,9 @@ class BiblePanel(wx.Panel):
 
     # (label, handler) of the right-click menu; None label: a separator
     def menuItems(self):
+        if self.selectedMap() is None:
+            return []
+
         items = [(_("New item"), self.OnNew)]
 
         if self.selectedItem():
@@ -365,6 +408,9 @@ class BiblePanel(wx.Panel):
 
         it = self.bible.get(dragId)
         key = self.nodes.get(target)
+
+        if key is None or key[0] == "front":
+            return
 
         if key[0] == "map":
             parent = None
