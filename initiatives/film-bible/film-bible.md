@@ -2,7 +2,8 @@
 
 **Status:** In progress — implemented 2026-10-28 (contract, tree, maps,
 links 1–5); links/6, linking scenes by hand, planned 2026-10-31 and
-ready to implement; then the initiative gate, Rafael's (below). The maps are
+ready to implement; the initiative gate is waived (Rafael, 2026-10-31:
+"waive and close"), so the initiative closes with links/6. The maps are
 folders in the film's `bible/` part, read and written through
 `mocap-contracts` `v0.5.0` (`bible.harpia`, `catalog/bible-v1.json`).
 

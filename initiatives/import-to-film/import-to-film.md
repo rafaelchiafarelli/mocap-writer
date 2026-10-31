@@ -1,6 +1,6 @@
 # import-to-film — mocap-writer
 
-**Status:** Planned (2026-10-28). Asked by Rafael, 2026-10-28: "complete
+**Status:** Planned (2026-10-28); decisions taken 2026-10-31. Asked by Rafael, 2026-10-28: "complete
 process the Fountain when we import it".
 
 **Goal:** importing a script (PDF, Final Draft, Fountain...) ends in a
@@ -20,14 +20,17 @@ needs the creator.
 (fountain-native/notes/1); the preprod-link sync; AI filling the fields
 (mocap-preprod agents).
 
-**Open decisions for Rafael:**
-1. In the import's review, are new sets, characters and props **ticked by
-   default** (a new film has nothing yet, so unticked means ticking them
-   all), or unticked as in From script (never made silently)?
-2. Names of new items: **as the script writes them** (`SALA DE JANTAR`,
-   as From script does today) or capitalized (`Sala de Jantar`)?
-3. Does the import also run on File → Import when a film is already open
-   (adding to that film's bible), or only through the new command?
+**Decided (Rafael, 2026-10-31):**
+1. In the import's review, new sets, characters and props are **ticked
+   by default** (a new film has nothing yet; the creator unticks).
+2. New items are named **as the script writes them** (`SALA DE JANTAR`),
+   as From script does.
+3. File → Import with a film open offers both: import **into this film**
+   (the script replaces nothing: it opens in a tab, and the review adds to
+   this film's bible) or **into a new folder** (a new film, as Import into
+   film). Into a new folder, the **original file is copied** into the
+   film, `<film-root>/source/<file name>`, next to the `script.fountain`
+   made from it.
 
 **Initiative gate:** a real script's PDF becomes a film with its bible in
 one pass (a film session, Rafael's call), and opens again with no problems.
