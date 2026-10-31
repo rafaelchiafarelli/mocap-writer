@@ -1,5 +1,6 @@
 ## 1. The title block from the record
 
+- **Status:** Done (2026-10-31) — `frontmatter.titleBlock` / `fromBlock` / `applyTitle` / `syncTitle`, on every save of a film's script and on open; Title pages… points to the front matter in a film; checked through the real window.
 - **Type:** code
 - **Depends on:** record/1
 - **Contract:**

@@ -130,6 +130,11 @@ class BiblePanel(wx.Panel):
             cur.Hide()
             win.Show()
 
+    def selectFrontMatter(self):
+        for n, key in self.nodes.items():
+            if key[0] == "front":
+                self.tree.SelectItem(n)
+
     def showFrontMatter(self):
         self.showLower(self.fmForm)
         self.fmForm.setFilm(self.bible.film)

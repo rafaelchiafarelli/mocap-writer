@@ -280,13 +280,26 @@ Model and file format
   `trelby/frontmatter.py:18`), `load(film)` (no file: empty; an invalid
   one: a film problem, empty), `save(film, fm, by)` (the part added to an
   older film first; nothing written when unchanged; logged,
-  `trelby/frontmatter.py:49`), `isOn`.
+  `trelby/frontmatter.py:49`), `isOn`; title/1: `titleBlock(fm, eol)` (the
+  Fountain title block: Title, Subtitle, Episode, `Credit: Written by`,
+  Author or Authors, Contact; "" for an empty title page,
+  `trelby/frontmatter.py:79`), `fromBlock(block)` (a block's title page;
+  a second Title line is the subtitle, the first Contact line with an @
+  the e-mail, `trelby/frontmatter.py:114`), `applyTitle(sp, fm)` (the
+  script's `fountainSource.title` and its title pages from the record, so
+  the next save writes exactly that block), `syncTitle(film, sp)` (an
+  empty record takes the script's block once, by `writer`, then
+  `applyTitle`, `trelby/frontmatter.py:166`), called by
+  `MyCtrl.saveFile` before every save of a film's script and by
+  `MyFrame.loadFilmSettings`.
 - `frontmatterform.py` — `FrontMatterForm` (`trelby/frontmatterform.py:47`):
   the front matter's form under the bible tree: the title page's fields
   (co-authors one per line), then the overview, pitch and argument pages,
   each with Include this page (`PAGES`); a text is saved when it loses the
-  focus (Enter too on a one-line field), a tick at once; what the film
-  refuses is shown and the form reloaded.
+  focus (Enter too on a one-line field), a tick at once, and the film's
+  script, when it is the current tab, shows the new title page and is
+  marked changed (`showInScript`); what the film refuses is shown and the
+  form reloaded.
 - `openfilms.py` — the films open in the window (bugs/editor/20), no wx:
   `OpenFilm(film)` holds the film with its `Bible` and `Annotations`
   (`reload` reads both again, `trelby/openfilms.py:12`); `OpenFilms` keeps
@@ -393,7 +406,7 @@ Model and file format
   sends with a second press not counted twice (bugs/editor/14-16).
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1726`).
+  (`trelby/trelbyctrl.py:1750`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -416,20 +429,20 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
-  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1592`).
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1599`).
   File → Import (`OnImportScript`: with a film open, into this film, into
   a new folder or just open it) and Import into film… (`OnImportIntoFilm`,
   `importIntoNewFilm`: import, New film, the script saved, the original
-  copied into `source/`, `trelby/trelbyframe.py:1202`, then the bible
+  copied into `source/`, `trelby/trelbyframe.py:1209`, then the bible
   review with new items ticked and the import report, `reviewImport`,
-  `trelby/trelbyframe.py:1241`;
+  `trelby/trelbyframe.py:1248`;
   into this film: the review over the film's bible, new items without
   scenes);
   File → New film… / Open film… (`OnNewFilm`, `OnOpenFilm`,
-  `trelby/trelbyframe.py:747-784`); every open film in `openFilms`, and
+  `trelby/trelbyframe.py:748-785`); every open film in `openFilms`, and
   the current tab's film `film` (`showFilm` on a tab switch and on the
   current tab's file change, `filmOf`, `scriptFileChanged`,
-  `trelby/trelbyframe.py:717-744`, bugs/editor/20), with
+  `trelby/trelbyframe.py:718-745`, bugs/editor/20), with
   `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5), its
   `bible`, and the bible panel in `splitter` with View → Bible
   (`showBible`, film-bible/tree/1, `trelby.process.md` Stage 1); its
@@ -437,15 +450,15 @@ Application and editor (wx)
   Annotations here…, Unattached annotations…, Sync to spec… (F5, also a
   toolbar button: the film's script only; an unsaved script is saved
   first, after asking; then `sync.run` and the `SyncDlg`, `OnSyncToSpec`,
-  `trelby/trelbyframe.py:868`), Review proposals… (`ReviewDlg` over the
+  `trelby/trelbyframe.py:875`), Review proposals… (`ReviewDlg` over the
   film's bible and its latest change set, `OnReview`,
-  `trelby/trelbyframe.py:909`) (`OnAnnotate`,
-  `trelby/trelbyframe.py:923`, `OnAnnotationsHere`,
-  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:1036-1064`); on Open
+  `trelby/trelbyframe.py:916`) (`OnAnnotate`,
+  `trelby/trelbyframe.py:930`, `OnAnnotationsHere`,
+  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:1043-1071`); on Open
   film the annotations whose text is gone join the film's problems
-  (`listUnattached`, `trelby/trelbyframe.py:834`).
+  (`listUnattached`, `trelby/trelbyframe.py:841`).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:1387-1391`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:1394-1398`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   + `ActPanel` at the right (`trelby/trelbypanel.py:9`); the act panel is
@@ -453,15 +466,15 @@ Application and editor (wx)
   (`trelby/trelbypanel.py:28`).
 - `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:25`): the bible
   panel (film-bible/tree/1) over `MyFrame.bible`, the current tab's film's
-  (`setBible`, `trelby/biblepanel.py:137`: on another film's bible the
+  (`setBible`, `trelby/biblepanel.py:142`: on another film's bible the
   field being typed is saved first and nothing stays selected, since ids
   repeat from film to film; with none, a line saying the tab's script is
   not a film's): New / New child /
   Rename / Delete buttons, a `wx.TreeCtrl` with one branch per map
   (`refresh` rebuilds it from `Bible.children`, keeping the selection and
-  what was expanded, `trelby/biblepanel.py:159`), a right-click menu
-  (`menuItems`, `trelby/biblepanel.py:362`), drag and drop to change an
-  item's parent (`OnEndDrag`, `trelby/biblepanel.py:397`); under the tree
+  what was expanded, `trelby/biblepanel.py:164`), a right-click menu
+  (`menuItems`, `trelby/biblepanel.py:367`), drag and drop to change an
+  item's parent (`OnEndDrag`, `trelby/biblepanel.py:402`); under the tree
   in a splitter, the selected item's `BibleForm` (`makeForm` / `showItem`),
   or, for the tree's first node, Front matter, the `FrontMatterForm` in
   its place (`showLower` / `showFrontMatter`, front-matter/record/1; no
@@ -469,32 +482,32 @@ Application and editor (wx)
   Errors the film refuses are shown, never raised (`guard`). A line under
   the buttons names the cursor's scene and the bible items linked to it
   (`showScene`, called from `MyCtrl.updateCommon`,
-  `trelby/biblepanel.py:531`); This scene… under it, enabled in a numbered
+  `trelby/biblepanel.py:536`); This scene… under it, enabled in a numbered
   scene, ticks the sets, characters and props in it (`OnThisScene`,
   links/6). From script… opens the links commands
-  (`OnScriptMenu`, `trelby/biblepanel.py:432`): each shows its plan in a
+  (`OnScriptMenu`, `trelby/biblepanel.py:437`): each shows its plan in a
   checklist (`choose`) and does only what is checked; Link scenes to sets
   ticks the links to known sets and leaves new sets unticked
-  (`OnLinkSets`, `trelby/biblepanel.py:499`); Find props lists links to
+  (`OnLinkSets`, `trelby/biblepanel.py:504`); Find props lists links to
   known props (ticked) and new props (unticked), then offers to mark the
   ones not made as not a prop for the film (`OnFindProps`,
-  `trelby/biblepanel.py:593`); Find characters does the same for the
-  speakers (`OnFindCharacters`, `trelby/biblepanel.py:735`); Review all… is the bible review of all three (`OnReviewAll`, new items
+  `trelby/biblepanel.py:598`); Find characters does the same for the
+  speakers (`OnFindCharacters`, `trelby/biblepanel.py:740`); Review all… is the bible review of all three (`OnReviewAll`, new items
   unticked); Wardrobe gaps lists the characters in a
   scene with no wardrobe there (`OnWardrobeGaps`,
-  `trelby/biblepanel.py:637`). The item menu's Copy makes `<name> copy`
+  `trelby/biblepanel.py:642`). The item menu's Copy makes `<name> copy`
   next to it and names the scenes the original is used in (`OnCopy`,
-  `trelby/biblepanel.py:659`); Copy to another film… opens that film's
+  `trelby/biblepanel.py:664`); Copy to another film… opens that film's
   bible (the open one, when that film is open in the window) and copies
-  into it (`OnCopyToFilm`, `trelby/biblepanel.py:679`).
+  into it (`OnCopyToFilm`, `trelby/biblepanel.py:684`).
 - `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
   wide, one row per act with its name, `n scenes` and a bar as long as its
   scene count against the largest act; the cursor's act highlighted; a
   hint when there is no act break. Own pixel fonts, so the zoom never
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
-  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:589`); repainted on a theme
-  change (`trelby/trelbyctrl.py:638`); `draw(dc, w, h)` does the drawing
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:600`); repainted on a theme
+  change (`trelby/trelbyctrl.py:649`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
@@ -613,7 +626,9 @@ Dialogs
   type and sex (`trelby/namearray.py:5`).
 - `charmapdlg.py` — `CharMapDlg`: grid of the Latin-1 characters, inserts
   the selected one (`trelby/charmapdlg.py:25`).
-- `titlesdlg.py` — `TitlesDlg`: edit title pages, with `TitlesPreview`.
+- `titlesdlg.py` — `TitlesDlg`: edit title pages, with `TitlesPreview`;
+  for a film's script `MyCtrl.OnTitlesDlg` points to the front matter
+  instead (`biblepanel.selectFrontMatter`, front-matter/title/1).
 - `titlespreview.py` — `TitlesPreview`: draws a title page scaled to the
   widget (`trelby/titlespreview.py:6`).
 - `headersdlg.py` — `HeadersDlg`: edit page headers, PDF preview.
@@ -678,8 +693,8 @@ Data and folders
   `manual.html`, Help → Manual makes the page from `doc/manual.xml`
   (`manual.py`).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:243`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:259-264`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:244`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:260-265`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 - A missing file part other than the script (the settings record, the
