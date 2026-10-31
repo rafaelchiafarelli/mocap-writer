@@ -25,6 +25,9 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 
 ## Ready to implement
 
+- **film-bible/links/6** — link sets, characters and props to scenes by
+  hand, from the item's form and from the cursor's scene (planned
+  2026-10-31, [links/6](film-bible/epics/links/tasks/6-link-by-hand.md)).
 - **spellcheck/pt-br/1** — the pt-BR spell checker: plan it against
   study/1's decision (VERO through Hunspell via `pyenchant`, 2026-10-27),
   then implement
@@ -32,6 +35,11 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 
 ## Decisions for Rafael
 
+- **film-bible gate, the agents' half** — keep "the mocap-preprod agents
+  read the records" in this gate (a mocap-preprod task first: pin
+  `mocap-contracts`, teach a specialist to read `bible/`), or move it to
+  preprod-link's gate, which already asks for it, so film-bible closes on
+  Rafael's half ([film-bible](film-bible/film-bible.md)).
 - **import-to-film** — new items ticked by default in the import's review
   or not; new items named as the script writes them or capitalized;
   whether File → Import into an open film also offers the bible
@@ -64,7 +72,8 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 ## Gates left to a film session or to Rafael
 
 - film-bible (implemented 2026-10-28): on the neutral sample, Rafael
-  creates one item of each map, links it to scenes, copies one to a second
+  creates one item of each map, links it to scenes (also by hand,
+  links/6), copies one to a second
   film root, and the mocap-preprod agents read the records
   ([film-bible](film-bible/film-bible.md)). The agents' side needs
   mocap-preprod to pin `mocap-contracts` `v0.5.0`.
