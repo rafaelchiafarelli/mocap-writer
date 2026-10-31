@@ -36,8 +36,10 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   per kind and per space, ownership refusals, the invalid `film.json`
   fixtures of `mocap-contracts` (`fixtures/film-v1/invalid/`) refused
   naming their field, a film with parts deleted opening with its problems,
-  `problemsText`. The New film / Open film menu commands need a display:
-  checked through the real window with stubbed dialogs (2026-10-28).
+  `problemsText`, a new film's `front-matter` part not written yet and no
+  problem (front-matter/contract/1). The New film / Open film menu
+  commands need a display: checked through the real window with stubbed
+  dialogs (2026-10-28).
 - `test_relink.py` — file-format/layout/3: a film whose parts moved into
   `archive/`: one found file's pattern finds the rest and the next open
   has no problems; nothing is written before an accept; skip keeps it
@@ -93,6 +95,21 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   scenes; flow/3: the report's text for a neutral film. Import into film (a
   `.fountain` and a PDF into new folders, a failed import making nothing)
   needs a display: checked through the real window (2026-10-31).
+- `test_frontmatter.py` — front-matter/record/1: a film without the file
+  has an empty front matter; save → load round trip, an unchanged save
+  writes nothing, the change log has the write; an invalid file is a
+  problem; an older film gets the part on first save; title/1: record →
+  block, block → record, a film opened with a block and no record keeps
+  it, the save writes the block from the record; print/1: the overview
+  page (cast, sets with children, acts with pages and scenes), the pitch
+  and a multi-page argument, nothing included adds no page; the script's
+  first page follows. The form and the
+  panel node need a display: checked through the real window (2026-10-31).
+- `test_fountain_import_options.py` — front-matter/import/1: no option
+  changes nothing; emphasis removed in the body only (title page and
+  boneyard kept); sections and synopses as notes, act breaks kept; title
+  page lines as action; the title page dropped. `test_importfountain.py`
+  also: cancelled options import nothing.
 - `test_spellcheck.py` — spellcheck/pt-br/1: a correct pt-BR scene
   (accents, plurals, conjugated verbs, INT.) has no unknown word in pt-BR;
   a misspelled word found and `xícara` suggested; English unchanged; the

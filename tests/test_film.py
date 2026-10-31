@@ -153,3 +153,10 @@ def test_problems_text_lists_each_problem(tmp_path):
     text = film.problemsText(film.Film.open(tmp_path).problems)
 
     assert "Part 'script' (script.fountain): the file is missing" in text
+
+
+def test_a_new_film_has_the_front_matter_part_not_written_yet(tmp_path):
+    f = film.Film.create(tmp_path, "")
+
+    assert f.part("front-matter").path == "settings/front-matter.json"
+    assert film.Film.open(tmp_path).problems == []
