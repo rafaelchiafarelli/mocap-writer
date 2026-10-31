@@ -19,6 +19,7 @@ import trelby.biblereviewdlg as biblereviewdlg
 import trelby.config as config
 import trelby.film as film
 import trelby.importfilm as importfilm
+import trelby.importreportdlg as importreportdlg
 import trelby.manual as manual
 import trelby.misc as misc
 import trelby.namesdlg as namesdlg
@@ -1235,14 +1236,21 @@ class MyFrame(wx.Frame):
 
         return f
 
-    # the end of an import into a new film (import-to-film/flow/2): the
-    # bible review, new items ticked (decision 1)
+    # the end of an import into a new film: the bible review, new items
+    # ticked (import-to-film/flow/2, decision 1), then the report (flow/3)
     def reviewImport(self, ctrl):
         b = self.openFilms.at(self.film.root).bible if self.film else None
 
-        if b is not None:
-            biblereviewdlg.review(self, b, ctrl.sp, True)
-            self.biblePanel.changed()
+        if b is None:
+            return
+
+        made = biblereviewdlg.review(self, b, ctrl.sp, True)
+        self.biblePanel.changed()
+        dlg = importreportdlg.ImportReportDlg(
+            self, ctrl, importfilm.report(b, ctrl.sp, made or {})
+        )
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def OnExportScript(self, event=None):
         self.panel.ctrl.OnExportScript()

@@ -2,12 +2,15 @@
 # original file copied into the film, and one plan of everything the
 # script offers to the bible (sets, characters, props: links to known items
 # and new items with their scenes), applied in one go with the creator's
-# choices.
+# choices, and the report of what was made and what still needs the
+# creator.
 
 import os
 import shutil
 
 import trelby.biblelinks as biblelinks
+import trelby.scenenumbers as scenenumbers
+import trelby.screenplay as screenplay
 
 SOURCE_PART = "source"
 SOURCE_PATH = "source/"
@@ -85,3 +88,47 @@ def apply(b, sections, chosen, notProps=False, linkScenes=True, by="creator"):
                 biblelinks.markNotProps(b, left, by)
 
     return made
+
+
+# the lines of the script holding an IMPORT: note (the PDF importer's
+# doubtful spots)
+def importNotes(sp):
+    return [
+        i for i, l in enumerate(sp.lines)
+        if l.lt == screenplay.NOTE and sp.isFirstLineOfElem(i) and l.text.startswith("IMPORT:")
+    ]
+
+
+# the report (task 3) as text
+def report(b, sp, made):
+    scenes = biblelinks.scenesWithLines(sp)
+    unnumbered = sum(1 for _l, n in scenenumbers.scenesOf(sp) if not n)
+    notes = importNotes(sp)
+    out = [_("Scenes: %d, numbered %s.") % (
+        len(scenes), "%s-%s" % (scenes[0][0], scenes[-1][0]) if scenes else "-")]
+
+    if unnumbered:
+        out.append(_("Scenes with no number yet: %d (save the script).") % unnumbered)
+
+    out.append(_("IMPORT: notes to check: %d.") % len(notes))
+    out.append("")
+    labels = {"set": _("Sets made"), "character": _("Characters made"), "prop": _("Props made")}
+
+    for map_ in ("set", "character", "prop"):
+        items = made.get(map_, [])
+        out.append("%s: %d%s" % (labels[map_], len(items),
+                                 (" (" + ", ".join(it.name for it in items) + ")") if items else ""))
+
+    out.append("")
+    gaps = biblelinks.wardrobeGaps(b, sp)
+    out.append(_("Wardrobe gaps (a character in a scene with no wardrobe): %d.") % len(gaps))
+
+    for scene, cid in gaps:
+        c = b.get(cid)
+        out.append("  " + _("scene %s: %s") % (scene, c.name if c else cid))
+
+    noSet = [n for n, _f, _l in scenes if not biblelinks.itemsInScene(b, n).get("set")]
+    out.append(_("Scenes with no set: %d%s") % (
+        len(noSet), (" (" + ", ".join(noSet) + ")") if noSet else "") + ".")
+
+    return "\n".join(out) + "\n"

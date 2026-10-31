@@ -100,3 +100,24 @@ def test_into_an_open_film_new_items_have_no_scenes_and_nothing_is_linked(tmp_pa
 
     assert [b.scenes(it) for it in made["set"] + made["character"]] == [set(), set(), set()]
     assert b.scenes(sala) == set()
+
+
+def test_the_report_of_a_neutral_film(tmp_path):
+    b = newBible(tmp_path)
+    sp = u.loadString(SCRIPT + "\n[[IMPORT: check this line]]\n")
+    secs = importfilm.plan(b, sp)
+    made = importfilm.apply(b, secs, {"set": [0], "character": [0, 1], "prop": [0]})
+
+    assert importfilm.report(b, sp, made) == (
+        "Scenes: 2, numbered 1-2.\n"
+        "IMPORT: notes to check: 1.\n"
+        "\n"
+        "Sets made: 1 (SALA DE JANTAR)\n"
+        "Characters made: 2 (ANA, BIA)\n"
+        "Props made: 1 (XÍCARA AZUL)\n"
+        "\n"
+        "Wardrobe gaps (a character in a scene with no wardrobe): 2.\n"
+        "  scene 1: ANA\n"
+        "  scene 2: BIA\n"
+        "Scenes with no set: 1 (2).\n"
+    )
