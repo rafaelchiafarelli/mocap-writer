@@ -25,6 +25,8 @@ import trelby.relinkdlg as relinkdlg
 import trelby.scriptsettings as scriptsettings
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
 import trelby.splash as splash
+import trelby.sync as sync
+import trelby.syncdlg as syncdlg
 import trelby.util as util
 from trelby.ids import *
 from trelby.trelbypanel import MyPanel
@@ -171,6 +173,7 @@ class MyFrame(wx.Frame):
         scriptMenu.Append(ID_SCRIPT_ANNOTATE, _("Annotate") + "...\tCTRL-SHIFT-A")
         scriptMenu.Append(ID_SCRIPT_ANNOTATIONS_HERE, _("Annotations here") + "...")
         scriptMenu.Append(ID_SCRIPT_ANNOTATIONS_UNATTACHED, _("Unattached annotations") + "...")
+        scriptMenu.Append(ID_SCRIPT_SYNC, _("Sync to spec") + "...\tF5")
         scriptMenu.AppendSeparator()
         scriptMenu.Append(
             ID_SCRIPT_AUTO_COMPLETION, "(&A) " + _("Auto-completion") + "..."
@@ -274,6 +277,7 @@ class MyFrame(wx.Frame):
         self.toolBar.AddSeparator()
 
         addTB(ID_EDIT_FIND, "find.svg", _("Find / Replace"))
+        addTB(ID_SCRIPT_SYNC, "sync.svg", _("Sync to spec"))
         addTB(ID_TOOLBAR_VIEWS, "view.svg", _("View mode"))
         addTB(ID_TOOLBAR_REPORTS, "report.svg", _("Script reports"))
         addTB(ID_TOOLBAR_TOOLS, "tools.svg", _("Tools"))
@@ -397,6 +401,7 @@ class MyFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.OnViewBible, id=ID_VIEW_BIBLE)
             self.Bind(wx.EVT_MENU, self.OnViewAnnotations, id=ID_VIEW_ANNOTATIONS)
             self.Bind(wx.EVT_MENU, self.OnAnnotate, id=ID_SCRIPT_ANNOTATE)
+            self.Bind(wx.EVT_MENU, self.OnSyncToSpec, id=ID_SCRIPT_SYNC)
             self.Bind(wx.EVT_MENU, self.OnAnnotationsHere, id=ID_SCRIPT_ANNOTATIONS_HERE)
             self.Bind(
                 wx.EVT_MENU, self.OnAnnotationsUnattached, id=ID_SCRIPT_ANNOTATIONS_UNATTACHED
@@ -848,6 +853,47 @@ class MyFrame(wx.Frame):
     def OnViewAnnotations(self, event=None):
         self.showAnnotations = self.menuBar.IsChecked(ID_VIEW_ANNOTATIONS)
         self.panel.ctrl.updateScreen()
+
+    # Script -> Sync to spec (preprod-link/sync/2): the saved script's scene
+    # index against the last accepted sync, shown in the change panel
+    def OnSyncToSpec(self, event=None):
+        ctrl = self.panel.ctrl
+        of = self.filmOf(ctrl)
+
+        if of is None:
+            wx.MessageBox(
+                _("Sync to spec works on a film's script: open the film (File -> Open film) and use its script's tab."),
+                _("Sync to spec"),
+                wx.OK,
+                self,
+            )
+
+            return
+
+        if ctrl.sp.isModified():
+            if wx.MessageBox(
+                _("The script has unsaved changes. Save it and sync?"),
+                _("Sync to spec"),
+                wx.YES_NO | wx.YES_DEFAULT,
+                self,
+            ) != wx.YES:
+                return
+
+            ctrl.OnSave()
+
+            if ctrl.sp.isModified():
+                return
+
+        f, b = of.film, of.bible
+
+        try:
+            r = sync.run(f, b, ctrl.sp)
+        except Exception as e:
+            wx.MessageBox(str(e), _("Sync to spec"), wx.OK, self)
+
+            return
+
+        syncdlg.SyncDlg(self, f, b, r).Show()
 
     # Script -> Annotate: the selection's text, or the cursor's element
     def OnAnnotate(self, event=None):

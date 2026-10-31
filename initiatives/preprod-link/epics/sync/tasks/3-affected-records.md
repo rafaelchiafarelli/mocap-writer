@@ -1,5 +1,6 @@
 ## 3. Affected records
 
+- **Status:** Done (2026-10-31) — `sync.affected` / `affectedText`, the bold "needs review" lines in `SyncDlg`; checked through the real window.
 - **Type:** code
 - **Depends on:** sync/1, sync/2; film-bible/links
 - **Contract:**
