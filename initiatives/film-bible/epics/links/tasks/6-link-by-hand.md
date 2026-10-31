@@ -6,6 +6,7 @@ yet add or remove a scene of a set, character or prop himself, nor say
 what is in the scene he is reading. Only wardrobe has a scene picker (Worn
 by, links/3).
 
+- **Status:** Done (2026-10-31) — `bibleedit.setScenes` / `setSceneItems`, Scenes… in the form, This scene… in the panel; checked through the real window.
 - **Type:** code
 - **Depends on:** links/1, links/2, links/5 (the links From script makes);
   film-bible/contract/2 (`Bible.link` / `unlink`, `trelby/bible.py:399-416`,
