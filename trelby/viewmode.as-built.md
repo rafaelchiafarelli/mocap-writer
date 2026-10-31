@@ -60,7 +60,7 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:77-90`):
   `trelby/viewmode.py:525-528`; draft `trelby/viewmode.py:284-290`):
   `paperWidth / chX * fonts[NORMAL].fx` — page width in characters times the
   screen font's character width. `MyCtrl.refreshCache` derives `mm2p` from it
-  (`trelby/trelbyctrl.py:126-129`).
+  (`trelby/trelbyctrl.py:127-130`).
 - `getLineHeight`: `fontYdelta` in draft, `chY * mm2p + 1` otherwise
   (`trelby/viewmode.py:281-282`, `trelby/viewmode.py:425-428`).
 
@@ -95,8 +95,8 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:77-90`):
 - **A new view mode**: subclass `ViewMode`, implement the seven methods,
   add a `VIEWMODE_*` constant and instance in `GlobalData`
   (`trelby/globaldata.py:25-29`, `trelby/globaldata.py:79-83`), a menu item
-  and handler in `MyFrame` (`trelby/trelbyframe.py:146-158`,
-  `trelby/trelbyframe.py:1393-1429`), and widen the `ViewMode` range in
+  and handler in `MyFrame` (`trelby/trelbyframe.py:147-159`,
+  `trelby/trelbyframe.py:1400-1436`), and widen the `ViewMode` range in
   `GlobalData` (`trelby/globaldata.py:62-68`).
 
 ## Gotchas
