@@ -29,9 +29,6 @@ Rafael, 2026-10-31: finish every open initiative in one stretch; gates
 that wait only on him are waived ("waive and close"); bugs are fixed only
 when they get in the way.
 
-- **spellcheck/pt-br/1** — the pt-BR spell checker on study/1's decision
-  (VERO through Hunspell via `pyenchant`, 2026-10-27)
-  ([pt-br/1](spellcheck/epics/pt-br/tasks/1-ptbr-dictionary.md)).
 - **`mocap-contracts` `v0.7.0`** — `scene_index` (preprod-link/contract/1),
   `change_set` (preprod-link/contract/2) and `front_matter`
   (front-matter/contract/1): go-ahead from Rafael, 2026-10-31.
@@ -60,7 +57,7 @@ when they get in the way.
 
 fountain-native (a real scene's round trip; numbering tried in the
 editor), film-bible (Rafael on the neutral sample; the agents' half is in
-preprod-link's gate) and story-structure (the act panel on a script):
+preprod-link's gate) story-structure (the act panel on a script) and spellcheck (Rafael's pt-BR scripts):
 closed without them. pdf-import's real-script import stays a film
 session's.
 
