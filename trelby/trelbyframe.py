@@ -22,6 +22,8 @@ import trelby.misc as misc
 import trelby.namesdlg as namesdlg
 import trelby.openfilms as openfilms
 import trelby.relinkdlg as relinkdlg
+import trelby.review as review
+import trelby.reviewdlg as reviewdlg
 import trelby.scriptsettings as scriptsettings
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
 import trelby.splash as splash
@@ -174,6 +176,7 @@ class MyFrame(wx.Frame):
         scriptMenu.Append(ID_SCRIPT_ANNOTATIONS_HERE, _("Annotations here") + "...")
         scriptMenu.Append(ID_SCRIPT_ANNOTATIONS_UNATTACHED, _("Unattached annotations") + "...")
         scriptMenu.Append(ID_SCRIPT_SYNC, _("Sync to spec") + "...\tF5")
+        scriptMenu.Append(ID_SCRIPT_REVIEW, _("Review proposals") + "...")
         scriptMenu.AppendSeparator()
         scriptMenu.Append(
             ID_SCRIPT_AUTO_COMPLETION, "(&A) " + _("Auto-completion") + "..."
@@ -402,6 +405,7 @@ class MyFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.OnViewAnnotations, id=ID_VIEW_ANNOTATIONS)
             self.Bind(wx.EVT_MENU, self.OnAnnotate, id=ID_SCRIPT_ANNOTATE)
             self.Bind(wx.EVT_MENU, self.OnSyncToSpec, id=ID_SCRIPT_SYNC)
+            self.Bind(wx.EVT_MENU, self.OnReview, id=ID_SCRIPT_REVIEW)
             self.Bind(wx.EVT_MENU, self.OnAnnotationsHere, id=ID_SCRIPT_ANNOTATIONS_HERE)
             self.Bind(
                 wx.EVT_MENU, self.OnAnnotationsUnattached, id=ID_SCRIPT_ANNOTATIONS_UNATTACHED
@@ -894,6 +898,21 @@ class MyFrame(wx.Frame):
             return
 
         syncdlg.SyncDlg(self, f, b, r).Show()
+
+    # Script -> Review proposals (preprod-link/review/1): the film's
+    # proposals, TBDs and the values the latest sync lists as needs review
+    def OnReview(self, event=None):
+        if self.bible is None:
+            wx.MessageBox(
+                _("Proposals belong to a film: open the film (File -> Open film)."),
+                _("Review proposals"),
+                wx.OK,
+                self,
+            )
+
+            return
+
+        reviewdlg.ReviewDlg(self, self.bible, review.latestChanges(self.film)).Show()
 
     # Script -> Annotate: the selection's text, or the cursor's element
     def OnAnnotate(self, event=None):

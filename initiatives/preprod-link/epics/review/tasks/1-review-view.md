@@ -1,5 +1,6 @@
 ## 1. Review view
 
+- **Status:** Done (2026-10-31) — `trelby/review.py`, `trelby/reviewdlg.py` (Script → Review proposals…, and Review… in the Sync panel); reject puts back the replaced value from the change log; checked through the real window.
 - **Type:** code (UI)
 - **Depends on:** film-bible/maps; sync/3
 - **Contract:**

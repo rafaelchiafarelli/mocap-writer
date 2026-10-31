@@ -40,6 +40,10 @@ class SyncDlg(wx.Dialog):
         self.acceptBtn = wx.Button(self, -1, _("Accept"))
         self.acceptBtn.SetToolTip(_("Make this the last accepted sync"))
         self.acceptBtn.Bind(wx.EVT_BUTTON, self.OnAccept)
+        reviewBtn = wx.Button(self, -1, _("Review..."))
+        reviewBtn.SetToolTip(_("Proposals, TBDs and the values this sync touches"))
+        reviewBtn.Bind(wx.EVT_BUTTON, self.OnReview)
+        hsizer.Add(reviewBtn, 0, wx.RIGHT, 6)
         closeBtn = wx.Button(self, wx.ID_CLOSE)
         closeBtn.Bind(wx.EVT_BUTTON, lambda e: self.Destroy())
         hsizer.Add(self.acceptBtn, 0, wx.RIGHT, 6)
@@ -96,6 +100,12 @@ class SyncDlg(wx.Dialog):
                 ctrl.SetFocus()
 
                 return
+
+    def OnReview(self, event=None):
+        import trelby.reviewdlg as reviewdlg
+
+        if self.bible is not None:
+            reviewdlg.ReviewDlg(self.frame, self.bible, self.run.changes).Show()
 
     def OnAccept(self, event=None):
         try:
