@@ -714,8 +714,8 @@ Data and folders
   WSLg, where the window's X position lies on no monitor (seen
   2026-10-31). Its tips are kept in `toolTips` and shown by `OnToolEnter`
   in `toolTipPanel`, a panel inside the window right of the tool, level
-  with the mouse (`trelby/trelbyframe.py:340`, `trelby/trelbyframe.py:651`).
-  Waiting for Rafael's check on his screen: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  with the mouse (`trelby/trelbyframe.py:340`, `trelby/trelbyframe.py:651`;
+  bugs/editor/3, confirmed by Rafael 2026-10-31).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 - A missing file part other than the script (the settings record, the

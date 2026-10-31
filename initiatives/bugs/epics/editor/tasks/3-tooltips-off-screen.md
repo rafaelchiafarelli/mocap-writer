@@ -1,7 +1,6 @@
 ## 3. Toolbar tooltips start off-screen
 
-- **Status:** Open — a fix is in, waiting for Rafael's check on his screen
-  (fixes/0000b1/toolbar-tooltips, 2026-10-31)
+- **Status:** Fixed (2026-10-31) — fixes/0000b1/toolbar-tooltips (confirmed by Rafael on his screen)
 - **Symptom:** Tooltips of the vertical toolbar open partly outside the screen.
 - **Where:** the toolbar is created with `wx.TB_VERTICAL`
   (`trelby/trelbyframe.py:244`); its tooltips were GTK's, from `shortHelp`.
@@ -15,5 +14,4 @@
   tip in a panel inside the window, right of the tool, level with the
   mouse (`trelby/trelbyframe.py:651`), so no screen position is used.
   Checked in the real window with a simulated hover (label, place, hidden
-  on leave); still to check: hovering by hand. Once Rafael confirms, the
-  status becomes Fixed.
+  on leave); hovering by hand confirmed by Rafael (2026-10-31).
