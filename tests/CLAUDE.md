@@ -80,6 +80,12 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   lists the values its scene states, a removed scene its per-scene values,
   untouched scenes nothing and no state changes. The menu, the prompt and the
   panel need a display: checked through the real window (2026-10-31).
+- `test_review.py` — preprod-link/review/1: the queue by scene,
+  item-level values last with their scenes; batch approve keeps sources
+  and writes each item once; reject puts back the replaced value, or
+  removes a proposal with nothing before; a per-scene override under its
+  scene only; edit; needs-review values from the latest sync. The dialog
+  needs a display: checked through the real window (2026-10-31).
 - `test_spellcheck.py` — spellcheck/pt-br/1: a correct pt-BR scene
   (accents, plurals, conjugated verbs, INT.) has no unknown word in pt-BR;
   a misspelled word found and `xícara` suggested; English unchanged; the
