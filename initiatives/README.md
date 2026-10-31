@@ -20,7 +20,7 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 
 9. **import-to-film** — an import ends in a complete film: Import into film (the original copied into `source/`), one review of the bible the script offers, a report; File → Import with a film open offers this film or a new folder (done 2026-10-31, gate waived; history: git log -- initiatives/import-to-film)
 
-10. **architecture** — learn how mocap-writer is built: interactive explainer pages, one per layer, from the as-built docs (planned 2026-10-30)
+10. **architecture** — learn how mocap-writer is built: interactive explainer pages, a map and one page per layer, at https://claude.ai/artifact/KyZacNpzPJsvbTkca2gHAj (private), built from the as-built docs at commit 959bc3c; when the code they explain changes they are rebuilt from the as-built docs, never edited from memory (done 2026-10-31, gate waived; history: git log -- initiatives/architecture)
 
 11. **front-matter** — a film's title page and three optional pages (overview, pitch, argument) as a record, edited in a form, printed before the script, the Fountain title block written from it, and the Fountain import options (done 2026-10-31, gate waived; history: git log -- initiatives/front-matter)
 
