@@ -273,6 +273,20 @@ Model and file format
   "not a prop" switch, Create / Cancel; `review(parent, b, sp, tickNew,
   linkScenes, note)` plans, asks and applies, `{}` when there is nothing
   to review, None when cancelled.
+- `frontmatter.py` — a film's front matter (front-matter/record/1), no
+  wx: the film's `settings/front-matter.json` (part `front-matter`, a
+  `mocap_contracts.FrontMatter`); `empty()` (no text, the optional pages
+  left out, the overview listing cast, sets and acts once included,
+  `trelby/frontmatter.py:18`), `load(film)` (no file: empty; an invalid
+  one: a film problem, empty), `save(film, fm, by)` (the part added to an
+  older film first; nothing written when unchanged; logged,
+  `trelby/frontmatter.py:49`), `isOn`.
+- `frontmatterform.py` — `FrontMatterForm` (`trelby/frontmatterform.py:47`):
+  the front matter's form under the bible tree: the title page's fields
+  (co-authors one per line), then the overview, pitch and argument pages,
+  each with Include this page (`PAGES`); a text is saved when it loses the
+  focus (Enter too on a one-line field), a tick at once; what the film
+  refuses is shown and the form reloaded.
 - `openfilms.py` — the films open in the window (bugs/editor/20), no wx:
   `OpenFilm(film)` holds the film with its `Bible` and `Annotations`
   (`reload` reads both again, `trelby/openfilms.py:12`); `OpenFilms` keeps
@@ -437,39 +451,42 @@ Application and editor (wx)
   + `ActPanel` at the right (`trelby/trelbypanel.py:9`); the act panel is
   made before `MyCtrl`, whose constructor already updates it
   (`trelby/trelbypanel.py:28`).
-- `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:24`): the bible
+- `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:25`): the bible
   panel (film-bible/tree/1) over `MyFrame.bible`, the current tab's film's
-  (`setBible`, `trelby/biblepanel.py:113`: on another film's bible the
+  (`setBible`, `trelby/biblepanel.py:137`: on another film's bible the
   field being typed is saved first and nothing stays selected, since ids
   repeat from film to film; with none, a line saying the tab's script is
   not a film's): New / New child /
   Rename / Delete buttons, a `wx.TreeCtrl` with one branch per map
   (`refresh` rebuilds it from `Bible.children`, keeping the selection and
-  what was expanded, `trelby/biblepanel.py:134`), a right-click menu
-  (`menuItems`, `trelby/biblepanel.py:327`), drag and drop to change an
-  item's parent (`OnEndDrag`, `trelby/biblepanel.py:359`); under the tree
-  in a splitter, the selected item's `BibleForm` (`makeForm` / `showItem`).
+  what was expanded, `trelby/biblepanel.py:159`), a right-click menu
+  (`menuItems`, `trelby/biblepanel.py:362`), drag and drop to change an
+  item's parent (`OnEndDrag`, `trelby/biblepanel.py:397`); under the tree
+  in a splitter, the selected item's `BibleForm` (`makeForm` / `showItem`),
+  or, for the tree's first node, Front matter, the `FrontMatterForm` in
+  its place (`showLower` / `showFrontMatter`, front-matter/record/1; no
+  New, no menu, no drop on it).
   Errors the film refuses are shown, never raised (`guard`). A line under
   the buttons names the cursor's scene and the bible items linked to it
   (`showScene`, called from `MyCtrl.updateCommon`,
-  `trelby/biblepanel.py:490`); This scene… under it, enabled in a numbered
+  `trelby/biblepanel.py:531`); This scene… under it, enabled in a numbered
   scene, ticks the sets, characters and props in it (`OnThisScene`,
   links/6). From script… opens the links commands
-  (`OnScriptMenu`, `trelby/biblepanel.py:391`): each shows its plan in a
+  (`OnScriptMenu`, `trelby/biblepanel.py:432`): each shows its plan in a
   checklist (`choose`) and does only what is checked; Link scenes to sets
   ticks the links to known sets and leaves new sets unticked
-  (`OnLinkSets`, `trelby/biblepanel.py:458`); Find props lists links to
+  (`OnLinkSets`, `trelby/biblepanel.py:499`); Find props lists links to
   known props (ticked) and new props (unticked), then offers to mark the
   ones not made as not a prop for the film (`OnFindProps`,
-  `trelby/biblepanel.py:552`); Find characters does the same for the
-  speakers (`OnFindCharacters`, `trelby/biblepanel.py:694`); Review all… is the bible review of all three (`OnReviewAll`, new items
+  `trelby/biblepanel.py:593`); Find characters does the same for the
+  speakers (`OnFindCharacters`, `trelby/biblepanel.py:735`); Review all… is the bible review of all three (`OnReviewAll`, new items
   unticked); Wardrobe gaps lists the characters in a
   scene with no wardrobe there (`OnWardrobeGaps`,
-  `trelby/biblepanel.py:596`). The item menu's Copy makes `<name> copy`
+  `trelby/biblepanel.py:637`). The item menu's Copy makes `<name> copy`
   next to it and names the scenes the original is used in (`OnCopy`,
-  `trelby/biblepanel.py:618`); Copy to another film… opens that film's
+  `trelby/biblepanel.py:659`); Copy to another film… opens that film's
   bible (the open one, when that film is open in the window) and copies
-  into it (`OnCopyToFilm`, `trelby/biblepanel.py:638`).
+  into it (`OnCopyToFilm`, `trelby/biblepanel.py:679`).
 - `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
   wide, one row per act with its name, `n scenes` and a bar as long as its
   scene count against the largest act; the cursor's act highlighted; a
