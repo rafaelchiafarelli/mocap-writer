@@ -199,6 +199,16 @@ Model and file format
   blank line between, `trelby/sceneindex.py:45`); `write(film, b, sp)`
   into `<bible part>/scene-index.json` by `writer`, not logged
   (`trelby/sceneindex.py:192`).
+- `changeset.py` — the change set between two scene indexes
+  (preprod-link/contract/2), no wx: `diff(old, new, time)` → a
+  `mocap_contracts.ChangeSet` (`trelby/changeset.py:68`), scenes matched
+  by number: removed, added, moved (not in the longest run of common
+  scenes in the same order, `_kept`, `trelby/changeset.py:30`; old and new
+  order), heading changed, text changed (the scene's hash: a heading change
+  is also a text change), characters entered / left and props added /
+  removed (by bible id, else by the name as compared), set link changed;
+  `from_hash` / `to_hash` the indexes' `indexHash` (absent on a first
+  sync, `old` None: every scene added).
 - `openfilms.py` — the films open in the window (bugs/editor/20), no wx:
   `OpenFilm(film)` holds the film with its `Bible` and `Annotations`
   (`reload` reads both again, `trelby/openfilms.py:12`); `OpenFilms` keeps
