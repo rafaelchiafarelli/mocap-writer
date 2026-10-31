@@ -5,7 +5,7 @@
   settings — The title page was edited outside the writer…", and Search
   and Skip stay greyed out for it, with nothing saying why or what to do.
 - **Where:** every film problem goes into that one dialog (`openFilm`,
-  `trelby/trelbyframe.py:794`); Search and Skip are enabled only for a
+  `trelby/trelbyframe.py:834`); Search and Skip are enabled only for a
   problem with a file to look for (`p.ref`, `updateButtons`,
   `trelby/relinkdlg.py:100-103`); the title-page notice has none: no file
   is missing, the settings record's title layout no longer matches the

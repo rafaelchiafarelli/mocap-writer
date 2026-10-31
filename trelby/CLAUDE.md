@@ -440,20 +440,20 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
-  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1607`).
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1647`).
   File → Import (`OnImportScript`: with a film open, into this film, into
   a new folder or just open it) and Import into film… (`OnImportIntoFilm`,
   `importIntoNewFilm`: import, New film, the imported title page into its front matter (`frontmatter.syncTitle`), the script saved, the original
-  copied into `source/`, `trelby/trelbyframe.py:1209`, then the bible
+  copied into `source/`, `trelby/trelbyframe.py:1249`, then the bible
   review with new items ticked and the import report, `reviewImport`,
-  `trelby/trelbyframe.py:1256`;
+  `trelby/trelbyframe.py:1296`;
   into this film: the review over the film's bible, new items without
   scenes);
   File → New film… / Open film… (`OnNewFilm`, `OnOpenFilm`,
-  `trelby/trelbyframe.py:748-785`); every open film in `openFilms`, and
+  `trelby/trelbyframe.py:788-825`); every open film in `openFilms`, and
   the current tab's film `film` (`showFilm` on a tab switch and on the
   current tab's file change, `filmOf`, `scriptFileChanged`,
-  `trelby/trelbyframe.py:718-745`, bugs/editor/20), with
+  `trelby/trelbyframe.py:758-785`, bugs/editor/20), with
   `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5), its
   `bible`, and the bible panel in `splitter` with View → Bible
   (`showBible`, film-bible/tree/1, `trelby.process.md` Stage 1); its
@@ -461,15 +461,15 @@ Application and editor (wx)
   Annotations here…, Unattached annotations…, Sync to spec… (F5, also a
   toolbar button: the film's script only; an unsaved script is saved
   first, after asking; then `sync.run` and the `SyncDlg`, `OnSyncToSpec`,
-  `trelby/trelbyframe.py:875`), Review proposals… (`ReviewDlg` over the
+  `trelby/trelbyframe.py:915`), Review proposals… (`ReviewDlg` over the
   film's bible and its latest change set, `OnReview`,
-  `trelby/trelbyframe.py:916`) (`OnAnnotate`,
-  `trelby/trelbyframe.py:930`, `OnAnnotationsHere`,
-  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:1043-1071`); on Open
+  `trelby/trelbyframe.py:956`) (`OnAnnotate`,
+  `trelby/trelbyframe.py:970`, `OnAnnotationsHere`,
+  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:1083-1111`); on Open
   film the annotations whose text is gone join the film's problems
-  (`listUnattached`, `trelby/trelbyframe.py:841`).
+  (`listUnattached`, `trelby/trelbyframe.py:881`).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:1402-1406`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:1442-1446`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` with a horizontal
   scroll bar under it, shown only while the page is wider than the editor
@@ -709,9 +709,13 @@ Data and folders
   are build products of `../Makefile`, not in git; without
   `manual.html`, Help → Manual makes the page from `doc/manual.xml`
   (`manual.py`).
-- Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:244`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:260-265`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+- The toolbar (vertical, `trelby/trelbyframe.py:244`) has no GTK
+  tooltips: GTK placed them by screen position, partly off-screen on
+  WSLg, where the window's X position lies on no monitor (seen
+  2026-10-31). Its tips are kept in `toolTips` and shown by `OnToolEnter`
+  in `toolTipPanel`, a panel inside the window right of the tool, level
+  with the mouse (`trelby/trelbyframe.py:340`, `trelby/trelbyframe.py:651`).
+  Waiting for Rafael's check on his screen: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 - A missing file part other than the script (the settings record, the
