@@ -63,6 +63,12 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   per-scene values, links shown by name keep their notes, files added and
   removed. The `BibleForm` needs a display: checked through the real
   window (2026-10-28).
+- `test_linkbyhand.py` — film-bible/links/6: scene labels (number and
+  heading, a scene gone from the script kept), `setScenes` writes the
+  difference once and keeps per-scene values, nothing written when
+  nothing changed, the scene side over the three maps (children under
+  their parent), wardrobe's character links untouched. The two dialogs
+  need a display: checked through the real window (2026-10-31).
 - `test_biblelinks.py` — film-bible/links: heading locations, a new
   location offered and never made, a known one linked, made sets linked,
   rename keeps the link, aliases, a set with no scene; the scene at a line

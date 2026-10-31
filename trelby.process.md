@@ -90,7 +90,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   the acts, their sizes in scenes and the cursor's act, untouched by zoom
   and scrolling (story-structure/acts/2). `MyCtrl` owns one `Screenplay` (`self.sp`) and binds paint,
   mouse and key events (`trelby/trelbyctrl.py:63-72`).
-- The **bible panel** (film-bible/tree/1, `trelby/biblepanel.py:23`) sits
+- The **bible panel** (film-bible/tree/1, `trelby/biblepanel.py:24`) sits
   left of the tabs in a splitter (`MyFrame.splitter`,
   `trelby/trelbyframe.py:313`), unsplit while hidden; View → Bible
   (Ctrl+Shift+B) shows or hides it (`showBible`,
@@ -100,7 +100,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   (`showFilm`, `trelby/trelbyframe.py:708`, bugs/editor/20); another
   film's bible first saves the field being typed into its own film and
   selects nothing, since ids repeat from film to film (`setBible`,
-  `trelby/biblepanel.py:105`). One
+  `trelby/biblepanel.py:113`). One
   tree per map (Sets, Characters, Props, Wardrobe), child items nested;
   New, New child, Rename, Delete (with confirmation, naming the child
   items and the scenes that use it), drag an item onto another item of its
@@ -133,7 +133,16 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   it in (film-bible/links/3); From script → Wardrobe gaps lists, per
   numbered scene, the bible characters who speak there with no wardrobe
   linked to them there: a gap, not an error. A wardrobe item with no
-  character is allowed. An item's right-click menu has Copy (a copy named
+  character is allowed. Scenes are also linked by hand (film-bible/links/6):
+  the form of a set, character or prop has Scenes… (a checklist of the
+  script's numbered scenes, `12 — INT. ROOM - DAY`, plus scenes the item
+  names that the script no longer has; OK links the ticked and unlinks the
+  unticked in one write, `bibleedit.setScenes`), and the panel's This
+  scene…, enabled in a numbered scene, ticks every set, character and
+  prop in the cursor's scene (child items indented under their parent) and
+  writes only the items whose link changed (`bibleedit.setSceneItems`);
+  wardrobe's character links are never touched. An unlink is not
+  remembered: From script offers that link again. An item's right-click menu has Copy (a copy named
   `<name> copy` beside it, new ids, no scenes; the creator is told the
   scenes the original is used in) and Copy to another film… (a folder
   with a film: the item, its files and child items go into that film's

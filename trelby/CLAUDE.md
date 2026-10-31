@@ -213,20 +213,27 @@ Model and file format
   goes through `Film.writeText`, so ownership is checked and it is logged.
 - `bibleedit.py` — what the bible form edits (film-bible/maps), no wx:
   `groups(map)` → `Group`s of catalog `Field`s in catalog order
-  (`trelby/bibleedit.py:42`); `text` (a field's values as text: a list
+  (`trelby/bibleedit.py:48`); `text` (a field's values as text: a list
   joined by `; `, a number without its unit, a link as the item's name,
-  `trelby/bibleedit.py:61`) and `parse` back (a comma decimal accepted, a
-  bad number a `ValueError`, `trelby/bibleedit.py:80`); `commit` stores
+  `trelby/bibleedit.py:67`) and `parse` back (a comma decimal accepted, a
+  bad number a `ValueError`, `trelby/bibleedit.py:86`); `commit` stores
   what the creator typed, if it changed, as `creator-approved`, source
-  `creator <date>`, by `creator` (`trelby/bibleedit.py:107`); `stateOf`,
+  `creator <date>`, by `creator` (`trelby/bibleedit.py:113`); `stateOf`,
   `describe` (the state button's tooltip), `setState` (state, source and
   revisit only; put back if the contract refuses it,
-  `trelby/bibleedit.py:159`); `linkChoices` / `setLinks` (keeps the notes
+  `trelby/bibleedit.py:165`); `linkChoices` / `setLinks` (keeps the notes
   of the links kept); `addFiles` (into `FILE_FOLDERS[field]`, else `blend/`
   or `files/`) / `removeFile`; `sceneChoices` (the item's scenes and the
-  open script's numbers, in script order, `trelby/bibleedit.py:245`);
+  open script's numbers, in script order, `trelby/bibleedit.py:251`);
   `wornScenes`, `wornText` (`Ana in 1, 2`), `setWorn` (a wardrobe item worn
-  by a character in exactly these scenes, `trelby/bibleedit.py:277`).
+  by a character in exactly these scenes, `trelby/bibleedit.py:283`);
+  links/6, scenes by hand for `SCENE_MAPS` (set, character, prop):
+  `sceneHeadings(sp)`, `sceneLabels` (`12 — INT. ROOM - DAY`, a scene the
+  script no longer has as its number), `linkedScenes(item)` (links without
+  a character), `setScenes(b, item, scenes)` (exactly these, one write, put
+  back if refused, `trelby/bibleedit.py:329`), `sceneItems(b, scene)`,
+  `sceneItemChoices(b)` (children under their parent), `setSceneItems(b,
+  scene, ids)` (only the items whose link changes, `trelby/bibleedit.py:381`).
 - `bibleform.py` — `BibleForm` (`trelby/bibleform.py:38`): the selected
   item's form under the bible tree, the same for every map, built from
   `bibleedit.groups` (`doBuild`, `trelby/bibleform.py:98`): name, id and
@@ -236,11 +243,12 @@ Model and file format
   Add… for files, also a drop target, and … for links) and a state button
   (`script` / `ok` / `proposal` / `TBD`, its menu approves a proposal or
   sets another state, asking the scene for script-stated and the trigger
-  for TBD, `trelby/bibleform.py:324-368`); a per-scene group has a scene
+  for TBD, `trelby/bibleform.py:336-380`); a per-scene group has a scene
   combo box. A value is saved when its control loses the focus or Enter
-  is pressed (`OnCommit`, `trelby/bibleform.py:290`); a wardrobe item has
+  is pressed (`OnCommit`, `trelby/bibleform.py:302`); a wardrobe item has
   a Worn by row: pick a character, tick its scenes (`OnWorn`,
-  `trelby/bibleform.py:432`); the field being typed
+  `trelby/bibleform.py:469`); a set, character or prop has Scenes… by its
+  scenes: a checklist linked in one write (`OnScenes`, links/6); the field being typed
   in is saved before another item is shown (`commitFocused`).
 - `biblelinks.py` — the script's links to the bible (film-bible/links),
   no wx; each scan returns a plan, applied only with the creator's choice:
@@ -326,36 +334,38 @@ Application and editor (wx)
   + `ActPanel` at the right (`trelby/trelbypanel.py:9`); the act panel is
   made before `MyCtrl`, whose constructor already updates it
   (`trelby/trelbypanel.py:28`).
-- `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:23`): the bible
+- `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:24`): the bible
   panel (film-bible/tree/1) over `MyFrame.bible`, the current tab's film's
-  (`setBible`, `trelby/biblepanel.py:105`: on another film's bible the
+  (`setBible`, `trelby/biblepanel.py:113`: on another film's bible the
   field being typed is saved first and nothing stays selected, since ids
   repeat from film to film; with none, a line saying the tab's script is
   not a film's): New / New child /
   Rename / Delete buttons, a `wx.TreeCtrl` with one branch per map
   (`refresh` rebuilds it from `Bible.children`, keeping the selection and
-  what was expanded, `trelby/biblepanel.py:126`), a right-click menu
-  (`menuItems`, `trelby/biblepanel.py:319`), drag and drop to change an
-  item's parent (`OnEndDrag`, `trelby/biblepanel.py:351`); under the tree
+  what was expanded, `trelby/biblepanel.py:134`), a right-click menu
+  (`menuItems`, `trelby/biblepanel.py:327`), drag and drop to change an
+  item's parent (`OnEndDrag`, `trelby/biblepanel.py:359`); under the tree
   in a splitter, the selected item's `BibleForm` (`makeForm` / `showItem`).
   Errors the film refuses are shown, never raised (`guard`). A line under
   the buttons names the cursor's scene and the bible items linked to it
   (`showScene`, called from `MyCtrl.updateCommon`,
-  `trelby/biblepanel.py:465`). From script… opens the links commands
-  (`OnScriptMenu`, `trelby/biblepanel.py:383`): each shows its plan in a
+  `trelby/biblepanel.py:473`); This scene… under it, enabled in a numbered
+  scene, ticks the sets, characters and props in it (`OnThisScene`,
+  links/6). From script… opens the links commands
+  (`OnScriptMenu`, `trelby/biblepanel.py:391`): each shows its plan in a
   checklist (`choose`) and does only what is checked; Link scenes to sets
   ticks the links to known sets and leaves new sets unticked
-  (`OnLinkSets`, `trelby/biblepanel.py:433`); Find props lists links to
+  (`OnLinkSets`, `trelby/biblepanel.py:441`); Find props lists links to
   known props (ticked) and new props (unticked), then offers to mark the
   ones not made as not a prop for the film (`OnFindProps`,
-  `trelby/biblepanel.py:492`); Find characters does the same for the
-  speakers (`OnFindCharacters`, `trelby/biblepanel.py:634`); Wardrobe gaps lists the characters in a
+  `trelby/biblepanel.py:535`); Find characters does the same for the
+  speakers (`OnFindCharacters`, `trelby/biblepanel.py:677`); Wardrobe gaps lists the characters in a
   scene with no wardrobe there (`OnWardrobeGaps`,
-  `trelby/biblepanel.py:536`). The item menu's Copy makes `<name> copy`
+  `trelby/biblepanel.py:579`). The item menu's Copy makes `<name> copy`
   next to it and names the scenes the original is used in (`OnCopy`,
-  `trelby/biblepanel.py:558`); Copy to another film… opens that film's
+  `trelby/biblepanel.py:601`); Copy to another film… opens that film's
   bible (the open one, when that film is open in the window) and copies
-  into it (`OnCopyToFilm`, `trelby/biblepanel.py:578`).
+  into it (`OnCopyToFilm`, `trelby/biblepanel.py:621`).
 - `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
   wide, one row per act with its name, `n scenes` and a bar as long as its
   scene count against the largest act; the cursor's act highlighted; a
