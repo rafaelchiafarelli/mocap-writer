@@ -18,7 +18,7 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 7. **story-structure** — where we are in the story: an act is a marker (no print) and a panel shows act sizes (done 2026-10-26, gate waived by Rafael 2026-10-31; models and beats later; history: git log -- initiatives/story-structure)
 8. **spellcheck** — the spell checker in Brazilian Portuguese (pt-BR): VERO through Hunspell via `pyenchant`, the language chosen in Settings → Misc (done 2026-10-31, gate waived; history: git log -- initiatives/spellcheck)
 
-9. **import-to-film** — an import ends in a complete film: Import into film (the original copied into the film), one review of the bible the script offers, a report (planned 2026-10-28; decisions taken 2026-10-31)
+9. **import-to-film** — an import ends in a complete film: Import into film (the original copied into `source/`), one review of the bible the script offers, a report; File → Import with a film open offers this film or a new folder (done 2026-10-31, gate waived; history: git log -- initiatives/import-to-film)
 
 10. **architecture** — learn how mocap-writer is built: interactive explainer pages, one per layer, from the as-built docs (planned 2026-10-30)
 
