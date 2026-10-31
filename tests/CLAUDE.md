@@ -165,7 +165,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - `test_renderscreenplay.py` — PDF export with core fonts and with the
   custom TTF; an unusable custom font (not a font file, or no file) is an
   `error.MiscError`; non-Latin-1 widths in Helvetica; a printed PDF's
-  `/OpenAction` goes to the cursor's page, an export has none.
+  `/OpenAction` goes to the cursor's page, an export has none; a 45°
+  watermark keeps its accents (bugs/import-export/8).
 - `test_manual.py` — `manual.build`: from `doc/` with the DocBook XSL
   stylesheets (skipped without `docbook-xsl`), a prebuilt page wins, a
   missing source is a `ManualError`.

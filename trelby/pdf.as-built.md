@@ -1,6 +1,6 @@
 # pdf.py — as built
 
-`trelby/pdf.py` (362 lines) writes a PML document (`trelby/pml.py`) as a PDF
+`trelby/pdf.py` (369 lines) writes a PML document (`trelby/pml.py`) as a PDF
 with ReportLab. It is the only PDF writer: script export, print, reports,
 watermarks, the dialogue chart and script comparison all build PML and call
 `pdf.generate`. It does not read PDFs.
@@ -8,38 +8,40 @@ watermarks, the dialogue chart and script comparison all build PML and call
 ## Entry point
 
 - `generate(doc: pml.Document) -> bytes` (`trelby/pdf.py:25`) →
-  `PDFExporter(doc).generate()` (`trelby/pdf.py:255`).
+  `PDFExporter(doc).generate()` (`trelby/pdf.py:246`).
 
 ## How a document is drawn
 
 - One ReportLab `Canvas` sized `doc.w × doc.h` mm converted to points,
   PDF 1.5, creator/producer `Trelby <version>`, `doc.uniqueId` as keywords
-  (watermarks) (`trelby/pdf.py:257-269`).
+  (watermarks) (`trelby/pdf.py:248-260`).
 - For each `pml.Page`, each op is drawn by its class's `pdfOp`
-  (`trelby/pdf.py:274-289`), a `PDFDrawOp` singleton set on the PML class
+  (`trelby/pdf.py:265-280`), a `PDFDrawOp` singleton set on the PML class
   (`trelby/pml.py:122`, `trelby/pml.py:175`, `trelby/pml.py:193`,
   `trelby/pml.py:216`, `trelby/pml.py:239`):
   - `PDFTextOp` (`trelby/pdf.py:41`): PML y is the top of the text, PDF y is
     the baseline, so `y - 0.843 * size` (`trelby/pdf.py:58-59`);
-    `drawString`, or for `angle` 45/90 a literal `BT … Tm … Tj ET` block
-    (`trelby/pdf.py:64-85`); underline drawn as a line 0.1 × size below the
+    `drawString`, and for `angle` 45/90 the same `drawString` inside a
+    `saveState` / `transform` / `restoreState` with the angle's matrix
+    (`TRANSFORM_MATRIX`, `trelby/pdf.py:18`; `trelby/pdf.py:64-76`), so
+    rotated text is encoded for its font like any other; underline drawn as a line 0.1 × size below the
     baseline; a `toc` item adds a bookmark and an outline entry
-    (`trelby/pdf.py:101-106`).
-  - `PDFLineOp` (`trelby/pdf.py:109`), `PDFRectOp` (`trelby/pdf.py:137`),
-    `PDFQuarterCircleOp` (Bézier quarter circle, `trelby/pdf.py:158`),
+    (`trelby/pdf.py:92-97`).
+  - `PDFLineOp` (`trelby/pdf.py:100`), `PDFRectOp` (`trelby/pdf.py:128`),
+    `PDFQuarterCircleOp` (Bézier quarter circle, `trelby/pdf.py:149`),
     `PDFArbitraryOp` (raw PDF operators from `pml.PDFOp`,
-    `trelby/pdf.py:192`).
+    `trelby/pdf.py:183`).
 - The outline (TOC) is shown on open when `doc.showTOC`
-  (`trelby/pdf.py:291-292`).
+  (`trelby/pdf.py:282-283`).
 - Coordinates: `mm2points` = mm × 2.83464567; `x(mm)`, `y(mm)` flips the
-  vertical axis (`trelby/pdf.py:361-378`).
+  vertical axis (`trelby/pdf.py:352-369`).
 
 ## Fonts
 
 - `PDFExporter.fonts` maps PML style bits (font family | bold | italic) to
   the 12 PDF core fonts: Courier, Helvetica, Times-Roman families
-  (`trelby/pdf.py:239-252`).
-- `getFontForFlags(flags)` (`trelby/pdf.py:321`): if the script configured a
+  (`trelby/pdf.py:230-243`).
+- `getFontForFlags(flags)` (`trelby/pdf.py:312`): if the script configured a
   custom font for that style (`doc.fonts`, filled from `Config.pdfFonts` by
   `Screenplay.generatePML`, `trelby/screenplay.py:544-548`), registers the
   TTF with ReportLab once and returns its name; otherwise the core font.
@@ -66,18 +68,19 @@ watermarks, the dialogue chart and script comparison all build PML and call
   to the cursor's page (0-based, title pages counted) when printing, not
   when exporting (`trelby/screenplay.py:533-534`); while drawing that page
   `generate` bookmarks it and points the catalog's `/OpenAction` at the
-  destination, a plain go-to (`trelby/pdf.py:279-286`). Viewers that
+  destination, a plain go-to (`trelby/pdf.py:270-277`). Viewers that
   ignore `/OpenAction` still open on page 1.
-- Rotated text (watermarks) goes through `addLiteral` with
-  `escapeStr`, so only characters ReportLab's literal path can encode come
-  out right (comment at `trelby/pdf.py:82`). Bug: [bugs/import-export/8](../initiatives/bugs/epics/import-export/tasks/8-watermark-non-latin.md).
+- The 45° matrix is `(1, 1, -1, 1)`, not normalised, so a 45° watermark
+  is drawn √2 times its font size (`trelby/pdf.py:19`); kept as upstream
+  had it. `escapeStr` (`trelby/pdf.py:348`) is left from the literal path
+  and no longer used.
 - Left-overs from the pre-ReportLab writer: `FontInfo.number` / `pdfObj`,
   `PDFObject`, `genStream` (with a Python 2 `s.encode("zlib")`)
-  (`trelby/pdf.py:204-318`) are not used by `generate`.
+  (`trelby/pdf.py:195-309`) are not used by `generate`.
 - `PDFLineOp` with fewer than two points prints a message to stdout and
-  draws nothing (`trelby/pdf.py:120-123`).
+  draws nothing (`trelby/pdf.py:111-114`).
 - A custom font that cannot be used (a name with no file, or a file
-  ReportLab cannot read) raises `error.MiscError` (`trelby/pdf.py:334-353`);
+  ReportLab cannot read) raises `error.MiscError` (`trelby/pdf.py:325-344`);
   Export, Print (`MyCtrl.makePDF`, `trelby/trelbyctrl.py:1574`) and
   Watermark show it in a message box. The script settings only send a
   font that has a file (`trelby/screenplay.py:544-548`).
@@ -94,4 +97,6 @@ watermarks, the dialogue chart and script comparison all build PML and call
 - Indirectly: `tests/test_scriptreport.py`, `tests/test_scenereport.py`,
   `tests/test_locationreport.py`, `tests/test_characterreport.py` (report
   PDFs).
-- Not covered: rotated text, TOC, line/rect/circle ops, page content.
+- `testWatermarkKeepsAccents`: 45° and flat text with accents, read back
+  with pdfplumber (bugs/import-export/8).
+- Not covered: TOC, line/rect/circle ops, page content.
