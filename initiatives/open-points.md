@@ -29,8 +29,8 @@ Rafael, 2026-10-31: finish every open initiative in one stretch; gates
 that wait only on him are waived ("waive and close"); bugs are fixed only
 when they get in the way.
 
-- **front-matter** — planned 2026-10-31
-  ([front-matter](front-matter/front-matter.md)).
+- **architecture** — the explainer pages, last, built from the finished
+  as-built docs ([architecture](architecture/architecture.md)).
 
 ## Decisions for Rafael
 
@@ -64,7 +64,7 @@ when they get in the way.
 
 fountain-native (a real scene's round trip; numbering tried in the
 editor), film-bible (Rafael on the neutral sample; the agents' half is in
-preprod-link's gate) story-structure (the act panel on a script), spellcheck (Rafael's pt-BR scripts), import-to-film (a real PDF to a film) and preprod-link (Rafael's sync on the sample; a specialist run):
+preprod-link's gate) story-structure (the act panel on a script), spellcheck (Rafael's pt-BR scripts), import-to-film (a real PDF to a film), front-matter (Rafael on the sample) and preprod-link (Rafael's sync on the sample; a specialist run):
 closed without them. pdf-import's real-script import stays a film
 session's.
 
