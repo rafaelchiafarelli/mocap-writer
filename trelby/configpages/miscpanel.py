@@ -1,6 +1,7 @@
 import os.path
 
 import trelby.misc as misc
+import trelby.spellcheck as spellcheck
 import trelby.util as util
 import wx
 
@@ -100,6 +101,21 @@ class MiscPanel(wx.Panel):
         self.Bind(wx.EVT_LISTBOX, self.OnMisc, id=self.checkList.GetId())
         self.Bind(wx.EVT_CHECKLISTBOX, self.OnMisc, id=self.checkList.GetId())
 
+        # the spell checker's language (spellcheck/pt-br/1)
+        hsizer = wx.BoxSizer(wx.HORIZONTAL)
+        hsizer.Add(
+            wx.StaticText(self, -1, _("Spell checker language:")),
+            0,
+            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
+            10,
+        )
+        self.spellLangCombo = wx.Choice(
+            self, -1, choices=[label for _k, label, _t in spellcheck.LANGUAGES]
+        )
+        self.Bind(wx.EVT_CHOICE, self.OnMisc, id=self.spellLangCombo.GetId())
+        hsizer.Add(self.spellLangCombo)
+        vsizer.Add(hsizer, 0, wx.BOTTOM, 10)
+
         self.addSpin(
             "splashTime",
             _("Show splash screen for X seconds:\n (0 = disable)"),
@@ -167,6 +183,9 @@ class MiscPanel(wx.Panel):
         self.cfg.paginateInterval = util.getSpinValue(self.paginateEntry)
         self.cfg.mouseWheelLines = util.getSpinValue(self.wheelScrollEntry)
         self.cfg.splashTime = util.getSpinValue(self.splashTimeEntry)
+        self.cfg.spellLanguage = spellcheck.LANGUAGES[
+            max(self.spellLangCombo.GetSelection(), 0)
+        ][0]
 
     def OnBrowse(self, event):
         dlg = wx.DirDialog(
@@ -220,3 +239,6 @@ class MiscPanel(wx.Panel):
         self.paginateEntry.SetValue(self.cfg.paginateInterval)
         self.wheelScrollEntry.SetValue(self.cfg.mouseWheelLines)
         self.splashTimeEntry.SetValue(self.cfg.splashTime)
+        self.spellLangCombo.SetSelection(
+            [k for k, _l, _t in spellcheck.LANGUAGES].index(self.cfg.spellLanguage)
+        )

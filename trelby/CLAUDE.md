@@ -469,11 +469,21 @@ Dialogs
   from `configpages/` (`trelby/cfgdlg.py:21`).
 - `finddlg.py` — `FindDlg`: find and replace, optional element-type filter;
   replace is one undo step per hit (`trelby/finddlg.py:403`).
-- `spellcheck.py` — word list `dict_en.dat` (`loadDict`,
-  `trelby/spellcheck.py:15`), user dictionaries (`Dict`), `SpellChecker`
-  (walks the script word by word), `lev` (edit distance for suggestions).
+- `spellcheck.py` — the dictionary languages `LANGUAGES` (`en`:
+  `dict_en.dat`; `pt-BR`: Hunspell `pt_BR` through `pyenchant`,
+  spellcheck/pt-br/1, `trelby/spellcheck.py:7`); word list `dict_en.dat`
+  (`loadDict`), `loadLanguage(lang)` → None or the message naming the
+  missing dictionary and how to get it (`trelby/spellcheck.py:64`),
+  `suggest(lang, word, dicts)` (up to 5: Hunspell's, after the user's words
+  within edit distance 2, or the closest `dict_en.dat` words then the
+  user's, `trelby/spellcheck.py:97`), user dictionaries (`Dict`),
+  `SpellChecker(sp, gScDict, lang)` (walks the script word by word; a word
+  is known in the language's dictionary, as written or lower-cased, in
+  `SCRIPT_WORDS` (`int`, `ext`, `est`), in character names, the script's
+  or the global dictionary, or is a number), `lev` (edit distance).
 - `spellcheckdlg.py` — `SpellCheckDlg`: replace / skip / add to script or
-  global dictionary / suggest.
+  global dictionary / suggest (`spellcheck.suggest` in the setting's
+  language, the case of the word kept).
 - `spellcheckcfgdlg.py` — `SCDictDlg`: edit a dictionary's word list.
 - `namesdlg.py` — `NamesDlg`: character name database from `names.txt`
   (`readNames`, `trelby/namesdlg.py:14`), filter by type, sex and text,

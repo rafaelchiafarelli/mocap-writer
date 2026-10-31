@@ -18,19 +18,23 @@ pytest result.
   libraries the prebuilt wxPython wheel links against, DejaVu and Liberation
   fonts, `evince` (GPL-2.0+; the PDF viewer for Print and reports),
   `librsvg2-common` (LGPL-2.1+; GTK's SVG theme assets, the check marks
-  among them, bugs/tooling/10) and
+  among them, bugs/tooling/10), `libenchant-2-2` (LGPL-2.1+, with its
+  Hunspell provider) and `hunspell-pt-br` (the VERO pt-BR dictionary,
+  LGPL-3 or MPL, used unmodified; Rafael accepted the licence 2026-10-27,
+  spellcheck/pt-br/1) and
   `docbook-xsl` (permissive DocBook XSL licence; Help → Manual); `/opt/venv` from `requirements.lock` with `--require-hashes`,
   wxPython from the `extras.wxpython.org` Ubuntu 24.04 wheels;
   `XDG_CONFIG_HOME=/config`, `PYTHONPATH` = the `mocap-contracts`
   submodule and its `gen/python` under `/app`, `GSETTINGS_BACKEND=memory`, user `ubuntu`,
-  default command `python /app/trelby.py` (`docker/Dockerfile:5-32`).
+  default command `python /app/trelby.py` (`docker/Dockerfile:5-35`).
 - `requirements.in` — direct dependencies: `wxPython==4.2.5`, `lxml`,
   `reportlab`, `pytest`, `pdfplumber` (for pdf-import; MIT, its
   `pdfminer.six` MIT and `pypdfium2` Apache-2.0/BSD-3), `protobuf<5`
-  (BSD-3, 4.25.9, for `mocap-contracts`).
-- `requirements.lock` — hashed lock of 17 packages (wxPython 4.2.5, lxml
+  (BSD-3, 4.25.9, for `mocap-contracts`), `pyenchant==3.3.0` (LGPL-2.1,
+  the spell checker's pt-BR dictionary through libenchant).
+- `requirements.lock` — hashed lock of 18 packages (wxPython 4.2.5, lxml
   6.1.3, reportlab 5.1.0, pillow 13.0.0, pytest 9.1.1, pdfplumber 0.11.10,
-  pdfminer.six 20260107, pypdfium2 5.14.0, …). Regenerated with uv run
+  pdfminer.six 20260107, pypdfium2 5.14.0, pyenchant 3.3.0, …). Regenerated with uv run
   from its image (no uv on the host): `docker run --rm --user "$(id -u):$(id -g)"
   -e HOME=/tmp -v "$PWD":/w -w /w ghcr.io/astral-sh/uv:0.8.22-python3.12-bookworm-slim`
   followed by the command in the lock's header plus `--find-links

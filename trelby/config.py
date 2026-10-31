@@ -1232,6 +1232,11 @@ class ConfigGlobal:
         # interval in seconds between automatic pagination (0 = disabled)
         v.addInt("paginateInterval", 1, "PaginateInterval", 0, 10)
 
+        # the spell checker's dictionary language, one of
+        # spellcheck.LANGUAGES (spellcheck/pt-br/1); never guessed from the
+        # script's text
+        v.addStrLatin1("spellLanguage", "en", "SpellCheckerLanguage")
+
         # whether to check script for errors before export / print
         v.addBool("checkOnExport", True, "CheckScriptForErrors")
 
@@ -1431,6 +1436,9 @@ class ConfigGlobal:
             order = list(TAB_ORDER_DEFAULT)
 
         self.tabOrder = order
+
+        if self.spellLanguage not in ("en", "pt-BR"):
+            self.spellLanguage = "en"
 
     # the element Tab converts element type 'lt' to: the next one in
     # tabOrder, wrapping around. an element outside the cycle enters it at
