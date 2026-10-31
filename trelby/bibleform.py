@@ -122,7 +122,19 @@ class BibleForm(wx.ScrolledWindow):
 
         scenes = sorted(self.bible.scenes(it))
         grid.Add(self.label(_("Scenes")), 0, wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(wx.StaticText(self, -1, ", ".join(scenes) or _("none yet")))
+
+        if it.map in bibleedit.SCENE_MAPS:
+            # link scenes by hand (film-bible/links/6)
+            box = wx.BoxSizer(wx.HORIZONTAL)
+            box.Add(wx.StaticText(self, -1, ", ".join(scenes) or _("none yet")), 1,
+                    wx.ALIGN_CENTER_VERTICAL)
+            btn = wx.Button(self, -1, _("Scenes..."), style=wx.BU_EXACTFIT)
+            btn.Bind(wx.EVT_BUTTON, self.OnScenes)
+            box.Add(btn, 0, wx.LEFT, 3)
+            grid.Add(box, 1, wx.EXPAND)
+        else:
+            grid.Add(wx.StaticText(self, -1, ", ".join(scenes) or _("none yet")))
+
         grid.Add((1, 1))
 
         if it.map == "wardrobe":
@@ -424,6 +436,31 @@ class BibleForm(wx.ScrolledWindow):
                 rels[dlg.GetSelection()], self.sceneOf(name),
             )
             self.refreshRow(name)
+
+        dlg.Destroy()
+
+    # the item's scenes as a checklist: OK links the ticked and unlinks the
+    # unticked, in one write (film-bible/links/6)
+    def OnScenes(self, event=None):
+        labels = bibleedit.sceneLabels(self.bible, self.item, self.script())
+
+        if not labels:
+            wx.MessageBox(_("The script has no numbered scenes yet."), _("Bible"), wx.OK, self)
+
+            return
+
+        linked = set(bibleedit.linkedScenes(self.item))
+        dlg = wx.MultiChoiceDialog(
+            self, _("Scenes %s is in:") % self.item.name, _("Bible"), [t for _n, t in labels]
+        )
+        dlg.SetSelections([i for i, (n, _t) in enumerate(labels) if n in linked])
+
+        if dlg.ShowModal() == wx.ID_OK:
+            chosen = [labels[i][0] for i in dlg.GetSelections()]
+
+            if self.guard(bibleedit.setScenes, self.bible, self.item, chosen):
+                self.panel.changed()
+                wx.CallAfter(self.build)
 
         dlg.Destroy()
 
