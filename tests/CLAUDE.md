@@ -63,6 +63,29 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   per-scene values, links shown by name keep their notes, files added and
   removed. The `BibleForm` needs a display: checked through the real
   window (2026-10-28).
+- `test_sceneindex.py` — preprod-link/contract/1: heading parts; the
+  neutral script's index without a bible (speakers, a speaker named in
+  Action, prop words, pages and lines); set, character and prop ids from
+  the bible, unknown names kept as written; "not a prop" words left out;
+  the same script twice → the same file, not logged; an edit changes only
+  its scene's hash.
+- `test_changeset.py` — preprod-link/contract/2: identical indexes →
+  no change; a first sync → every scene added; one test per change type;
+  a moved and edited scene reports both.
+- `test_sync.py` — preprod-link/sync/1: a first run reports every scene
+  added and writes only the change set; accept then run again → empty; a
+  run not accepted repeats the same changes; the sync files are not
+  logged and the bible opens with no problem; sync/2's change lines and
+  their grouping by scene, a set link named; sync/3: a renamed character
+  lists the values its scene states, a removed scene its per-scene values,
+  untouched scenes nothing and no state changes. The menu, the prompt and the
+  panel need a display: checked through the real window (2026-10-31).
+- `test_review.py` — preprod-link/review/1: the queue by scene,
+  item-level values last with their scenes; batch approve keeps sources
+  and writes each item once; reject puts back the replaced value, or
+  removes a proposal with nothing before; a per-scene override under its
+  scene only; edit; needs-review values from the latest sync. The dialog
+  needs a display: checked through the real window (2026-10-31).
 - `test_spellcheck.py` — spellcheck/pt-br/1: a correct pt-BR scene
   (accents, plurals, conjugated verbs, INT.) has no unknown word in pt-BR;
   a misspelled word found and `xícara` suggested; English unchanged; the
