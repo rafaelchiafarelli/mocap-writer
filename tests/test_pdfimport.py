@@ -7,6 +7,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 import tests.u as u
+import trelby.fountain as fountain
 import trelby.pdfimport as pdfimport
 import trelby.screenplay as screenplay
 import trelby.translations as translations
@@ -58,7 +59,7 @@ A, D, P, C = 108.0, 180.0, 216.0, 252.0
 
 
 def fountainOf(lines):
-    return pdfimport.toScreenplay(lines).generateFountain()
+    return fountain.generate(pdfimport.toScreenplay(lines)).text
 
 
 # import with the test profile; no IMPORT: notes unless asked
@@ -106,8 +107,30 @@ def testBasicFountain(tmp_path):
         "CONCEIÇÃO\n"
         "Ainda é cedo.\n"
         "\n"
-        "> CORTA PARA:"
+        "> CORTA PARA:\n"
     )
+
+
+# the Fountain a PDF import writes reads back to the same elements
+# (fountain-native/io/5: the import writes with fountain.generate)
+def testFountainReadsBack(tmp_path):
+    pages = [
+        page(
+            (A, "INT. CASA - NOITE"),
+            None,
+            (A, "EXTRA chega. INTO the dark."),
+            None,
+            (C, "BETO"),
+            (P, "(baixo)"),
+            (D, "Mudou sim."),
+            None,
+            (540.0, "CORTA PARA:>"),
+        )
+    ]
+    sp = pdfimport.toScreenplay(importPages(tmp_path, pages))
+    back = fountain.load(fountain.generate(sp).text, sp.cfgGl)
+
+    assert fountain.elementsOf(back) == fountain.elementsOf(sp)
 
 
 def testElementLinesMeetImporterContract(tmp_path):
@@ -181,7 +204,7 @@ def testDialogueAcrossPageBreakIsJoined(tmp_path):
         "Eu queria dizer que nada mudou.\n"
         "\n"
         "BETO\n"
-        "Mudou sim."
+        "Mudou sim.\n"
     )
 
 
@@ -189,8 +212,9 @@ def testSceneNumbersBecomeFountainMarks(tmp_path):
     pages = [[(72.0, 72.0, "12"), (A, 72.0, "INT. CASA - NOITE"), (552.0, 72.0, "12")]]
     lines = importPages(tmp_path, pages)
 
-    assert lines[0].text == "INT. CASA - NOITE #12#"
-    assert fountainOf(lines) == "INT. CASA - NOITE #12#"
+    # the number is the line's num, written as Fountain's #12#
+    assert (lines[0].text, lines[0].num) == ("INT. CASA - NOITE", "12")
+    assert fountainOf(lines) == "INT. CASA - NOITE #12#\n"
 
 
 def testDualDialogue(tmp_path):
@@ -222,7 +246,7 @@ def testDualDialogue(tmp_path):
         "(rindo)\n"
         "Juntos, então. Os dois.\n"
         "\n"
-        "Silêncio."
+        "Silêncio.\n"
     )
 
 
@@ -333,7 +357,7 @@ def testCli(tmp_path):
 
     assert pdfimport.main(["import", pdf, "--profile", PROFILE, "--out", str(out), "--trace"]) == 0
 
-    assert (out / "cena.fountain").read_text(encoding="utf-8") == "INT. CASA - NOITE\n\nEscuro."
+    assert (out / "cena.fountain").read_text(encoding="utf-8") == "INT. CASA - NOITE\n\nEscuro.\n"
     trace = (out / "cena.trace.tsv").read_text(encoding="utf-8").splitlines()
     assert trace[0] == "page\tline\ttop\tx0\tx1\tdecision\trule\ttext"
     assert trace[1].split("\t")[5:] == ["scene", "x=108", "INT. CASA - NOITE"]
@@ -422,9 +446,9 @@ def testInlineSceneNumbers(tmp_path):
 
     # a number before a scene prefix is a scene number; before anything
     # else it is action text
-    assert [(ln.lt, ln.text) for ln in lines] == [
-        (screenplay.SCENE, "INT. CASA - NOITE #7A#"),
-        (screenplay.ACTION, "2. Ela conta até dois."),
+    assert [(ln.lt, ln.text, ln.num) for ln in lines] == [
+        (screenplay.SCENE, "INT. CASA - NOITE", "7A"),
+        (screenplay.ACTION, "2. Ela conta até dois.", ""),
     ]
 
 
@@ -525,7 +549,7 @@ def testDetectedTitlePagePageNumbersAndMarginSceneNumbers(tmp_path):
         "ANA\n"
         "Eu queria dizer que nada mudou.\n"
         "\n"
-        "Ela sai."
+        "Ela sai.\n"
     )
     assert issues[0].message.startswith("page 1 looks like a title page")
     assert "title page: page 1 (skipped)" in layout
@@ -540,9 +564,9 @@ def testDetectedNumberedHeadingWithoutIntExt(tmp_path):
     issues = []
     lines = detectPages(tmp_path, [page(*rows)], issues=issues, notes=False)
 
-    assert [(ln.lt, ln.text) for ln in lines][-2:] == [
-        (screenplay.SCENE, "- NOITE - RUA #4#"),
-        (screenplay.ACTION, "4. Fim, disse ela."),
+    assert [(ln.lt, ln.text, ln.num) for ln in lines][-2:] == [
+        (screenplay.SCENE, "- NOITE - RUA", "4"),
+        (screenplay.ACTION, "4. Fim, disse ela.", ""),
     ]
     assert "scene heading 4 has no INT./EXT.; add it" in [i.message for i in issues]
 

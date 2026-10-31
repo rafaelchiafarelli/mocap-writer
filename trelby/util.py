@@ -798,6 +798,11 @@ class MyKeyEvent:
     def GetKeyCode(self):
         return self.kc
 
+    # what eventKeyCode reads first; for the codes the inserts pass
+    # (characters) it is the same as the key code
+    def GetUnicodeKey(self):
+        return self.kc
+
     def ControlDown(self):
         return self.controlDown
 
@@ -1003,14 +1008,15 @@ def loadFile(
         try:
             ret = f.read(maxSize)
         except MemoryError as error:
-            print(_("File too large: {}".format(error)))
+            print(_("File too large: {}").format(error))
+            ret = None
         finally:
             f.close()
 
     except IOError as xxx_todo_changeme:
         (errno, strerror) = xxx_todo_changeme.args
         wx.MessageBox(
-            _("Error loading file '{}': {}".format(filename, strerror)),
+            _("Error loading file '{}': {}").format(filename, strerror),
             _("Error"),
             wx.OK,
             frame,
@@ -1023,7 +1029,12 @@ def loadFile(
 def loadLatin1EncodedFile(
     filename: str, frame: Optional[wx.Frame], maxSize: int = -1
 ) -> Optional[AnyStr]:
-    return loadFile(filename, frame, maxSize, "ISO-8859-1")
+    data = loadFile(filename, frame, maxSize, binary=True)
+
+    if data is None:
+        return None
+
+    return data.decode("ISO-8859-1")
 
 
 # like loadFile, but if file doesn't exist, tries to load a .gz compressed
@@ -1044,7 +1055,7 @@ def loadMaybeCompressedFile(filename, frame):
         return f.read().decode("utf-8")
     except:
         wx.MessageBox(
-            _("Error loading file '{}': Decompression failed".format(filename)),
+            _("Error loading file '{}': Decompression failed").format(filename),
             _("Error"),
             wx.OK,
             frame,
@@ -1071,7 +1082,7 @@ def writeToFile(filename: str, data: AnyStr, frame: wx.TopLevelWindow) -> bool:
     except IOError as xxx_todo_changeme1:
         (errno, strerror) = xxx_todo_changeme1.args
         wx.MessageBox(
-            _("Error writing file '{}': {}".format(filename, strerror)),
+            _("Error writing file '{}': {}").format(filename, strerror),
             _("Error"),
             wx.OK,
             frame,
@@ -1150,9 +1161,9 @@ class TimerDev:
         self.__class__.nestingLevel -= 1
         print(
             _(
-                "{}{} took {.5f} seconds".format(
-                    " " * self.__class__.nestingLevel, self.msg, self.t
-                )
+                "{}{} took {.5f} seconds"
+            ).format(
+                " " * self.__class__.nestingLevel, self.msg, self.t
             )
         )
 
@@ -1204,7 +1215,9 @@ def getPDFViewer():
         # Need to check for Mac before Unix as macOS is a Unix
         progs = [("/System/Applications/Preview.app", "")]
     elif misc.isUnix:
-        progs = [("/usr/bin/xdg-open/", "")]
+        # xdg-open on a desktop; evince in the Docker image, which has no
+        # desktop to hand files to
+        progs = [("/usr/bin/xdg-open", ""), ("evince", "")]
     elif misc.isWindows:
         # get value via registry if possible, or fallback to old method.
         viewer = _getWindowsPDFViewer()
@@ -1276,18 +1289,21 @@ def showPDF(
 
         regPDF, regArgs = getPDFViewer()
 
-        if regPDF:
+        # a viewer that was set and is gone is worth a warning; none set at
+        # all (no viewer was found when the config was made) is not
+        if regPDF and pdfProgram:
             wx.MessageBox(
                 _(
-                    "Currently set PDF viewer ({}) was not found.\nChange this in File/Settings/Change/Misc.\n\nUsing the default PDF viewer instead:\n%s".format(
-                        pdfProgram, regPDF
-                    )
+                    "Currently set PDF viewer ({}) was not found.\nChange this in File/Settings/Change/Misc.\n\nUsing the default PDF viewer instead:\n{}"
+                ).format(
+                    pdfProgram, regPDF
                 ),
                 _("Warning"),
                 wx.OK,
                 frame,
             )
 
+        if regPDF:
             pdfProgram = regPDF
             pdfArgs = regArgs
 

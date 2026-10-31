@@ -129,15 +129,17 @@ Fixing every bug as soon as it turns up keeps the project from moving forward (R
 - **A bug file holds:** symptom, where (`file:line`), how to reproduce (or "found by reading the code"), impact, and **Status** — `Open`, or `Fixed (<date>) — fixes/<id>/<name>`. One sentence on the likely fix at most; a fix that needs design or a contract change is planned as a task in its own initiative.
 - **When to fix:** only when the bug gets in the way — it blocks a task, hurts a film session, or Rafael asks. Until then the project moves forward around it. A bug that blocks a scheduled capture session is fixed at once (see "Fix branches", including the main-line case).
 - **How to fix:** a `fixes/<id>/<name>` branch off `dev`, never the initiative chain, so the clone's feature work goes on. The fix commit marks the bug file fixed and updates the as-built (the gotcha goes away or changes).
+- **After the fix is pushed:** a follow-up commit deletes the bug file and turns every link to it into plain text (e.g. `bugs/editor/2, fixed <date>`), so `initiatives/bugs/` holds only open bugs and git history keeps the rest (Rafael, 2026-10-26). Bug numbers are never reused; the epics list keeps the last number used.
 - **Recording is always in scope:** adding a bug file is not scope creep, so a task that finds a bug records it in its own commit without asking. The bug's gotcha links to the bug file.
 
 ## As-built documentation
 
 **Every modification updates the as-built docs** (Rafael, 2026-10-24): tasks, fixes and any other commit that changes code, so the docs always describe the code as it is and a second session can check them against it.
 
-- **Format** (model: `harpia`): one `CLAUDE.md` per folder (`# <folder> — <purpose>`, then **Role**, **Entry points**, **Inputs → Outputs**, `## Files` with one bullet per file, `## Key facts / gotchas`, `## Touchpoints`), a root `<name>.process.md` with the stage-by-stage spec of what the program does, and, for a large module, a sibling `<module>.as-built.md` linked from its folder's bullet. Claude Code loads a folder's `CLAUDE.md` when it works there, so the context arrives with the code.
+- **Format** (model: `harpia`): one `CLAUDE.md` per folder (`# <folder> — <purpose>`, then **Role**, **Entry points**, **Inputs → Outputs**, `## Files` with one bullet per file, `## Key facts / gotchas`, `## Touchpoints`), a root `<name>.process.md` with the stage-by-stage spec of what the program does, and, for a large module, a sibling `<module>.as-built.md` linked from its folder's bullet. Claude Code loads a folder's `CLAUDE.md` when it works there, so the context arrives with the code. A folder with no code of its own (only data files or subfolders) is covered by its parent's `CLAUDE.md` instead, as long as the parent lists each of its files (Rafael, 2026-10-26).
 - **Content:** what the code *does*, never what it should do (plans live in `initiatives/`); every claim points to `file:line`; a bug or oddity found goes under gotchas, linked to its bug file in `initiatives/bugs/` (see "Bugs"), never a silent edit.
 - **In the same commit:** the change and its as-built update travel together, like the task file and its done marker. A new file gets its bullet, a removed file loses it, a new folder gets its `CLAUDE.md`, a changed stage is updated in `<name>.process.md`.
+- **References follow the code** (Rafael, 2026-10-31): every code change also updates the `file:line` references into the files it changed, in **every** doc of the repository (as-built, process spec, bug and task files), not only the ones describing the change: lines added or removed above a reference move it. Before the commit, every reference into a changed file must land on what it names. A reference found off in a file the commit didn't touch is fixed in its own commit, never left.
 - **Review:** a separate session can be asked to check the as-built against the code (every `file:line` resolves, every file has its bullet, every claim matches the code). A mismatch is recorded as a bug (epic `as-built-docs`), and an unexplained one is a red flag about the commit that caused it.
 - **Repositories not documented yet:** before their next substantial work they get an `as-built` initiative 0 (as `mocap-writer` did). Until then, a change still adds or updates the `CLAUDE.md` of the folders it touches.
 
@@ -156,6 +158,15 @@ Push back — stop and bring options to Rafael instead of proceeding — in thes
 - **Stack or boundary divergence** — a language other than Python, an inter-app protocol that bypasses Harpia, a repo-local environment that contradicts `DEPENDENCIES.md`, or film-specific material landing in a repository (see "Project, workhorse, film").
 
 When in doubt about whether something is small enough to just do, it isn't — bring it up.
+
+## Finishing an initiative
+
+A finished initiative leaves the working tree (Rafael, 2026-10-24): `initiatives/` holds only work still to do, and git history keeps every task file of what was done.
+
+- **When:** once the initiative's gate passes. A gate with a step still open (a film session, Rafael's approval) keeps the folder until that step closes, unless Rafael says otherwise.
+- **How:** the commit that marks the initiative done also deletes `initiatives/<initiative>/`, epics and tasks included. `initiatives/README.md` keeps one line for it: `**<initiative>** — <goal> (done <date>; history: git log -- initiatives/<initiative>)`.
+- **Links:** in the same commit, every link into the deleted folder (bug files, as-built gotchas, other initiatives, other repositories) is rewritten to name the initiative in plain text, or dropped. A dangling link breaks `dev` like a failing test.
+- **Never deleted:** `initiatives/bugs/`, which is a backlog, not an initiative that finishes.
 
 ## Tracking progress
 

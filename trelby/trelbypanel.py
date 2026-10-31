@@ -1,5 +1,7 @@
 import wx
 
+from trelby.actpanel import ActPanel
+
 # temporary until we can find out a way to separate MyCtrl
 from trelby.trelbyctrl import MyCtrl
 
@@ -19,10 +21,17 @@ class MyPanel(wx.Panel):
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.scrollBar = wx.ScrollBar(self, -1, style=wx.SB_VERTICAL)
+
+        # the acts of this script, fixed at the right
+        # (story-structure/acts/2). made before MyCtrl, whose constructor
+        # already updates it.
+        self.actPanel = ActPanel(self, -1, gd)
+
         self.ctrl = MyCtrl(self, -1, gd)
 
         hsizer.Add(self.ctrl, 1, wx.EXPAND)
         hsizer.Add(self.scrollBar, 0, wx.EXPAND)
+        hsizer.Add(self.actPanel, 0, wx.EXPAND)
 
         self.scrollBar.Bind(wx.EVT_COMMAND_SCROLL, self.ctrl.OnScroll)
 

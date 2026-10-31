@@ -3,21 +3,17 @@
 
 # runs random operations on a Screenplay as a way of trying to find bugs.
 # note that this is not part of the normal test run, this has to be run
-# manually.
+# manually, from the repository root:
+#   python -m tests.execute_random_tests [file.ops]
 
-import os
 import random
 import sys
 import traceback
-
-# FIXME
 from typing import Optional
 
-location = os.path.dirname(__file__)
-sys.path.append(os.path.join(location, "../trelby"))
-
-import u
-from screenplay import Screenplay
+import tests.u as u  # first: trelby.util cannot be the first trelby module loaded
+import trelby.fountain as fountain
+from trelby.screenplay import Screenplay
 
 
 # generates, stores, saves, loads, and runs operations against a
@@ -207,8 +203,7 @@ def runRandomOps():
         if not failed:
             try:
                 ops.sp._validate()
-                s = ops.sp.save()
-                u.loadString(s.decode())
+                u.loadString(fountain.generate(ops.sp).text)
             except KeyboardInterrupt:
                 raise
             except:
@@ -251,8 +246,8 @@ def save(ops: Ops, cnt: int):
     f.write(ops.save())
     f.close()
 
-    f = open("%d.trelby" % cnt, "wb")
-    f.write(ops.sp.save())
+    f = open("%d.fountain" % cnt, "wb")
+    f.write(fountain.generate(ops.sp).text.encode("UTF-8"))
     f.close()
 
 

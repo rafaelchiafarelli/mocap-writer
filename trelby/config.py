@@ -1,5 +1,5 @@
-# see fileformat.txt for more detailed information about the various
-# defines found here.
+# the settings of a script (Config), of the program (ConfigGlobal), and
+# the defines they use.
 
 import copy
 import os
@@ -114,6 +114,8 @@ DARK_COLORS = {
     "autoCompFgColor": (235, 235, 235),
     "autoCompBgColor": (92, 76, 20),
     "noteColor": (66, 52, 38),
+    "sceneHatchColor": (78, 88, 110),
+    "annotationColor": (92, 76, 28),
     "pagebreakColor": (70, 70, 70),
     "pagebreakNoAdjustColor": (70, 70, 70),
     "tabTextColor": (220, 220, 220),
@@ -1292,6 +1294,14 @@ class ConfigGlobal:
             _("Auto-completion background"),
         )
         v.addColor("note", 255, 237, 223, "ScriptNote", _("Script note"))
+        # the hatch behind scene headings on screen, so a scene's start
+        # stands out from Action (Rafael, 2026-10-28)
+        v.addColor(
+            "sceneHatch", 160, 176, 210, "SceneHeadingHatch", _("Scene heading hatch")
+        )
+        # the tint behind annotated text when annotations are shown
+        # (fountain-native/notes/1)
+        v.addColor("annotation", 255, 236, 179, "Annotation", _("Annotated text"))
         v.addColor("pagebreak", 221, 221, 221, "PageBreakLine", _("Page-break line"))
         v.addColor(
             "pagebreakNoAdjust",
@@ -1316,7 +1326,7 @@ class ConfigGlobal:
                 0,
                 0,
                 "Text%sFG" % t.name,
-                _("Text foreground for {}".format(t.name)),
+                _("Text foreground for {}").format(t.name),
             )
 
         v.makeDicts()
@@ -1628,6 +1638,13 @@ class ConfigGui:
         self.cursorBrush = wx.Brush(self.cursorColor)
         self.cursorPen = wx.Pen(self.cursorColor)
 
+        self.sceneHatchBrush = wx.Brush(
+            self.sceneHatchColor, wx.BRUSHSTYLE_BDIAGONAL_HATCH
+        )
+
+        self.annotationBrush = wx.Brush(self.annotationColor)
+        self.annotationPen = wx.Pen(self.annotationColor)
+
         self.noteBrush = wx.Brush(self.noteColor)
         self.notePen = wx.Pen(self.noteColor)
 
@@ -1720,7 +1737,7 @@ class ConfigGui:
 def _conv(dict, key, raiseException=True):
     val = dict.get(key)
     if (val == None) and raiseException:
-        raise ConfigError(_("key '{}' not found from '{}'".format(key, dict)))
+        raise ConfigError(_("key '{}' not found from '{}'").format(key, dict))
 
     return val
 

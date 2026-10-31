@@ -29,7 +29,6 @@ import difflib
 import re
 import sys
 import time
-from typing import Tuple
 
 from lxml import etree
 
@@ -61,6 +60,24 @@ class Screenplay:
 
         self.cfgGl = cfgGl
         self.cfg = config.Config()
+
+        # fountain.Source of the .fountain file this script was opened from
+        # or last saved to, None otherwise (trelby/fountain.py)
+        self.fountainSource = None
+
+        # the scene numbers the script had when it was opened or last
+        # saved; one no longer in the script is written back as OMITTED on
+        # the next save (scenenumbers.prepareSave)
+        self.sceneNumbersIssued = set()
+
+        # the text of each scene as it was issued, {number: text}, to tell a
+        # moved scene on the next save (fountain-native/scenes/5)
+        self.sceneTextsIssued = {}
+
+        # scenes renamed since the last save, {old number: new number}: a
+        # move or Renumber all. the save rewrites the film's records that
+        # name them, then empties it (fountain-native/scenes/5)
+        self.sceneMoves = {}
 
         # cursor position: line and column
         self.line = 0
@@ -158,8 +175,12 @@ class Screenplay:
         sp.locations = copy.deepcopy(self.locations)
         sp.titles = copy.deepcopy(self.titles)
         sp.scDict = copy.deepcopy(self.scDict)
+        sp.fountainSource = self.fountainSource
+        sp.sceneNumbersIssued = set(self.sceneNumbersIssued)
+        sp.sceneTextsIssued = dict(self.sceneTextsIssued)
+        sp.sceneMoves = dict(self.sceneMoves)
 
-        sp.lines = [Line(ln.lb, ln.lt, ln.text) for ln in self.lines]
+        sp.lines = [ln.copy() for ln in self.lines]
 
         # "open PDF on current page" breaks on scripts we're removing
         # notes from before printing if we don't copy these
@@ -167,266 +188,6 @@ class Screenplay:
         sp.column = self.column
 
         return sp
-
-    # save script to a utf-8 encoded string and return that
-    def save(self) -> bytes:
-        self.cfg.cursorLine = self.line
-        self.cfg.cursorColumn = self.column
-
-        output = ""
-
-        output += "\ufeff"
-        output += "#Version 3\n"
-
-        output += "#Begin-Auto-Completion \n"
-        output += self.autoCompletion.save()
-        output += "#End-Auto-Completion \n"
-
-        output += "#Begin-Config \n"
-        output += self.cfg.save()
-        output += "#End-Config \n"
-
-        output += "#Begin-Locations \n"
-        output += self.locations.save()
-        output += "#End-Locations \n"
-
-        output += "#Begin-Spell-Checker-Dict \n"
-        output += self.scDict.save()
-        output += "#End-Spell-Checker-Dict \n"
-
-        pgs = self.titles.pages
-        for pg in range(len(pgs)):
-            if pg != 0:
-                output += "#Title-Page \n"
-
-            for i in range(len(pgs[pg])):
-                output += "#Title-String %s\n" % str(pgs[pg][i])
-
-        for h in self.headers.hdrs:
-            output += "#Header-String %s\n" % str(h)
-
-        output += "#Header-Empty-Lines %d\n" % self.headers.emptyLinesAfter
-
-        output += "#Start-Script \n"
-
-        for i in range(len(self.lines)):
-            output += str(self.lines[i]) + "\n"
-
-        return output.encode("UTF-8")
-
-    # load script from string s and return a (Screenplay, msg) tuple,
-    # where msgs is string (possibly empty) of warnings about the loading
-    # process. fatal errors are indicated by raising a MiscError. note
-    # that this is a static function.
-    @staticmethod
-    def load(s: str, cfgGl):
-        lines = s.splitlines()
-
-        sp = Screenplay(cfgGl)
-
-        # remove default empty line
-        sp.lines = []
-
-        if len(lines) < 2:
-            raise error.MiscError(
-                _("File has too few lines to be a valid\nscreenplay file.")
-            )
-
-        key, version = Screenplay.parseConfigLine(lines[0])
-        if not key or (key != "Version"):
-            raise error.MiscError(
-                _("File doesn't seem to be a proper\nscreenplay file.")
-            )
-
-        if version not in ("1", "2", "3"):
-            raise error.MiscError(
-                _(
-                    "File uses fileformat version '{}',\nwhich is not supported by this version\nof the program.".format(
-                        version
-                    )
-                )
-            )
-
-        version = int(version)
-
-        # current position at 'lines'
-        index = 1
-
-        s, index = Screenplay.getConfigPart(lines, "Auto-Completion", index)
-        if s:
-            sp.autoCompletion.load(s)
-
-        s, index = Screenplay.getConfigPart(lines, "Config", index)
-        if s:
-            sp.cfg.load(s)
-
-        s, index = Screenplay.getConfigPart(lines, "Locations", index)
-        if s:
-            sp.locations.load(s)
-
-        s, index = Screenplay.getConfigPart(lines, "Spell-Checker-Dict", index)
-        if s:
-            sp.scDict.load(s)
-
-        # used to keep track that element type only changes after a
-        # LB_LAST line.
-        prevType = None
-
-        # did we encounter unknown lb types
-        unknownLb = False
-
-        # did we encounter unknown element types
-        unknownTypes = False
-
-        # did we encounter unknown config lines
-        unknownConfigs = False
-
-        # have we seen the Start-Script line. defaults to True in old
-        # files which didn't have it.
-        startSeen = version < 3
-
-        for i in range(index, len(lines)):
-            s = lines[i]
-
-            if len(s) < 2:
-                raise error.MiscError(_("Line {} is too short.".format(i + 1)))
-
-            if s[0] == "#":
-                key, val = Screenplay.parseConfigLine(s)
-                if not key:
-                    raise error.MiscError(
-                        _("Line {} has invalid syntax for\nconfig line.".format(i + 1))
-                    )
-
-                if key == "Title-Page":
-                    sp.titles.pages.append([])
-
-                elif key == "Title-String":
-                    if len(sp.titles.pages) == 0:
-                        sp.titles.pages.append([])
-
-                    tmp = titles.TitleString([])
-                    tmp.load(val)
-                    sp.titles.pages[-1].append(tmp)
-
-                elif key == "Header-String":
-                    tmp = headers.HeaderString()
-                    tmp.load(val)
-                    sp.headers.hdrs.append(tmp)
-
-                elif key == "Header-Empty-Lines":
-                    sp.headers.emptyLinesAfter = util.str2int(val, 1, 0, 5)
-
-                elif key == "Start-Script":
-                    startSeen = True
-
-                else:
-                    unknownConfigs = True
-
-            else:
-                if not startSeen:
-                    unknownConfigs = True
-
-                    continue
-
-                lb = config.char2lb(s[0], False)
-                lt = config.char2lt(s[1], False)
-                text = util.toInputStr(util.fromUTF8(s[2:]))
-
-                # convert unknown lb types into LB_SPACE
-                if lb == None:
-                    lb = LB_SPACE
-                    unknownLb = True
-
-                # convert unknown types into ACTION
-                if lt == None:
-                    lt = ACTION
-                    unknownTypes = True
-
-                if prevType and (lt != prevType):
-                    raise error.MiscError(
-                        _("Line {} has invalid element type.".format(i + 1))
-                    )
-
-                line = Line(lb, lt, text)
-                sp.lines.append(line)
-
-                if lb != LB_LAST:
-                    prevType = lt
-                else:
-                    prevType = None
-
-        if not startSeen:
-            raise error.MiscError(_("Start-Script line not found."))
-
-        if len(sp.lines) == 0:
-            raise error.MiscError(_("File doesn't contain any screenplay lines."))
-
-        if sp.lines[-1].lb != LB_LAST:
-            raise error.MiscError(_("Last line doesn't end an element."))
-
-        if cfgGl.honorSavedPos:
-            sp.line = sp.cfg.cursorLine
-            sp.column = sp.cfg.cursorColumn
-            sp.validatePos()
-
-        sp.reformatAll()
-        sp.paginate()
-        sp.titles.sort()
-        sp.locations.refresh(sp.getSceneNames())
-
-        msgs = []
-
-        if unknownLb:
-            msgs.append(_("Screenplay contained unknown linebreak types."))
-
-        if unknownTypes:
-            msgs.append(
-                _(
-                    "Screenplay contained unknown element types. These have been converted to Action elements."
-                )
-            )
-
-        if unknownConfigs:
-            msgs.append(
-                _(
-                    "Screenplay contained unknown information. This probably means that the file was created with a newer version of this program.\n\n  You'll lose that information if you save over the existing file."
-                )
-            )
-
-        return (sp, "\n\n".join(msgs))
-
-    # lines is an array of strings. if lines[startIndex] == "Begin-$name
-    # ", this searches for a string of "End-$name ", takes all the strings
-    # between those two, joins the lines into a single string (lines
-    # separated by a "\n") and returns (string,
-    # line-index-after-the-end-line). returns ("", startIndex) if
-    # startIndex does not contain the start line or startIndex is too big
-    # for 'lines'. raises error.MiscError on errors.
-    @staticmethod
-    def getConfigPart(lines, name, startIndex):
-        if (startIndex >= len(lines)) or (lines[startIndex] != ("#Begin-%s " % name)):
-            return ("", startIndex)
-
-        try:
-            endIndex = lines.index("#End-%s " % name, startIndex)
-        except ValueError:
-            raise error.MiscError("#End-{} ".format(name) + _("not found"))
-
-        return ("\n".join(lines[startIndex + 1 : endIndex]), endIndex + 1)
-
-    # parse a line containing a config-value in the format detailed in
-    # fileformat.txt. line must have newline stripped from the end
-    # already. returns a (key, value) tuple. if line doesn't match the
-    # format, (None, None) is returned.
-    @staticmethod
-    def parseConfigLine(s: str) -> Tuple[str, str]:
-        pattern = re.compile("#([a-zA-Z0-9-]+) (.*)")
-        m = pattern.search(s)
-        if m:
-            return (m.group(1), m.group(2))
-        else:
-            return (None, None)
 
     # apply new config.
     def applyCfg(self, cfg):
@@ -647,103 +408,6 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
             fd, xml_declaration=True, encoding="UTF-8", pretty_print=True
         )
 
-    # generate Fountain and return it as a string.
-    def generateFountain(self):
-        eleList = self.getElementsAsList()
-        flines = []
-        TWOSPACE = "  "
-        sceneStartsList = ("INT", "EXT", "EST", "INT./EXT", "INT/EXT", "I/E", "I./E")
-
-        # does s look like a fountain scene line:
-        def looksLikeScene(s):
-            s = s.upper()
-            looksGood = False
-            for t in sceneStartsList:
-                if s.startswith(t):
-                    looksGood = True
-                    break
-            return looksGood
-
-        # Generate Title Page
-        def generateTitleString(keyword, titleLine, startAt, linePrefix, lineSuffix):
-            if (len(titleLine) - startAt) > 1:
-                # multi-line
-                flines.append(keyword)
-                for part in titleLine:
-                    if startAt > 0:
-                        startAt -= 1
-                        continue
-                    flines.append("    " + linePrefix + part + lineSuffix)
-            elif len(titleLine) == 1 and keyword == titleLine[0]:
-                flines.append(keyword)
-            else:
-                flines.append(keyword + " " + titleLine[startAt])
-
-        titleNeeded = True
-        kwPattern = re.compile(r"^([A-za-z][^:]+:)")
-        for page in self.titles.pages:
-            for titleLine in page:
-                if titleNeeded and titleLine.isBold and titleLine.isCentered:
-                    generateTitleString("Title:", titleLine.items, 0, "_**", "**_")
-                    titleNeeded = False
-                elif titleLine.items[0] == "by":
-                    generateTitleString("Author:", titleLine.items, 2, "", "")
-                elif kwPattern.match(titleLine.items[0]):
-                    generateTitleString(titleLine.items[0], titleLine.items, 0, "", "")
-                else:
-                    generateTitleString("Contact:", titleLine.items, 0, "", "")
-
-        for ele in eleList:
-            typ, txt = ele
-            lns = txt.split("\n")
-
-            # ensure last element of flines is empty for some types.
-            if typ in (SCENE, ACTION, CHARACTER, TRANSITION, SHOT, ACTBREAK, NOTE):
-                if flines and flines[-1] != "":
-                    flines.append("")
-
-            # special handling of some elements.
-            if typ == SCENE:
-                # if the line would not be recognized as Scene by fountain,
-                # append a "." so it is forced as a scene line.
-                if not looksLikeScene(txt):
-                    txt = "." + txt
-
-            elif typ == ACTION:
-                tmp = []
-                for ln in lns:
-                    if ln and (ln.isupper() or looksLikeScene(txt)):
-                        tmp.append(ln + TWOSPACE)
-                    else:
-                        tmp.append(ln)
-                txt = "\n".join(tmp)
-
-            elif typ == TRANSITION:
-                if not txt.endswith("TO:"):
-                    txt = "> " + txt
-
-            elif typ == DIALOGUE:
-                tmp = []
-                for ln in lns:
-                    if not ln:
-                        tmp.append(TWOSPACE)
-                    else:
-                        tmp.append(ln)
-                txt = "\n".join(tmp)
-
-            elif typ == NOTE:
-                txt = "[[" + txt + "]]"
-
-            elif typ == ACTBREAK:
-                txt = ">" + txt + "<"
-
-            elif typ == SHOT:
-                txt += TWOSPACE
-
-            flines.append(txt)
-
-        return util.toUTF8("\n".join(flines))
-
     # generate RTF and return it as a string.
     def generateRTF(self):
         ls = self.lines
@@ -832,7 +496,7 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
                     break
                 else:
                     raise error.MiscError(
-                        _("Unknown line break style {} in generateRTF".format(lb))
+                        _("Unknown line break style {} in generateRTF").format(lb)
                     )
 
             s += (
@@ -922,6 +586,15 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
         pg = pml.Page(pager.doc)
 
+        # scene numbers: in the PDF when asked for, always on screen
+        # (fountain-native/scenes/4)
+        showNumbers = cfg.pdfShowSceneNumbers or not forPDF
+
+        if doExtra and pager.sceneLabels is None:
+            import trelby.scenenumbers as scenenumbers
+
+            pager.sceneLabels = scenenumbers.labels(self)
+
         # what line we're on, counted from first line after top
         # margin, units = line / 10
         y = 0
@@ -948,10 +621,10 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
                     pager.sceneContNr += 1
 
-                    if cfg.pdfShowSceneNumbers:
+                    if showNumbers and pager.scene:
                         self.addSceneNumbers(
                             pg,
-                            "%d" % pager.scene,
+                            pager.scene,
                             cfg.getType(SCENE).width,
                             y,
                             chX,
@@ -973,11 +646,22 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
                 y += 10
 
+        # first line drawn on this page; with forPDF, act breaks are not
+        # drawn, so this can be after start.
+        first = None
+
         for i in range(start, end + 1):
             line = ls[i]
             tcfg = cfg.getType(line.lt)
 
-            if i != start:
+            # an act break is a marker only and never printed; the text
+            # after it moves up, pagination is left as it is.
+            if forPDF and (line.lt == ACTBREAK):
+                continue
+
+            if first is None:
+                first = i
+            else:
                 y += self.getSpacingBefore(i)
 
             typ = pml.NORMAL
@@ -1051,16 +735,16 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
             if doExtra and (tcfg.lt == SCENE) and self.isFirstLineOfElem(i):
                 pager.sceneContNr = 0
+                pager.scene = pager.sceneLabels.get(i, "")
 
-                if cfg.pdfShowSceneNumbers:
-                    pager.scene += 1
+                if showNumbers and pager.scene:
                     self.addSceneNumbers(
-                        pg, "%d" % pager.scene, tcfg.width, y, chX, chY
+                        pg, pager.scene, tcfg.width, y, chX, chY, i
                     )
 
                 if cfg.pdfIncludeTOC:
-                    if cfg.pdfShowSceneNumbers:
-                        s = "%d %s" % (pager.scene, text)
+                    if cfg.pdfShowSceneNumbers and pager.scene:
+                        s = "%s %s" % (pager.scene, text)
                     else:
                         s = text
 
@@ -1114,25 +798,19 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
         return pg
 
-    def addSceneNumbers(self, pg, s, width, y, chX, chY):
+    # the scene number s left and right of a heading; line is the
+    # heading's line, kept on the ops as sceneLine so a click on the number
+    # can be told apart on screen (-1 for a CONTINUED repeat)
+    def addSceneNumbers(self, pg, s, width, y, chX, chY, line=-1):
         cfg = self.cfg
 
-        pg.add(
-            pml.TextOp(
-                s,
-                cfg.marginLeft - 6 * chX,
-                cfg.marginTop + (y / 10.0) * chY,
-                cfg.fontSize,
-            )
-        )
-        pg.add(
-            pml.TextOp(
-                s,
-                cfg.marginLeft + (width + 1) * chX,
-                cfg.marginTop + (y / 10.0) * chY,
-                cfg.fontSize,
-            )
-        )
+        for x in (
+            cfg.marginLeft - (len(s) + 2) * chX,
+            cfg.marginLeft + (width + 1) * chX,
+        ):
+            op = pml.TextOp(s, x, cfg.marginTop + (y / 10.0) * chY, cfg.fontSize)
+            op.sceneLine = line
+            pg.add(op)
 
     # get topLine, clamping it to the valid range in the process.
     def getTopLine(self):
@@ -1238,6 +916,9 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
                     ret.append(Line(LB_NONE, line.lt, text[0:w]))
                     text = text[w:]
 
+        # the scene number stays on the first line
+        ret[0].num = line.num
+
         return ret
 
     # rewrap paragraph starting at given line. returns the number of lines
@@ -1274,7 +955,7 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
             s += config.lb2str(ls[i - 1].lb)
             s += ls[i].text
 
-        tmp = Line(ls[line2].lb, ls[line1].lt, s)
+        tmp = Line(ls[line2].lb, ls[line1].lt, s, ls[line1].num)
         wrappedLines = self.wrapLine(tmp)
         ls[line1 : line2 + 1] = wrappedLines
 
@@ -1482,18 +1163,6 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
             bottom = self.getElemIndexesFromLine(tmp)[1]
 
         return (top, bottom)
-
-    # return scene number for the given line. if line is -1, return 0.
-    def getSceneNumber(self, line):
-        ls = self.lines
-        sc = SCENE
-        scene = 0
-
-        for i in range(line + 1):
-            if (ls[i].lt == sc) and self.isFirstLineOfElem(i):
-                scene += 1
-
-        return scene
 
     # return how many elements one must advance to get from element
     # containing line1 to element containing line2. line1 must be <=
@@ -1808,6 +1477,11 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
         ln = ls[line]
 
         pos = len(ln.text)
+
+        # an empty line takes the scene number of the line joined into it
+        if not ln.text and not ln.num:
+            ln.num = ls[line + 1].num
+
         ln.text += ls[line + 1].text
         ln.lb = ls[line + 1].lb
 
@@ -1911,6 +1585,21 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
     # pageNr is out of bounds, it is clamped to the valid range. if
     # pagination is out of date and the lines no longer exist, they are
     # clamped to the valid range as well.
+    # pager.sceneContNr as the PDF has it at the start of page pageNr: one
+    # per page since the last scene heading before the page. the screen
+    # draws pages out of sequence and sets it with this.
+    def sceneContNrAt(self, pageNr):
+        first = self.page2lines(pageNr)[0]
+        start = 0
+
+        for i in range(first - 1, -1, -1):
+            if (self.lines[i].lt == SCENE) and self.isFirstLineOfElem(i):
+                start = i
+
+                break
+
+        return max(0, pageNr - 1 - self.line2page(start))
+
     def page2lines(self, pageNr):
         pageNr = util.clamp(pageNr, 1, len(self.pages) - 1)
         last = len(self.lines) - 1
@@ -1929,22 +1618,12 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
         return pages
 
-    # return a list of all scene locations in a [(sceneNumber, startLine),
-    # ...] format. if script does not start with a scene line, that scene
-    # is not included in this list. note that the sceneNumber in the
-    # returned list is a string, not a number.
+    # return the numbered scenes as [(number, startLine), ...], in script
+    # order; a scene not numbered yet is not listed (fountain-native/scenes/4)
     def getSceneLocations(self):
-        ls = self.lines
-        sc = SCENE
-        scene = 0
-        ret = []
+        import trelby.scenenumbers as scenenumbers
 
-        for i in range(len(ls)):
-            if (ls[i].lt == sc) and self.isFirstLineOfElem(i):
-                scene += 1
-                ret.append((str(scene), i))
-
-        return ret
+        return [(n, line) for line, n in scenenumbers.scenesOf(self) if n]
 
     # return a dictionary of all scene names (single-line text elements
     # only, upper-cased, values = None).
@@ -2345,6 +2024,10 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
         atEnd = self.column == len(ln.text)
 
+        # pasting several elements at the start of a scene heading: its
+        # number goes with the heading's text, not with the pasted text
+        moveNum = (self.column == 0) and bool(ln.text) and (len(inLines) != 1)
+
         if (len(ln.text) == 0) and self.isOnlyLineOfElem(self.line):
             ln.lt = inLines[0].lt
 
@@ -2356,6 +2039,11 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
             if not atEnd:
                 self.splitLine()
                 ls[self.line - 1].lb = inLines[0].lb
+
+                if moveNum:
+                    ls[self.line].num = ls[self.line - 1].num
+                    ls[self.line - 1].num = ""
+
                 ls[self.line : self.line] = inLines[1:]
                 self.line += len(inLines) - 2
 
@@ -2507,27 +2195,27 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
             if ln.lt == CHARACTER:
                 if isLast and next and next not in (PAREN, DIALOGUE):
                     msg = _(
-                        "Element type '{}' can not follow type '{}'.".format(
-                            cfg.getType(next).ti.name, tcfg.ti.name
-                        )
+                        "Element type '{}' can not follow type '{}'."
+                    ).format(
+                        cfg.getType(next).ti.name, tcfg.ti.name
                     )
                     break
 
             if ln.lt == PAREN:
                 if isFirst and prev and prev not in (CHARACTER, DIALOGUE):
                     msg = _(
-                        "Element type '{}' can not follow type '{}'.".format(
-                            tcfg.ti.name, cfg.getType(prev).ti.name
-                        )
+                        "Element type '{}' can not follow type '{}'."
+                    ).format(
+                        tcfg.ti.name, cfg.getType(prev).ti.name
                     )
                     break
 
             if ln.lt == DIALOGUE:
                 if isFirst and prev and prev not in (CHARACTER, PAREN):
                     msg = _(
-                        "Element type '{}' can not follow type '{}'.".format(
-                            tcfg.ti.name, cfg.getType(prev).ti.name
-                        )
+                        "Element type '{}' can not follow type '{}'."
+                    ).format(
+                        tcfg.ti.name, cfg.getType(prev).ti.name
                     )
                     break
 
@@ -2924,11 +2612,20 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
     def moveLineEndCmd(self, cs):
         if self.acItems:
+            # accept the completion: one undo step, re-wrapped, like Enter
+            u = undo.SinglePara(self, undo.CMD_MISC, self.line)
+
             self.lines[self.line].text = self.acItems[self.acSel]
+            self.column = len(self.lines[self.line].text)
+
+            self.rewrapPara()
+            self.markChanged()
+
+            u.setAfter(self)
+            self.addUndo(u)
         else:
             self.maybeMark(cs.mark)
-
-        self.column = len(self.lines[self.line].text)
+            self.column = len(self.lines[self.line].text)
 
     def moveLineStartCmd(self, cs):
         self.maybeMark(cs.mark)
@@ -3091,6 +2788,44 @@ Generated with <a href="http://www.trelby.org">Trelby</a>.</p>
 
         self.line = l2
         self.column = len(self.lines[l2].text)
+
+    # select the word at (line, col): mark at its first letter, cursor on
+    # its last (bugs/editor/14). a click just after a word selects it; on a
+    # space or punctuation, nothing is selected and False is returned.
+    def selectWordAt(self, line, col):
+        s = self.lines[line].text
+        col = min(col, len(s))
+
+        if (col == len(s) or util.isWordBoundary(s[col])) and col > 0 and not util.isWordBoundary(s[col - 1]):
+            col -= 1
+
+        if col >= len(s) or util.isWordBoundary(s[col]):
+            return False
+
+        start = col
+        end = col
+
+        while start > 0 and not util.isWordBoundary(s[start - 1]):
+            start -= 1
+
+        while end + 1 < len(s) and not util.isWordBoundary(s[end + 1]):
+            end += 1
+
+        self.clearAutoComp()
+        self.setMark(line, start)
+        self.line = line
+        self.column = end
+
+        return True
+
+    # select the whole element holding line (bugs/editor/15-16): mark at its
+    # start, cursor at its end
+    def selectElementAt(self, line):
+        first, last = self.getElemIndexesFromLine(line)
+        self.clearAutoComp()
+        self.setMark(first, 0)
+        self.line = last
+        self.column = len(self.lines[last].text)
 
     # select all text of the screenplay. sets mark at beginning and moves
     # cursor to the end.

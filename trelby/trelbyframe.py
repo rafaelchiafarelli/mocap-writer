@@ -4,7 +4,6 @@ import copy
 import os
 import os.path
 import signal
-import webbrowser
 from functools import partial
 
 import wx
@@ -13,9 +12,17 @@ import wx.svg
 import trelby
 import trelby.charmapdlg as charmapdlg
 import trelby.commandsdlg as commandsdlg
+import trelby.annotationdlg as annotationdlg
+import trelby.annotations as annotations
+import trelby.biblepanel as biblepanel
 import trelby.config as config
+import trelby.film as film
+import trelby.manual as manual
 import trelby.misc as misc
 import trelby.namesdlg as namesdlg
+import trelby.openfilms as openfilms
+import trelby.relinkdlg as relinkdlg
+import trelby.scriptsettings as scriptsettings
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
 import trelby.splash as splash
 import trelby.util as util
@@ -37,6 +44,25 @@ class MyFrame(wx.Frame):
         self.gd = gd
         self.myApp = myApp
 
+        # every film opened or made (file-format/layout/4); a tab belongs to
+        # the film whose script it holds (bugs/editor/20)
+        self.openFilms = openfilms.OpenFilms()
+
+        # the current tab's film, a film.Film, or None
+        self.film = None
+
+        # its bible (film-bible), a bible.Bible, or None
+        self.bible = None
+
+        # its annotations (fountain-native/notes/1), an
+        # annotations.Annotations, or None; shown on the script when
+        # showAnnotations
+        self.annotations = None
+        self.showAnnotations = False
+
+        # called with no arguments when self.film changes (the bible panel)
+        self.filmListeners = []
+
         self.SetSizeHints(gd.cvars.getMin("width"), gd.cvars.getMin("height"))
 
         self.Move(gd.posX, gd.posY)
@@ -54,6 +80,9 @@ class MyFrame(wx.Frame):
         fileMenu.Append(ID_FILE_SAVE_AS, "(&A) " + _("Save As") + "...")
         fileMenu.Append(ID_FILE_CLOSE, "(&C) " + _("Close\tCTRL-W"))
         fileMenu.Append(ID_FILE_REVERT, "(&R) " + _("Revert"))
+        fileMenu.AppendSeparator()
+        fileMenu.Append(ID_FILE_NEW_FILM, _("New film") + "...")
+        fileMenu.Append(ID_FILE_OPEN_FILM, _("Open film") + "...")
         fileMenu.AppendSeparator()
         fileMenu.Append(ID_FILE_IMPORT, "(&I) " + _("Import") + "...")
         fileMenu.Append(ID_FILE_EXPORT, "(&E) " + _("Export") + "...")
@@ -124,6 +153,10 @@ class MyFrame(wx.Frame):
         viewMenu.AppendCheckItem(
             ID_VIEW_SHOW_FORMATTING, "(&S) " + _("Show formatting")
         )
+        viewMenu.AppendCheckItem(ID_VIEW_BIBLE, "(&B) " + _("Bible") + "\tCTRL-SHIFT-B")
+        viewMenu.AppendCheckItem(
+            ID_VIEW_ANNOTATIONS, "(&A) " + _("Show annotations") + "\tCTRL-SHIFT-N"
+        )
         viewMenu.AppendCheckItem(ID_VIEW_DARK_THEME, "(&T) " + _("Dark theme"))
         viewMenu.Check(ID_VIEW_DARK_THEME, gd.cfgGl.theme == config.THEME_DARK)
         viewMenu.Append(ID_VIEW_FULL_SCREEN, "(&F) " + _("Fullscreen") + "\tF11")
@@ -131,6 +164,13 @@ class MyFrame(wx.Frame):
         scriptMenu = wx.Menu()
         scriptMenu.Append(ID_SCRIPT_FIND_ERROR, "(&F) " + _("Find next error"))
         scriptMenu.Append(ID_SCRIPT_PAGINATE, "(&P) " + _("Paginate"))
+        scriptMenu.Append(
+            ID_SCRIPT_RENUMBER, "(&R) " + _("Renumber all scenes") + "..."
+        )
+        scriptMenu.AppendSeparator()
+        scriptMenu.Append(ID_SCRIPT_ANNOTATE, _("Annotate") + "...\tCTRL-SHIFT-A")
+        scriptMenu.Append(ID_SCRIPT_ANNOTATIONS_HERE, _("Annotations here") + "...")
+        scriptMenu.Append(ID_SCRIPT_ANNOTATIONS_UNATTACHED, _("Unattached annotations") + "...")
         scriptMenu.AppendSeparator()
         scriptMenu.Append(
             ID_SCRIPT_AUTO_COMPLETION, "(&A) " + _("Auto-completion") + "..."
@@ -268,8 +308,16 @@ class MyFrame(wx.Frame):
 
         vsizer.Add(hsizer, 0, wx.EXPAND)
 
-        tmp = misc.MyTabCtrl2(self, -1, self.tabCtrl)
-        vsizer.Add(tmp, 1, wx.EXPAND)
+        # the bible panel and the scripts side by side (film-bible/tree/1);
+        # unsplit while the bible is hidden
+        self.splitter = wx.SplitterWindow(self, -1, style=wx.SP_LIVE_UPDATE)
+        self.splitter.SetMinimumPaneSize(120)
+        self.biblePanel = biblepanel.BiblePanel(self.splitter, -1, self)
+        tmp = misc.MyTabCtrl2(self.splitter, -1, self.tabCtrl)
+        self.scriptsPane = tmp
+        self.splitter.Initialize(tmp)
+        self.biblePanel.Hide()
+        vsizer.Add(self.splitter, 1, wx.EXPAND)
 
         vsizer.Add(wx.StaticLine(self, -1), 0, wx.EXPAND)
 
@@ -307,6 +355,8 @@ class MyFrame(wx.Frame):
 
             self.Bind(wx.EVT_MENU, self.OnNewScript, id=ID_FILE_NEW)
             self.Bind(wx.EVT_MENU, self.OnOpen, id=ID_FILE_OPEN)
+            self.Bind(wx.EVT_MENU, self.OnNewFilm, id=ID_FILE_NEW_FILM)
+            self.Bind(wx.EVT_MENU, self.OnOpenFilm, id=ID_FILE_OPEN_FILM)
             self.Bind(wx.EVT_MENU, self.OnSave, id=ID_FILE_SAVE)
             self.Bind(wx.EVT_MENU, self.OnSaveScriptAs, id=ID_FILE_SAVE_AS)
             self.Bind(wx.EVT_MENU, self.OnImportScript, id=ID_FILE_IMPORT)
@@ -344,9 +394,17 @@ class MyFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.OnViewModeChange, id=ID_VIEW_STYLE_SIDE_BY_SIDE)
             self.Bind(wx.EVT_MENU, self.OnShowFormatting, id=ID_VIEW_SHOW_FORMATTING)
             self.Bind(wx.EVT_MENU, self.OnDarkTheme, id=ID_VIEW_DARK_THEME)
+            self.Bind(wx.EVT_MENU, self.OnViewBible, id=ID_VIEW_BIBLE)
+            self.Bind(wx.EVT_MENU, self.OnViewAnnotations, id=ID_VIEW_ANNOTATIONS)
+            self.Bind(wx.EVT_MENU, self.OnAnnotate, id=ID_SCRIPT_ANNOTATE)
+            self.Bind(wx.EVT_MENU, self.OnAnnotationsHere, id=ID_SCRIPT_ANNOTATIONS_HERE)
+            self.Bind(
+                wx.EVT_MENU, self.OnAnnotationsUnattached, id=ID_SCRIPT_ANNOTATIONS_UNATTACHED
+            )
             self.Bind(wx.EVT_MENU, self.ToggleFullscreen, id=ID_VIEW_FULL_SCREEN)
             self.Bind(wx.EVT_MENU, self.OnFindNextError, id=ID_SCRIPT_FIND_ERROR)
             self.Bind(wx.EVT_MENU, self.OnPaginate, id=ID_SCRIPT_PAGINATE)
+            self.Bind(wx.EVT_MENU, self.OnRenumberScenes, id=ID_SCRIPT_RENUMBER)
             self.Bind(
                 wx.EVT_MENU, self.OnAutoCompletionDlg, id=ID_SCRIPT_AUTO_COMPLETION
             )
@@ -449,19 +507,24 @@ class MyFrame(wx.Frame):
         return newPanel
 
     def setTitle(self, text):
-        self.SetTitle("Trelby - %s" % text)
+        if self.film:
+            self.SetTitle(
+                "Trelby - %s - %s" % (_("film %s") % self.film.root.name, text)
+            )
+        else:
+            self.SetTitle("Trelby - %s" % text)
 
     def setTabText(self, panel, text):
         i = self.findPage(panel)
 
         if i != -1:
-            # strip out ".trelby" suffix from tab names (it's a bit
+            # strip out ".fountain" suffix from tab names (it's a bit
             # complicated since if we open the same file multiple times,
-            # we have e.g. "foo.trelby" and "foo.trelby<2>", so actually
-            # we just strip out ".trelby" if it's found anywhere in the
+            # we have e.g. "foo.fountain" and "foo.fountain-2", so actually
+            # we just strip out ".fountain" if it's found anywhere in the
             # string)
 
-            s = text.replace(".trelby", "")
+            s = text.replace(".fountain", "")
             self.tabCtrl.setTabText(i, s)
 
     # iterates over all tabs and finds out the corresponding page number
@@ -521,6 +584,19 @@ class MyFrame(wx.Frame):
         self.panel.ctrl.updateScreen()
         self.gd.mru.add(filename)
 
+    # select the tab holding filename, or open it like openScript; True if
+    # it was opened now
+    def showScript(self, filename):
+        for i in range(self.tabCtrl.getPageCount()):
+            if self.tabCtrl.getPage(i).ctrl.fileName == filename:
+                self.tabCtrl.selectPage(i)
+
+                return False
+
+        self.openScript(filename)
+
+        return True
+
     def checkFonts(self):
         names = ["Normal", "Bold", "Italic", "Bold-Italic"]
         failed = []
@@ -550,6 +626,7 @@ class MyFrame(wx.Frame):
 
     def OnPageChange(self, page):
         self.panel = self.tabCtrl.getPage(page)
+        self.showFilm(self.filmOf(self.panel.ctrl))
         self.panel.ctrl.SetFocus()
         self.panel.ctrl.updateCommon()
         self.setTitle(self.panel.ctrl.fileNameDisplay)
@@ -592,11 +669,7 @@ class MyFrame(wx.Frame):
             self,
             _("File to open"),
             misc.scriptDir,
-            wildcard="Trelby "
-            + _("files")
-            + " (*.trelby)|*.trelby|"
-            + _("All files")
-            + "|*",
+            wildcard="Fountain (*.fountain)|*.fountain|" + _("All files") + "|*",
             style=wx.FD_OPEN,
         )
 
@@ -605,6 +678,334 @@ class MyFrame(wx.Frame):
             self.openScript(dlg.GetPath())
 
         dlg.Destroy()
+
+    # pick a folder; None if the user cancelled
+    def chooseFilmFolder(self, title):
+        dlg = wx.DirDialog(self, title, misc.scriptDir)
+        path = None
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            misc.scriptDir = os.path.dirname(path)
+
+        dlg.Destroy()
+
+        return path
+
+    # f opened or made: kept with the open films (one from the same root
+    # replaced) and shown with its bible when its script is the current tab
+    def setFilm(self, f):
+        self.openFilms.add(f)
+        self.showFilm(self.filmOf(self.panel.ctrl))
+        self.showBible(True)
+
+    # the open film whose script ctrl holds, an openfilms.OpenFilm, or None
+    def filmOf(self, ctrl):
+        return self.openFilms.withScript(ctrl.fileName)
+
+    # the current tab's film (an OpenFilm, or None for a script of no film)
+    # becomes film, bible and annotations, in the bible panel and the title
+    def showFilm(self, of):
+        f, b = (of.film, of.bible) if of else (None, None)
+
+        if f is self.film and b is self.bible:
+            return
+
+        self.film = f
+        self.bible = b
+        self.annotations = of.annotations if of else None
+        self.biblePanel.setBible(b)
+        self.setTitle(self.panel.ctrl.fileNameDisplay)
+
+        for listener in self.filmListeners:
+            listener()
+
+    # a tab's file changed (open, Save As, a new script): the current tab's
+    # film follows it
+    def scriptFileChanged(self, ctrl):
+        panel = getattr(self, "panel", None)
+
+        if panel is not None and panel.ctrl is ctrl:
+            self.showFilm(self.filmOf(ctrl))
+
+    # File -> New film (file-format/layout/4): film.json in a folder with
+    # none, and the current script saved as the film's script
+    def OnNewFilm(self, event=None):
+        root = self.chooseFilmFolder(_("Folder for the new film"))
+
+        if root is None:
+            return
+
+        try:
+            f = film.Film.create(root, "")
+        except (film.FilmError, OSError) as e:
+            wx.MessageBox(str(e), _("Error"), wx.OK, self)
+
+            return
+
+        ctrl = self.panel.ctrl
+
+        if ctrl.saveFile(str(f.partPath("script"))):
+            # the film was not open yet when the script was saved
+            try:
+                scriptsettings.saveFor(f, ctrl.sp)
+            except Exception as e:
+                wx.MessageBox(str(e), _("Error"), wx.OK, self)
+        else:
+            wx.MessageBox(
+                _("The film was made, but the script was not saved into it."),
+                _("New film"),
+                wx.OK,
+                self,
+            )
+
+        self.setFilm(f)
+
+    # File -> Open film (file-format/layout/4): film.json, then its script
+    # in a tab; what is missing or invalid is listed, the rest opens
+    def OnOpenFilm(self, event=None):
+        root = self.chooseFilmFolder(_("Film folder to open"))
+
+        if root is not None:
+            self.openFilm(root)
+
+    def openFilm(self, root):
+        try:
+            f = film.Film.open(root)
+        except film.FilmError as e:
+            wx.MessageBox(
+                _("This folder does not open as a film:") + "\n\n" + str(e),
+                _("Open film"),
+                wx.OK,
+                self,
+            )
+
+            return
+
+        script = f.partPath("script")
+
+        if script.exists() and self.showScript(str(script)):
+            self.loadFilmSettings(f)
+
+        self.setFilm(f)
+        self.listUnattached(f)
+
+        if f.problems:
+            dlg = relinkdlg.RelinkDlg(self, f.root, f.problems)
+            dlg.ShowModal()
+            dlg.Destroy()
+
+            # the bible and the script may have been found in the dialog
+            f.problems = []
+            self.openFilms.at(f.root).reload()
+            script = f.partPath("script")
+
+            if script.exists() and self.showScript(str(script)):
+                self.loadFilmSettings(f)
+
+            self.showFilm(self.filmOf(self.panel.ctrl))
+
+    # the film's settings record into its script's tab, just opened and the
+    # current one (fountain-native/settings/1)
+    def loadFilmSettings(self, f):
+        ctrl = self.panel.ctrl
+
+        if os.path.realpath(ctrl.fileName or "") == os.path.realpath(str(f.partPath("script"))):
+            scriptsettings.loadFor(f, ctrl.sp)
+            ctrl.sp.markChanged(False)
+            ctrl.updateScreen()
+
+    # the annotations whose text the opened script no longer has (edited in
+    # another tool) are film problems, listed with the rest
+    def listUnattached(self, f):
+        ctrl = self.panel.ctrl
+
+        if self.annotations is None or not self.isFilmScript(ctrl):
+            return
+
+        for rid, p in self.annotations.resolve(ctrl.sp, editing=False).items():
+            if not p.attached:
+                f.problem(_("Annotation %s") % rid, self.annotations.rel(rid), p.why)
+
+    # whether ctrl holds an open film's script
+    def isFilmScript(self, ctrl):
+        return self.filmOf(ctrl) is not None
+
+    # the annotations need the film's script in the current tab
+    def annotationsReady(self):
+        if self.annotations is None or not self.isFilmScript(self.panel.ctrl):
+            wx.MessageBox(
+                _("Annotations belong to a film's script: open the film (File -> Open film) and use its script's tab."),
+                _("Annotations"),
+                wx.OK,
+                self,
+            )
+
+            return False
+
+        return True
+
+    def OnViewAnnotations(self, event=None):
+        self.showAnnotations = self.menuBar.IsChecked(ID_VIEW_ANNOTATIONS)
+        self.panel.ctrl.updateScreen()
+
+    # Script -> Annotate: the selection's text, or the cursor's element
+    def OnAnnotate(self, event=None):
+        if not self.annotationsReady():
+            return
+
+        ctrl = self.panel.ctrl
+        anchor = annotations.anchorAt(ctrl.sp)
+
+        if anchor is None:
+            wx.MessageBox(
+                _("Put the cursor in a numbered scene (a new scene gets its number when the script is saved)."),
+                _("Annotations"),
+                wx.OK,
+                self,
+            )
+
+            return
+
+        scene, element, quote, occurrence = anchor
+        where = _("Scene %s, element %d") % (scene, element) + (
+            ": \"%s\"" % quote if quote else _(" (the whole element)")
+        )
+        dlg = annotationdlg.AnnotationDlg(self, None, where, self.bible)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            try:
+                values = dlg.values()
+                a = self.annotations.add(
+                    dlg.kindWord(), scene, element, quote, occurrence, dlg.text.GetValue().strip()
+                )
+
+                if values:
+                    a.values.extend(values)
+                    self.annotations.save(a, "creator")
+            except Exception as e:
+                wx.MessageBox(str(e), _("Annotations"), wx.OK, self)
+
+        dlg.Destroy()
+        ctrl.updateScreen()
+
+    def editAnnotation(self, rid):
+        a = self.annotations.records[rid]
+        anc = a.anchor
+        where = _("Scene %s") % anc.scene
+
+        if anc.HasField("element"):
+            where += _(", element %d") % anc.element
+
+        if anc.HasField("quote"):
+            where += ": \"%s\"" % anc.quote
+
+        dlg = annotationdlg.AnnotationDlg(self, a, where, self.bible)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            old = type(a)()
+            old.CopyFrom(a)
+
+            try:
+                values = dlg.values()
+                text = dlg.text.GetValue().strip()
+
+                if text:
+                    a.text = text
+                else:
+                    a.ClearField("text")
+
+                del a.values[:]
+                a.values.extend(values)
+                self.annotations.save(a, "creator")
+            except Exception as e:
+                a.CopyFrom(old)
+                wx.MessageBox(str(e), _("Annotations"), wx.OK, self)
+
+        dlg.Destroy()
+
+    # the list of annotations and what the creator does with one
+    def annotationList(self, title, ids, canAttach):
+        items = [(rid, self.annotations.describe(self.annotations.records[rid])) for rid in ids]
+
+        if not items:
+            wx.MessageBox(_("There are none."), title, wx.OK, self)
+
+            return
+
+        dlg = annotationdlg.AnnotationListDlg(self, title, items, canAttach)
+        chosen = dlg.chosen if dlg.ShowModal() == wx.ID_OK else None
+        dlg.Destroy()
+
+        if chosen is None:
+            return
+
+        action, rid = chosen
+
+        try:
+            if action == "edit":
+                self.editAnnotation(rid)
+            elif action == "delete":
+                if wx.MessageBox(
+                    _("Delete this annotation?"), title, wx.YES_NO | wx.NO_DEFAULT, self
+                ) == wx.YES:
+                    self.annotations.delete(rid)
+            elif action == "attach":
+                anchor = annotations.anchorAt(self.panel.ctrl.sp)
+
+                if anchor is None:
+                    wx.MessageBox(_("Put the cursor in a numbered scene first."), title, wx.OK, self)
+                else:
+                    self.annotations.move(rid, *anchor)
+        except Exception as e:
+            wx.MessageBox(str(e), title, wx.OK, self)
+
+        self.panel.ctrl.updateScreen()
+
+    # Script -> Annotations here: on the cursor's text, element or scene
+    def OnAnnotationsHere(self, event=None):
+        if not self.annotationsReady():
+            return
+
+        sp = self.panel.ctrl.sp
+        places = self.annotations.resolve(sp)
+        anchor = annotations.anchorAt(sp)
+        ids = []
+
+        for rid, p in places.items():
+            a = self.annotations.records[rid]
+            onLine = any(l == sp.line for l, _c1, _c2 in p.spans)
+            onScene = anchor and not p.spans and p.attached and a.anchor.scene == anchor[0]
+
+            if onLine or onScene:
+                ids.append(rid)
+
+        self.annotationList(_("Annotations here"), ids, False)
+
+    # Script -> Unattached annotations: those not found in the script, to
+    # re-attach at the cursor or delete
+    def OnAnnotationsUnattached(self, event=None):
+        if not self.annotationsReady():
+            return
+
+        places = self.annotations.resolve(self.panel.ctrl.sp, editing=False)
+        ids = [rid for rid, p in places.items() if not p.attached]
+        self.annotationList(_("Unattached annotations"), ids, True)
+
+    # show or hide the bible panel left of the scripts (View -> Bible)
+    def showBible(self, show):
+        if show and not self.splitter.IsSplit():
+            self.biblePanel.Show()
+            self.splitter.SplitVertically(
+                self.biblePanel, self.scriptsPane, self.FromDIP(biblepanel.BiblePanel.WIDTH)
+            )
+        elif not show and self.splitter.IsSplit():
+            self.splitter.Unsplit(self.biblePanel)
+
+        self.menuBar.Check(ID_VIEW_BIBLE, show)
+
+    def OnViewBible(self, event=None):
+        self.showBible(self.menuBar.IsChecked(ID_VIEW_BIBLE))
 
     def OnSave(self, event=None):
         self.panel.ctrl.OnSave()
@@ -858,6 +1259,9 @@ class MyFrame(wx.Frame):
     def OnPaginate(self, event=None):
         self.panel.ctrl.OnPaginate()
 
+    def OnRenumberScenes(self, event=None):
+        self.panel.ctrl.OnRenumberScenes()
+
     def OnAutoCompletionDlg(self, event=None):
         self.panel.ctrl.OnAutoCompletionDlg()
 
@@ -981,7 +1385,7 @@ class MyFrame(wx.Frame):
         dlg.Show()
 
     def OnHelpManual(self, event=None):
-        webbrowser.open("file://" + misc.getFullPath("trelby/manual.html"))
+        manual.show(self)
 
     def OnAbout(self, event=None):
         win = splash.SplashWindow(self, -1)
@@ -989,6 +1393,23 @@ class MyFrame(wx.Frame):
 
     def OnToolBarMenu(self, event, menu):
         self.PopupMenu(menu)
+
+    # saves every modified script, showing its tab first so a Save As
+    # dialog says which script it is for. returns False as soon as one is
+    # still unsaved (Save As cancelled, or a write error), so the exit can
+    # be called off instead of losing it.
+    def saveAll(self):
+        for i in range(self.tabCtrl.getPageCount()):
+            ctrl = self.tabCtrl.getPage(i).ctrl
+
+            if ctrl.sp.isModified():
+                self.tabCtrl.selectPage(i)
+                ctrl.OnSave()
+
+                if ctrl.sp.isModified():
+                    return False
+
+        return True
 
     def OnCloseWindow(self, event):
         doExit = True
@@ -1002,7 +1423,7 @@ class MyFrame(wx.Frame):
             close_msg_box.SetYesNoLabels(wx.ID_SAVE, "(&D) " + _("Don't save"))
             response = close_msg_box.ShowModal()
             if response == wx.ID_YES:
-                self.OnSave()
+                doExit = self.saveAll()
             elif response == wx.ID_CANCEL:
                 doExit = False
 

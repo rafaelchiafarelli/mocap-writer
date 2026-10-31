@@ -8,7 +8,9 @@ film session, or Rafael asks (`mocap-workflow`, "Bugs").
 
 **How a bug is fixed:** a `fixes/<id>/<name>` branch off `dev`, never this
 initiative's chain. The fix commit sets the bug file's **Status** to
-`Fixed (<date>) — fixes/<id>/<name>` and updates the as-built (its gotcha).
+`Fixed (<date>) — fixes/<id>/<name>` and updates the as-built (its gotcha);
+once the fix is pushed, a follow-up commit deletes the bug file and turns
+every link to it into plain text (Rafael, 2026-10-26).
 
 **Sources:** Rafael's review of unmodified Trelby (2026-10-23) and the
 as-built review against the code (2026-10-24).

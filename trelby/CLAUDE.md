@@ -1,7 +1,8 @@
 # trelby — the application package: screenplay model, wx editor, import/export, reports
 
-**Role:** All of Trelby's code. One flat package of 56 modules: the
-screenplay model (`screenplay`, `line`, `undo`), configuration (`config`,
+**Role:** All of Trelby's code. One flat package of 74 modules: the
+screenplay model (`screenplay`, `line`, `undo`), the native Fountain format
+(`fountain`), configuration (`config`,
 `mypickle`), the wx editor (`trelbyframe` → `trelbypanel` → `trelbyctrl`,
 drawn by `viewmode`), the page language and PDF writer (`pml`, `pdf`), import
 (`myimport`), reports and dialogs. Stage-by-stage behaviour is in
@@ -10,17 +11,20 @@ drawn by `viewmode`), the page language and PDF writer (`pml`, `pdf`), import
 **Entry points:**
 - `trelby.main()` (`trelby/trelby.py:148`) — the GUI program; called by
   `../trelby.py`.
-- `screenplay.Screenplay.load(s, cfgGl)` / `.save()` — the `.trelby` format
-  without any GUI (what the tests use, `tests/u.py`).
+- `fountain.load(text, cfgGl)` / `fountain.generate(sp)` — the native
+  `.fountain` format without any GUI (`tests/test_fountain.py`).
+- `screenplay.Screenplay(cfgGl)` and its commands — the model without any
+  GUI (what the tests use, through `tests/u.py`).
 - `myimport.import*(fileName, frame)` — one function per import format.
 - `python -m trelby.pdfimport import|probe ...` — PDF → `.fountain` from
-  the command line (`trelby/pdfimport.py:1061`).
-- `Screenplay.generate{PDF,RTF,FDX,Html,Fountain,Text}` — exports.
+  the command line (`trelby/pdfimport.py:1076`).
+- `Screenplay.generate{PDF,RTF,FDX,Html,Text}` — exports; Fountain export
+  is `fountain.generate`, the same writer as Save.
 
-**Inputs → Outputs:** `.trelby` scripts, imported `.fdx` / `.celtx` /
+**Inputs → Outputs:** `.fountain` scripts, imported `.fdx` / `.celtx` /
 `.astx` / `.fountain` / `.fadein` / text files, screenplay PDFs (with a
 layout profile), and the config files under
-`misc.confPath` → an edited script saved as `.trelby`, exports (PDF, RTF,
+`misc.confPath` → an edited script saved as `.fountain`, exports (PDF, RTF,
 FDX, HTML, Fountain, text), report PDFs, and the global config and state
 files.
 
@@ -28,19 +32,34 @@ files.
 
 Model and file format
 - `screenplay.py` — `Screenplay`: the script as a flat list of `Line`s, the
-  cursor, selection, pagination, every editing command, undo chain, `.trelby`
-  load/save and all exports; also the `LB_*` and line-type constants. Detail:
+  cursor, selection, pagination, every editing command, undo chain and all
+  exports; also the `LB_*` and line-type constants;
+  `fountainSource` holds the parsed `.fountain` the script came from
+  (`trelby/screenplay.py:66`). Detail:
   [screenplay.as-built.md](screenplay.as-built.md).
-- `line.py` — `Line(lb, lt, text)` (`trelby/line.py:10`); `str(line)` is the
-  saved form, line-break char + type char + text (`trelby/line.py:22`).
-  `fromStr` has no error checking and is for internal storage only (undo).
-- `undo.py` — undo objects: `FullCopy`, `SinglePara`, `ManyElems`,
-  `AnyDifference` (`trelby/undo.py:167-264`); lines are stored as
-  zlib-compressed strings when that is shorter (`trelby/undo.py:62`). The
-  table at `trelby/undo.py:5-30` says which command uses which.
+- `fountain.py` — Fountain 1.1 as the native format, no wx: `parse` keeps
+  each element's exact source and the hidden source before it,
+  `load` builds a `Screenplay`, `generate` writes unchanged elements from
+  their source and edited ones in canonical Fountain (byte-identical round
+  trip), and reports what cannot read back the same. Detail:
+  [fountain.as-built.md](fountain.as-built.md).
+- `line.py` — `Line(lb, lt, text, num)` (`trelby/line.py:16`); `num` is
+  the permanent scene number on a heading's first line
+  (fountain-native/scenes/2), kept if the line's type changes;
+  `str(line)` is line-break char + type char + (`\x01` number `\x01`) +
+  text (`trelby/line.py:33`), the form undo stores lines in, so undo keeps
+  numbers; `copy()`. `fromStr` has no error checking and is for internal
+  storage only (undo).
+- `undo.py` — undo objects: `FullCopy`, `SceneNumbers` (a `FullCopy` that
+  also restores `sceneNumbersIssued`, `sceneTextsIssued` and `sceneMoves`, `trelby/undo.py:185`), `SinglePara`,
+  `ManyElems`, `AnyDifference` (`trelby/undo.py:169-299`); lines are stored as
+  zlib-compressed strings when that is shorter (`trelby/undo.py:64`). The
+  table at `trelby/undo.py:5-32` says which command uses which.
 - `titles.py` — `Titles` (list of title pages) and `TitleString` (lines of
   text at an x/y position in mm, font, style); PML, RTF and the
-  `#Title-String` save form (`trelby/titles.py:207`).
+  `#Title-String` save form (`trelby/titles.py:202`); `sort()` orders each
+  page's strings by y, then x (`trelby/titles.py:54`), called by the
+  title-page dialog.
 - `headers.py` — `Headers` / `HeaderString`: per-page header lines,
   `${PAGE}` replaced by the page number (`trelby/headers.py:90`); default is
   `${PAGE}.` right-aligned on line 1 (`trelby/headers.py:16`).
@@ -52,14 +71,217 @@ Model and file format
   (`trelby/autocompletion.py:13-39`).
 - `autocompletiontype.py` — `AutoCompletionType`: one element type's
   `enabled` flag and item list.
-- `propwords.py` — `find_prop_words(line) -> [(start, end, word)]`
-  (`trelby/propwords.py:15`): runs of 2+ letters, accents included, that are
-  fully upper case (`trelby/propwords.py:9`); the editor underlines them in
-  Action lines, film-bible will reuse it for prop records. No wx.
-- `fileformat.txt` — the `.trelby` format description (sections, config
-  keys, line codes).
-- `sample.trelby` — sample script, loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1357`).
+- `acts.py` — the acts of a script (story-structure/acts/2), no wx:
+  `actsOf(sp) -> [Act]` (`trelby/acts.py:35`), one `Act(name, line,
+  scenes)` per Act break element, `Act n` when its text is empty, sized
+  by the Scene elements up to the next act break; scenes before the first
+  act break are an unnamed first part (`name` None), listed only when
+  there is an act break; `actAt(acts, line)` → index or None
+  (`trelby/acts.py:64`).
+- `scenenumbers.py` — permanent scene numbers (fountain-native/scenes), no
+  wx: `parse("12.A.1") -> (12, "A", 1)` or None for another tool's form
+  (`trelby/scenenumbers.py:32`), `fmt`, `key`; `assign(nums) -> (new,
+  noRoom)` gives every scene without a number one by the rule (a fresh
+  script `1..n`; at the end the next whole number; else the next sibling
+  when the next number is outside the parent, else the first child; no
+  room between a scene and its child, before scene `1` or next to another
+  tool's form; before a first number above `1`, `1`,
+  `trelby/scenenumbers.py:111`); `numberFinished(sp)` gives every
+  finished heading (with text, cursor not in it; in a script with no
+  number at all, every heading) its number, changing only `Line.num`, no
+  undo step (`trelby/scenenumbers.py:317`, fountain-native/scenes/6);
+  `scenesOf(sp) -> [(line, num)]` (non-empty headings),
+  `report(sp)` (the problems as text, shown on open); `prepareSave(sp)`
+  (before a save: `OMITTED` headings for numbers given before and gone,
+  numbers for new scenes, one undo step; or the reasons the save must
+  wait, `trelby/scenenumbers.py:426`), which also takes a vanished
+  number's scene, found again with exactly its text, as moved;
+  `renumberAll(sp)` (`trelby/scenenumbers.py:512`); both add the renames
+  to `sp.sceneMoves` through `addMoves` (composed, `trelby/scenenumbers.py:224`);
+  `sceneTexts(sp)` (`trelby/scenenumbers.py:207`); `labels(sp) -> {line: label}` (the number
+  shown for each heading: its number, or the one it will get in
+  parentheses, `(12.A)`, or `?` when none fits; the same plan as
+  `prepareSave`, `trelby/scenenumbers.py:396`), `labelAt(labs, line)`;
+  `clickWarning`, a `ClickWarning` (`trelby/scenenumbers.py:563`): the
+  warning on a click on a number, skipped for 5 clicks after "do not show
+  this again"; `check(nums) -> [Problem]` (duplicate, order, foreign,
+  missing, `trelby/scenenumbers.py:170`).
+- `propwords.py` — `find_prop_words(line, typingAt) -> [(start, end,
+  run)]` (`trelby/propwords.py:23`): the props of a line, each a run of
+  consecutive fully capitalized words (accents included; a hyphen or
+  apostrophe joins a word, `trelby/propwords.py:10`) separated by spaces
+  only, so punctuation, a digit or a word not fully capitalized ends it; a
+  one-letter word sits inside a run but never starts or ends one; with
+  `typingAt` (the cursor), a run reaching the end of the line with the
+  cursor after it is left out until something ends it (film-bible/links/2,
+  rule of 2026-10-25). The editor underlines them in Action lines;
+  `biblelinks.propPlan` makes prop records from them. No wx.
+- `annotations.py` — the script's annotations (fountain-native/notes/1),
+  no wx: records in the film's `annotations/` part, never in the Fountain
+  text. `sceneElements(sp)` → per scene number its `Element`s (lines and
+  their text joined as Fountain joins them, `trelby/annotations.py:74`);
+  `Annotations(film)` loads them (an invalid one is a film problem); `add`
+  (a shot gets the next number of its scene from
+  `annotations/shot-counters.json`, saved first,
+  `trelby/annotations.py:221-270`); `resolve(sp, editing)` → `{id:
+  Place(spans, line, attached, why)}` (`trelby/annotations.py:283`): the
+  quote in its element, else anywhere in its scene, else (editing) the
+  closest text in its element (`difflib`, ratio 0.6); a quote gone moves
+  the annotation to its whole element, an element gone (found by its last
+  text, or by its index while the scene's element count is unchanged,
+  `followElement`, `trelby/annotations.py:374`) to its scene; a scene gone
+  leaves it unattached on its number until the save writes the `OMITTED`
+  heading; with `editing=False` (just opened) a quote not found is listed
+  as unattached instead of moved (`trelby/annotations.py:293-371`); the
+  anchors that moved are written by `flush` (`trelby/annotations.py:273`);
+  `move` re-attaches, `delete`, `renameScenes` (scenes/5, the shot
+  counters too, `trelby/annotations.py:437`), `describe`; `anchorAt(sp)`
+  → the anchor of a selection inside one element, else of the cursor's
+  whole element (`trelby/annotations.py:491`).
+- `annotationdlg.py` — `AnnotationDlg` (`trelby/annotationdlg.py:18`):
+  kind (fixed once made), text, and the kind's catalog fields generated
+  from `mocap_contracts.annotation` (links by item name; file fields shown,
+  not added here); `values()` keeps an unchanged field's state, source and
+  author, else `creator-approved`. `AnnotationListDlg`
+  (`trelby/annotationdlg.py:216`): Edit / Delete / Attach at the cursor.
+- `scriptsettings.py` — a script's settings as the film's
+  `settings/script-settings.json` (fountain-native/settings/1), no wx:
+  `toRecord(sp, fountainTitle)` → a `mocap_contracts.ScriptSettings` with
+  every field (`trelby/scriptsettings.py:114`); `apply(sp, record,
+  fountainTitle)` puts it into `sp.cfg`, headers, completion lists,
+  locations, the script's words and, while the script's Fountain title
+  block is the one the layout was saved with, the title pages; else the
+  title page stays as Fountain built it and a problem is returned
+  (`trelby/scriptsettings.py:201`); `saveFor(film, sp)` /
+  `loadFor(film, sp)` (an invalid record is a film problem and the script
+  keeps the defaults, `trelby/scriptsettings.py:318-346`).
+- `film.py` — a film root (file-format/layout/1), no wx except the
+  version in `_origin` (`trelby/film.py:457`): `Film.open(root, owner)`
+  reads `film.json` through `mocap_contracts` and lists what is missing or
+  invalid as `Problem(what, where, why)` in `film.problems`
+  (`trelby/film.py:79`); only a missing or invalid `film.json` raises
+  `FilmError`, naming the path and the broken field. `Film.create(root,
+  scriptText)` writes `film.json` with `DEFAULT_PARTS`, the `w` space,
+  `ids/w.json` and the folder parts (`trelby/film.py:121`).
+  `partOf` / `ownerOf` (prefix by segment, `film.json` → writer,
+  `ids/<code>.json` → its space's owner, `trelby/film.py:201-231`);
+  `writeText` (atomic, through a temp file) and `deleteFile` refuse with
+  `OwnerError` a path this program does not own (`checkWrite`,
+  `trelby/film.py:237`). Every `writeText` / `deleteFile` of a text
+  record in a part other than the script and the history appends a
+  `Change` (time, `by`, path, record id, op, before, after) to
+  `history/<yyyy-mm>.jsonl` when this program owns the history
+  (file-format/layout/5, `logs` / `log`, `trelby/film.py:293-342`); an
+  unchanged write logs nothing; `changes(by)` reads the log, oldest
+  first (`trelby/film.py:345`); `revert(changes, by)` puts records back,
+  newest first, and is itself logged (`trelby/film.py:371`).
+  `newId(kind, space)` saves the counter before it
+  returns the id (`trelby/film.py:389`); `addSpace(code, owner, path)`
+  adds an agent's space and its `proposals-<code>` part, checked by the
+  contract before anything is written (`trelby/film.py:424`);
+  `problemsText(problems)`, the problems as text (`trelby/film.py:448`);
+  a missing part's `Problem` carries a `relink.Ref` (`partRef`,
+  `trelby/film.py:152`) whose `apply` saves the new path in `film.json`
+  (`setPartPath`, `trelby/film.py:173`).
+- `openfilms.py` — the films open in the window (bugs/editor/20), no wx:
+  `OpenFilm(film)` holds the film with its `Bible` and `Annotations`
+  (`reload` reads both again, `trelby/openfilms.py:12`); `OpenFilms` keeps
+  one per root's real path: `add` (a root opened again replaces its
+  entry), `at(root)`, `withScript(fileName)` → the film whose script part
+  is that file, or None (`trelby/openfilms.py:44`).
+- `bible.py` — the film bible (film-bible/contract/2), no wx: `Bible(film)`
+  reads every `bible/<map folder>/<slug>/item.json` (children nested in
+  their parent's folder) through `mocap_contracts`; an invalid item, one
+  in the wrong map folder, a duplicate id or a parent that does not match
+  its folder is a film problem (`load` / `loadFolder`,
+  `trelby/bible.py:96-161`); a file value that points at nothing is a
+  problem with a `relink.Ref` (`checkFiles`, `trelby/bible.py:164`).
+  `Item(msg, folder)`; items by id (`get`), `children(map, parentId)` by
+  name; `create` (id from `film.newId`, folder `freeSlug`: the ASCII slug,
+  `-2`, `-3` on a clash, never a file folder name inside an item,
+  `trelby/bible.py:211-246`); `rename` and `move` move the folder and keep
+  the id (`trelby/bible.py:253-296`); `delete` with children; `addFile`
+  copies a file into the item's `photos/`, `plans/`... and returns its
+  path relative to the item (`trelby/bible.py:309`); `setValues(item,
+  field, values, state, source, by, scene, ...)` replaces a field's values
+  for a scene key, the department from the catalog, and puts the item back
+  if the contract refuses it (`trelby/bible.py:340`); `approve` changes a
+  value's state only; `link` / `unlink` scenes (wardrobe: with the
+  character); `scenes(item)`; `renameScenes(moves)` (links and per-scene
+  values, all at once, by `writer`, `trelby/bible.py:434`); `notProps` and
+  `saveNotProps`. Every write
+  goes through `Film.writeText`, so ownership is checked and it is logged.
+- `bibleedit.py` — what the bible form edits (film-bible/maps), no wx:
+  `groups(map)` → `Group`s of catalog `Field`s in catalog order
+  (`trelby/bibleedit.py:42`); `text` (a field's values as text: a list
+  joined by `; `, a number without its unit, a link as the item's name,
+  `trelby/bibleedit.py:61`) and `parse` back (a comma decimal accepted, a
+  bad number a `ValueError`, `trelby/bibleedit.py:80`); `commit` stores
+  what the creator typed, if it changed, as `creator-approved`, source
+  `creator <date>`, by `creator` (`trelby/bibleedit.py:107`); `stateOf`,
+  `describe` (the state button's tooltip), `setState` (state, source and
+  revisit only; put back if the contract refuses it,
+  `trelby/bibleedit.py:159`); `linkChoices` / `setLinks` (keeps the notes
+  of the links kept); `addFiles` (into `FILE_FOLDERS[field]`, else `blend/`
+  or `files/`) / `removeFile`; `sceneChoices` (the item's scenes and the
+  open script's numbers, in script order, `trelby/bibleedit.py:245`);
+  `wornScenes`, `wornText` (`Ana in 1, 2`), `setWorn` (a wardrobe item worn
+  by a character in exactly these scenes, `trelby/bibleedit.py:277`).
+- `bibleform.py` — `BibleForm` (`trelby/bibleform.py:38`): the selected
+  item's form under the bible tree, the same for every map, built from
+  `bibleedit.groups` (`doBuild`, `trelby/bibleform.py:98`): name, id and
+  folder, aliases, scenes; per group a header and per field a label of
+  `LABEL_WIDTH`, a control by type (text, multi-line for description and
+  notes, combo box with the options for a choice, read-only text with
+  Add… for files, also a drop target, and … for links) and a state button
+  (`script` / `ok` / `proposal` / `TBD`, its menu approves a proposal or
+  sets another state, asking the scene for script-stated and the trigger
+  for TBD, `trelby/bibleform.py:324-368`); a per-scene group has a scene
+  combo box. A value is saved when its control loses the focus or Enter
+  is pressed (`OnCommit`, `trelby/bibleform.py:290`); a wardrobe item has
+  a Worn by row: pick a character, tick its scenes (`OnWorn`,
+  `trelby/bibleform.py:432`); the field being typed
+  in is saved before another item is shown (`commitFocused`).
+- `biblelinks.py` — the script's links to the bible (film-bible/links),
+  no wx; each scan returns a plan, applied only with the creator's choice:
+  `locationOf(heading)` (no INT./EXT. prefix, no time of day,
+  `trelby/biblelinks.py:28`), `norm` (case, accents, spaces ignored),
+  `findItem(b, map, name)` (name or alias); `scenesWithLines(sp)` (numbered
+  scenes only), `sceneAt(sp, line)`, `itemsInScene(b, scene)`; links/1:
+  `setPlan(b, sp)` → links for known locations and `{location: [scenes]}`
+  for unknown ones (`trelby/biblelinks.py:109`), `applyLinks`,
+  `createSets` (named as the script writes the location); links/2:
+  `propPlan(b, sp, cursorLine, cursorCol)` → links for known props and
+  `{run: [scenes]}` for runs that are no speaking or bible character, no
+  known prop and not marked "not a prop" (`trelby/biblelinks.py:244`),
+  compared by `propKey` (no case, accents, or plural `s` on a word),
+  `createProps`, `markNotProps`; links/5: `speaker(text)` (a Character
+  element's name without extension or `^`), `characterPlan(b, sp)` →
+  links for known characters and `{name: [scenes]}` for unknown
+  speakers (`trelby/biblelinks.py:175`), `createCharacters`; links/3: `charactersByScene` (the bible
+  characters who speak in each numbered scene, `trelby/biblelinks.py:308`),
+  `linkWardrobe` / `unlinkWardrobe`, `wardrobeGaps` → `[(scene, character
+  id)]` with no wardrobe linked there (`trelby/biblelinks.py:335`);
+  links/4: `copyItem(src, item, dst, parent, by, name)` copies an item with
+  its file folders and child items into `dst` (the same bible or another
+  film's), each with a new id of `dst`'s film, no scene links and no
+  per-scene values, and, into another film, no links to other items
+  (`trelby/biblelinks.py:360`); `usedIn(b, item)` → its scenes, for the
+  warnings (`trelby/biblelinks.py:411`).
+- `relink.py` — missing files of a film (file-format/layout/3), no wx:
+  `Ref(what, rel, kind, apply)` (`trelby/relink.py:24`); `kindOk` by
+  extension (`KINDS`) or folder; `check(root, ref, path)` → the new film
+  path, or why not (outside the film root, wrong kind,
+  `trelby/relink.py:140`); `pattern(oldRel, newRel)` → the changed prefix
+  (`trelby/relink.py:84`), `applyPattern`, `suggest(root, pat, refs)` →
+  the refs the pattern finds at an existing path of the right kind
+  (`trelby/relink.py:122`).
+- `clicks.py` — `ClickCounter` (`trelby/clicks.py:5`), no wx: counts
+  mouse presses on the same line within 0.5 s, the double-click event wx
+  sends with a second press not counted twice (bugs/editor/14-16).
+- `sample.fountain` — sample script (upstream's, converted 2026-10-25),
+  loaded by a test-mode hotkey
+  (`trelby/trelbyctrl.py:1723`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -71,7 +293,7 @@ Configuration
   default, min/max and a save name, serialized as `name:value` lines
   (`trelby/mypickle.py:69-85`). Used by every saved object.
 - `opts.py` — command-line options: `--test`, `--conf <file>`, script
-  names (`trelby/opts.py:8`).
+  names (`trelby/opts.py:5`).
 - `globaldata.py` — `GlobalData`: config file paths, MRU list, window
   geometry and view mode (saved to `state`), the three view-mode objects,
   the global spell-checker dictionary (`trelby/globaldata.py:17`).
@@ -81,20 +303,79 @@ Application and editor (wx)
   and `main()`; loads translations at import time (`trelby/trelby.py:34`).
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
-  current `MyCtrl`; open/import into a tab; exit (`trelby/trelbyframe.py:26`).
+  current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1401`).
+  File → New film… / Open film… (`OnNewFilm`, `OnOpenFilm`,
+  `trelby/trelbyframe.py:733-770`); every open film in `openFilms`, and
+  the current tab's film `film` (`showFilm` on a tab switch and on the
+  current tab's file change, `filmOf`, `scriptFileChanged`,
+  `trelby/trelbyframe.py:703-730`, bugs/editor/20), with
+  `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5), its
+  `bible`, and the bible panel in `splitter` with View → Bible
+  (`showBible`, film-bible/tree/1, `trelby.process.md` Stage 1); its
+  `annotations` and View → Show annotations; Script → Annotate…,
+  Annotations here…, Unattached annotations… (`OnAnnotate`,
+  `trelby/trelbyframe.py:853`, `OnAnnotationsHere`,
+  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:966-994`); on Open
+  film the annotations whose text is gone join the film's problems
+  (`listUnattached`, `trelby/trelbyframe.py:820`).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:795-799`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:1196-1200`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
-  (`trelby/trelbypanel.py:7`).
+  + `ActPanel` at the right (`trelby/trelbypanel.py:9`); the act panel is
+  made before `MyCtrl`, whose constructor already updates it
+  (`trelby/trelbypanel.py:28`).
+- `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:23`): the bible
+  panel (film-bible/tree/1) over `MyFrame.bible`, the current tab's film's
+  (`setBible`, `trelby/biblepanel.py:105`: on another film's bible the
+  field being typed is saved first and nothing stays selected, since ids
+  repeat from film to film; with none, a line saying the tab's script is
+  not a film's): New / New child /
+  Rename / Delete buttons, a `wx.TreeCtrl` with one branch per map
+  (`refresh` rebuilds it from `Bible.children`, keeping the selection and
+  what was expanded, `trelby/biblepanel.py:126`), a right-click menu
+  (`menuItems`, `trelby/biblepanel.py:319`), drag and drop to change an
+  item's parent (`OnEndDrag`, `trelby/biblepanel.py:351`); under the tree
+  in a splitter, the selected item's `BibleForm` (`makeForm` / `showItem`).
+  Errors the film refuses are shown, never raised (`guard`). A line under
+  the buttons names the cursor's scene and the bible items linked to it
+  (`showScene`, called from `MyCtrl.updateCommon`,
+  `trelby/biblepanel.py:465`). From script… opens the links commands
+  (`OnScriptMenu`, `trelby/biblepanel.py:383`): each shows its plan in a
+  checklist (`choose`) and does only what is checked; Link scenes to sets
+  ticks the links to known sets and leaves new sets unticked
+  (`OnLinkSets`, `trelby/biblepanel.py:433`); Find props lists links to
+  known props (ticked) and new props (unticked), then offers to mark the
+  ones not made as not a prop for the film (`OnFindProps`,
+  `trelby/biblepanel.py:492`); Find characters does the same for the
+  speakers (`OnFindCharacters`, `trelby/biblepanel.py:634`); Wardrobe gaps lists the characters in a
+  scene with no wardrobe there (`OnWardrobeGaps`,
+  `trelby/biblepanel.py:536`). The item menu's Copy makes `<name> copy`
+  next to it and names the scenes the original is used in (`OnCopy`,
+  `trelby/biblepanel.py:558`); Copy to another film… opens that film's
+  bible (the open one, when that film is open in the window) and copies
+  into it (`OnCopyToFilm`, `trelby/biblepanel.py:578`).
+- `actpanel.py` — `ActPanel` (`trelby/actpanel.py:12`): 200 px (at 96 dpi)
+  wide, one row per act with its name, `n scenes` and a bar as long as its
+  scene count against the largest act; the cursor's act highlighted; a
+  hint when there is no act break. Own pixel fonts, so the zoom never
+  changes it, and it does not scroll. `update(sp)` repaints only when the
+  acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:586`); repainted on a theme
+  change (`trelby/trelbyctrl.py:635`); `draw(dc, w, h)` does the drawing
+  (`trelby/actpanel.py:60`); a click gives the focus back to the script
+  (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key
   handling, mouse, painting, load/save/import/export/print, dialogs and
   reports for its script. Detail: [trelbyctrl.as-built.md](trelbyctrl.as-built.md).
 - `viewmode.py` — the three screen layouts (draft, layout, side by side):
   where each line is drawn and which line/column a mouse position hits.
   Detail: [viewmode.as-built.md](viewmode.as-built.md).
-- `ids.py` — wx menu ids and `idToLTMap` (right-click "Element type" ids →
-  line types, `trelby/ids.py:82`).
+- `ids.py` — wx menu ids (`ID_FILE_NEW_FILM`, `ID_FILE_OPEN_FILM`,
+  `ID_VIEW_BIBLE`, `ID_VIEW_ANNOTATIONS`, `ID_SCRIPT_ANNOTATE...` for the
+  film) and `idToLTMap` (right-click "Element type" ids →
+  line types, `trelby/ids.py:90`).
 - `misc.py` — platform flags, `progPath` / `confPath` (`misc.init`,
   `trelby/misc.py:23`), `version` (`trelby/misc.py:20`), and shared widgets:
   `MyTabCtrl` (tab bar, `trelby/misc.py:287`), `MyStatus` (status area
@@ -105,9 +386,9 @@ Application and editor (wx)
   `showTempPDF` (temp file + viewer, `trelby/gutil.py:82`).
 - `util.py` — text and number helpers, the text-measuring DC,
   `eventKeyCode` (key code of a char event, `trelby/util.py:209`), `Key`
-  (keyboard shortcut ↔ int, `trelby/util.py:815`), file load/write
-  (`trelby/util.py:994-1080`), PDF viewer lookup and launch
-  (`trelby/util.py:1195-1256`).
+  (keyboard shortcut ↔ int, `trelby/util.py:820`), file load/write
+  (`trelby/util.py:999-1091`), PDF viewer lookup and launch
+  (`trelby/util.py:1206-1269`).
 - `error.py` — `TrelbyError`, `ConfigError`, `MiscError`.
 - `translations.py` — `trelby_translations_load()`: picks the gettext
   catalog in `locales/` from `$LANG` and installs `_` as a builtin
@@ -124,8 +405,10 @@ Page language and PDF
 - `pdf.py` — `generate(doc)`: draws a PML document with ReportLab, one
   `PDF*Op` per PML op, custom TrueType fonts, TOC outline. Detail:
   [pdf.as-built.md](pdf.as-built.md).
-- `mypager.py` — `Pager`: the PML document being built plus scene counters
-  shared across `generatePMLPage` calls (`trelby/mypager.py:6`).
+- `mypager.py` — `Pager`: the PML document being built plus scene state
+  shared across `generatePMLPage` calls (`trelby/mypager.py:6`): `scene`,
+  the current scene's number label, `sceneLabels`
+  (`scenenumbers.labels`, filled when first needed), `sceneContNr`.
 - `fontinfo.py` — PDF core-font metrics: Courier (fixed 600 units), and
   256-entry width tables for Helvetica and Times (`getMetrics`,
   `trelby/fontinfo.py:11`).
@@ -135,7 +418,8 @@ Page language and PDF
 
 Import
 - `myimport.py` — importers for Adobe Story, Fade In, Celtx, Final Draft,
-  Fountain, indented plain text, and the GUI side of PDF import
+  indented plain text, and the GUI side of PDF import (a `.fountain` is
+  imported through `fountain.load`, `MyCtrl.importFile`)
   (`importPdf`: import report window, error box, trace). Detail:
   [myimport.as-built.md](myimport.as-built.md).
 - `pdfimport.py` — PDF import without wx: pdfplumber text lines →
@@ -154,7 +438,8 @@ Reports
 - `scriptreport.py` — `ScriptReport`: line counts per type, interior /
   exterior share, scene and action lengths, speaking characters.
 - `scenereport.py` — `SceneReport` / `SceneInfo`: one entry per scene
-  (heading, lines, pages, speakers).
+  (number label from `scenenumbers.labels`, heading, lines, pages,
+  speakers).
 - `locationreport.py` — `LocationReport`: scenes merged by `Locations`.
 - `characterreport.py` — `CharacterReport` / `CharInfo`: speeches, lines,
   words, pages and scenes per speaking character.
@@ -164,6 +449,12 @@ Reports
   (`trelby/pagelist.py:6`).
 
 Dialogs
+- `relinkdlg.py` — `RelinkDlg` (`trelby/relinkdlg.py:14`): the one
+  warning for a film's problems on open; per missing file Search… (a file
+  or folder dialog, `askPath`) or Skip; a found file is applied at once and
+  its pattern's finds are offered in a `wx.MultiChoiceDialog`, all checked,
+  and applied only when accepted (`OnSearch`, `trelby/relinkdlg.py:134`);
+  an invalid file shows its reason and can't be searched for.
 - `cfgdlg.py` — `CfgDlg`: settings dialog; global pages or script pages
   from `configpages/` (`trelby/cfgdlg.py:21`).
 - `finddlg.py` — `FindDlg`: find and replace, optional element-type filter;
@@ -187,10 +478,16 @@ Dialogs
 - `headersdlg.py` — `HeadersDlg`: edit page headers, PDF preview.
 - `locationsdlg.py` — `LocationsDlg`: group scene headings into locations.
 - `autocompletiondlg.py` — `AutoCompletionDlg`: edit completion lists.
+- `manual.py` — Help → Manual (`MyFrame.OnHelpManual`): `build(prebuilt,
+  docDir)` returns the prebuilt `manual.html` or makes it from
+  `doc/manual.xml` with lxml and the DocBook XSL stylesheets, else raises
+  `ManualError` (`trelby/manual.py:27-50`); `ManualFrame` shows it in a
+  `wx.html.HtmlWindow`, `#` links scroll inside it.
 - `commandsdlg.py` — `CommandsDlg`: HTML list of commands and their keys,
   can be saved to a file.
 - `watermarkdlg.py` — `WatermarkDlg`: one watermarked PDF per line of text
-  (`trelby/watermarkdlg.py:11`).
+  (`trelby/watermarkdlg.py:12`); an unusable custom PDF font
+  stops it with a message.
 
 Data and folders
 - `dict_en.dat` — English word list for the spell checker, one word per
@@ -200,86 +497,85 @@ Data and folders
 - `__init__.py` — empty.
 - `pdfprofiles/` — optional TOML layout profiles for the PDF importer's
   command line, and the profile format (its own `CLAUDE.md`).
-- `configpages/` — the settings-dialog pages (its own `CLAUDE.md`; two of
-  them break when the GUI language is not English).
+- `configpages/` — the settings-dialog pages (its own `CLAUDE.md`).
 - `resources/` — icons, toolbar SVGs, splash logo, quotes (its own
   `CLAUDE.md`).
 - `locales/` — compiled gettext catalogs `en` and `it` (its own `CLAUDE.md`).
 
 ## Key facts / gotchas
+- **A `.fountain` keeps no per-script settings** (page setup, element
+  styles, auto-completion, locations, script dictionary, headers, title
+  layout): a script opened on its own opens with defaults. A film's script
+  keeps them in the film's settings record (`scriptsettings`,
+  fountain-native/settings/1): saved with the script, applied when Open
+  film opens it. Shot is written as upper case + two trailing spaces,
+  Trelby's own convention (`trelby/fountain.py:504`).
 - **`_` is a builtin installed by `translations.trelby_translations_load()`**
-  (`trelby/translations.py:26`); no module imports it. A test file run on its
-  own fails with `NameError: name '_' is not defined` unless something
-  imported `tests/test_validate.py`'s translation load first (seen running
-  `tests/test_cut.py tests/test_myimport.py` alone: 8 failures). The full
-  suite passes because collection imports `test_validate.py`. Bug: [bugs/tooling/1](../initiatives/bugs/epics/tooling/tasks/1-tests-underscore.md).
-- **`_("...".format(x))` formats before translating**, so the translated
-  string is never found for those messages (e.g. `trelby/trelbyctrl.py:135`,
-  `trelby/config.py:1319`). Throughout the package. Bug: [bugs/config-i18n/3](../initiatives/bugs/epics/config-i18n/tasks/3-format-before-translate.md).
+  (`trelby/translations.py:26`); no module imports it. The tests get it
+  from `tests/u.py:16`.
+- **Messages are translated, then formatted:** `_("…{}").format(x)`; a
+  translated string is never an attribute or save name: helpers that build
+  attribute names take a fixed key and a separate label
+  (`tests/test_i18n.py` checks both). English is the only GUI language
+  Mocap Studio needs (Rafael, 2026-10-27): the inherited `it` catalog is
+  not kept in step, so a changed message is simply untranslated there.
 - **`TRELBY_TESTING` env var** makes `config`, `misc`, `util` and `gutil`
   import a `Mock` instead of `wx` (`trelby/config.py:14-19`) and leaves
-  `ConfigGlobal.commands` empty (`trelby/config.py:740-743`).
+  `ConfigGlobal.commands` empty (`trelby/config.py:742-745`).
 - **Text input is Latin-1 only when typed**: `util.isValidInputChar`
   accepts codes 32–255 (`trelby/util.py:219`), but paste, import and
   find/replace do not filter (`util.toInputStr` only removes form feeds and
   turns tabs into `|`, `trelby/util.py:233`). The `toUTF8` / `fromUTF8` /
   `cleanInput` helpers are identity functions left from the Python 2 code
-  (`trelby/util.py:194-245`). Bug: [bugs/import-export/7](../initiatives/bugs/epics/import-export/tasks/7-non-latin1-title-pdf.md).
-- **Non-Latin-1 text in Helvetica or Times** (title pages) raises
-  `IndexError`: `FontMetrics.getTextWidth` indexes a 256-entry table with
-  `ord(ch)` (`trelby/fontinfo.py:57-60`). Courier has no table, so script
-  text is safe. Bug: [bugs/import-export/7](../initiatives/bugs/epics/import-export/tasks/7-non-latin1-title-pdf.md).
-- **Character map → Insert, Name database → Insert and Edit → Insert
-  non-breaking space are broken:** they call
-  `MyCtrl.OnKeyChar(util.MyKeyEvent(...))` (`trelby/charmapdlg.py:27`,
-  `trelby/namesdlg.py:207-208`, `trelby/trelbyctrl.py:960`), but
-  `OnKeyChar` → `util.eventKeyCode` calls `ev.GetUnicodeKey()`
-  (`trelby/trelbyctrl.py:1334`, `trelby/util.py:210`),
-  which `util.MyKeyEvent` does not have (`trelby/util.py:789-810`) →
-  `AttributeError`. Bug: [bugs/editor/1](../initiatives/bugs/epics/editor/tasks/1-insert-char-crash.md).
-- **`opts.py --conf` crashes:** `str(sys.argv[i + 1], "UTF-8", "ignore")`
-  (`trelby/opts.py:28`) raises `TypeError` on a `str` in Python 3. Bug: [bugs/config-i18n/1](../initiatives/bugs/epics/config-i18n/tasks/1-conf-option-crash.md).
-- **`globaldata.makeConfDir` has an invalid `except` clause**
-  `except OSError(os.errno, os.strerror)` (`trelby/globaldata.py:93`);
-  `misc.init` already creates `confPath` (`trelby/misc.py:72-73`), so it is
-  only reached if that failed. Bug: [bugs/config-i18n/5](../initiatives/bugs/epics/config-i18n/tasks/5-makeconfdir-except.md).
-- **`util.loadLatin1EncodedFile` reads bytes:** it passes `"ISO-8859-1"` as
-  the `binary` argument of `loadFile` (`trelby/util.py:1026`). On
-  `MemoryError`, `loadFile` returns an unbound `ret`
-  (`trelby/util.py:1003-1020`). Bug: [bugs/config-i18n/6](../initiatives/bugs/epics/config-i18n/tasks/6-loadlatin1-bytes.md).
-- **`Titles.sort()` does nothing**: it rebinds a local
-  (`trelby/titles.py:60-61`), and its compare function has a typo
-  `(a.x < a.y)` for `(a.x < b.x)` (`trelby/titles.py:58`). Bug: [bugs/editor/9](../initiatives/bugs/epics/editor/tasks/9-titles-sort-noop.md).
-- **Test-mode hotkeys collapsed**: the three `opts.isTest` characters in
-  `OnKeyChar` became U+FFFD in an encoding conversion, so only the first
-  branch (load `sample.trelby`) is reachable (`trelby/trelbyctrl.py:1357-1362`). Bug: [bugs/editor/10](../initiatives/bugs/epics/editor/tasks/10-test-hotkeys.md).
-- **Exit "save" saves only the current tab** (`trelby/trelbyframe.py:1004-1005`
-  → `OnSave`); other modified tabs are discarded. Bug: [bugs/editor/2](../initiatives/bugs/epics/editor/tasks/2-exit-saves-current-tab.md).
-- **Help → Commands → Save** uses `wx.OVERWRITE_PROMPT`
-  (`trelby/commandsdlg.py:94`), which wxPython 4 calls
-  `wx.FD_OVERWRITE_PROMPT` → `AttributeError`. Bug: [bugs/editor/18](../initiatives/bugs/epics/editor/tasks/18-commands-save-overwrite-prompt.md).
-- The MRU list is saved under the **translated** key `_("Files")`
-  (`trelby/globaldata.py:70`), so switching `$LANG` loses the recent-files
-  list. Bug: [bugs/config-i18n/4](../initiatives/bugs/epics/config-i18n/tasks/4-mru-translated-key.md).
+  (`trelby/util.py:194-245`). Helvetica and Times measure a character
+  above U+00FF like `?` (`trelby/fontinfo.py:50-65`); Courier has no table.
 - `misc.progPath` is the repository root (parent of `trelby/`,
   `trelby/misc.py:54`), so resources are addressed as
   `trelby/resources/...` (`trelby/splash.py:39`).
 - `trelby/manual.html`, `dict_en.dat.gz`, `names.txt.gz` and `trelby.1.gz`
-  are build products of `../Makefile`, not in git; Help → Manual opens
-  `trelby/manual.html` (`trelby/trelbyframe.py:984`), which does not exist
-  in a plain checkout. Bug: [bugs/editor/11](../initiatives/bugs/epics/editor/tasks/11-help-manual-missing.md).
-- Two invalid escape sequences in `titles.py`, `" \qc"` / `" \qr"`
-  (`trelby/titles.py:158-160`): `SyntaxWarning` in every test run, output
-  unchanged. Bug: [bugs/tooling/5](../initiatives/bugs/epics/tooling/tasks/5-titles-escapes.md).
+  are build products of `../Makefile`, not in git; without
+  `manual.html`, Help → Manual makes the page from `doc/manual.xml`
+  (`manual.py`).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:192`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:209-214`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:233`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:249-254`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
+- A missing file part other than the script (the settings record) is not
+  a problem on open: it was not written yet (`trelby/film.py:85-89`).
+  Missing folder parts, the script and the writer's `ids/w.json` are; with
+  `ids/w.json` lost, `newId` refuses rather than start again at 1.
+- A bible item's rename or move is logged as its old `item.json` deleted
+  and the new one created; the files that moved with the folder are not
+  logged, so a revert puts the `item.json` back but not the files
+  (`Bible.moveFolder`, `trelby/bible.py:283`).
+- `BibleForm` is rebuilt without `Freeze()`: GTK aborts
+  (`gtk_text_btree_find_line_top`) when multi-line text controls are made
+  in a frozen window (found 2026-10-28). While it rebuilds, `building`
+  stops the destroyed controls' focus-loss from saving into the next item
+  (`trelby/bibleform.py:90-96`).
+- A link's note (e.g. the kind of a relationship) is kept and shown in the
+  state button's tooltip, but the form has no control to type one.
+- The editor underlines every run of capitals, character names and "not a
+  prop" words included: the underline knows nothing of the bible; Find
+  props skips them.
+- A move is found by the scene's exact text: a scene edited as well as
+  moved is a new scene, and its records stay on the old number (now an
+  `OMITTED` heading). Renumber all removes the `OMITTED` headings, and
+  records still naming those numbers keep them (fountain-native/scenes/5).
+- Annotation anchors follow the text only when the script is placed:
+  every paint while annotations are shown, and every save of the film's
+  script. Edits made with annotations hidden are caught up at the save,
+  from the last text each anchor saw.
+- The change log holds text only: `film.json`, the id counters, the
+  script (saved by `MyCtrl.saveFile`, not through `Film`) and binary files
+  are not logged; an agent's own writes are not logged either (it does
+  not own `history/`).
 
 ## Touchpoints
 - Called by: `../trelby.py`; `../tests/` (through `tests/u.py`).
 - Depends on: wxPython 4 (GUI), lxml (HTML/FDX export, XML imports),
-  ReportLab (PDF), pdfplumber (PDF import), stdlib `tomllib` (profiles,
+  ReportLab (PDF), pdfplumber (PDF import), `mocap_contracts` (film
+  root formats, `../third_party/mocap-contracts`, with protobuf), stdlib `tomllib` (profiles,
   Python ≥ 3.11), stdlib `gettext`, `zipfile`, `zlib`, `difflib`.
   Versions: `../docker/requirements.lock`.

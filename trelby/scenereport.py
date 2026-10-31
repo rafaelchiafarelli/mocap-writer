@@ -1,6 +1,7 @@
 import trelby.misc as misc
 import trelby.pdf as pdf
 import trelby.pml as pml
+import trelby.scenenumbers as scenenumbers
 import trelby.screenplay as screenplay
 import trelby.util as util
 from trelby.pagelist import PageList
@@ -13,6 +14,9 @@ class SceneReport:
         # list of SceneInfos
         self.scenes = []
 
+        # the scene numbers (fountain-native/scenes/4)
+        labs = scenenumbers.labels(sp)
+
         line = 0
         while 1:
             if line >= len(sp.lines):
@@ -21,7 +25,7 @@ class SceneReport:
             startLine, endLine = sp.getSceneIndexesFromLine(line)
 
             si = SceneInfo(sp)
-            si.read(sp, startLine, endLine)
+            si.read(sp, startLine, endLine, labs)
             self.scenes.append(si)
 
             line = endLine + 1
@@ -52,12 +56,12 @@ class SceneReport:
 
             tf.addText(
                 _(
-                    "     Lines: {} (%{} action), Pages: {} ({})".format(
-                        si.lines,
-                        util.pct(si.actionLines, si.lines),
-                        len(si.pages),
-                        si.pages,
-                    )
+                    "     Lines: {} (%{} action), Pages: {} ({})"
+                ).format(
+                    si.lines,
+                    util.pct(si.actionLines, si.lines),
+                    len(si.pages),
+                    si.pages,
                 )
             )
 
@@ -73,7 +77,8 @@ class SceneReport:
 # information about one scene
 class SceneInfo:
     def __init__(self, sp):
-        # scene number, e.g. "42A"
+        # scene number, e.g. "42.A", "(43)" for one not given yet, "" for
+        # the part before the first scene
         self.number = None
 
         # scene name, e.g. "INT. MOTEL ROOM - NIGHT"
@@ -92,9 +97,10 @@ class SceneInfo:
         # lines
         self.chars = {}
 
-    # read information for scene within given lines.
-    def read(self, sp, startLine, endLine):
-        self.number = sp.getSceneNumber(startLine)
+    # read information for scene within given lines. labs is
+    # scenenumbers.labels(sp).
+    def read(self, sp, startLine, endLine, labs):
+        self.number = scenenumbers.labelAt(labs, startLine)
 
         ls = sp.lines
 

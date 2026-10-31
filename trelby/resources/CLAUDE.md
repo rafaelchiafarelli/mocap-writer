@@ -4,14 +4,14 @@
 desktop entry. Files are addressed as `trelby/resources/<file>` relative to
 `misc.progPath` (the repository root, `trelby/misc.py:54`).
 **Entry points:** none; read by `MyFrame.addTB` (toolbar SVGs,
-`trelby/trelbyframe.py:195-240`), `MyFrame.mySetIcons` (window icons,
-`trelby/trelbyframe.py:416-424`), `SplashWindow` (`trelby/splash.py:39`,
+`trelby/trelbyframe.py:235-280`), `MyFrame.mySetIcons` (window icons,
+`trelby/trelbyframe.py:474-482`), `SplashWindow` (`trelby/splash.py:39`,
 `trelby/splash.py:124`), `MyFSButton` (`trelby/misc.py:131`).
 **Inputs → Outputs:** static files → bitmaps and text in the GUI.
 
 ## Files
 - Toolbar icons (SVG, 32 × 32, black fills recolored to `#CCCCCC` when the
-  system theme is dark, `trelby/trelbyframe.py:202-203`): `new.svg`,
+  system theme is dark, `trelby/trelbyframe.py:242-243`): `new.svg`,
   `open.svg`, `save.svg`, `saveas.svg`, `close.svg`, `scrset.svg`
   (script settings), `pdf.svg` (print), `import.svg`, `export.svg`,
   `undo.svg`, `redo.svg`, `find.svg`, `view.svg`, `report.svg`,
@@ -34,7 +34,7 @@ desktop entry. Files are addressed as `trelby/resources/<file>` relative to
 ## Key facts / gotchas
 - `trelby.desktop` says `Icon=trelby256`, but `debian/install` copies
   `icon256.png` to `/usr/share/resources` (`debian/install:1`), not to an
-  icon theme directory, so the desktop entry's icon is not found by name. Bug: [bugs/tooling/6](../../initiatives/bugs/epics/tooling/tasks/6-debian-packaging.md).
+  icon theme directory, so the desktop entry's icon is not found by name. (bugs/tooling/6, left as upstream's: `debian/CLAUDE.md`).
 - Licenses: Faenza icons are GPL (allowed for tools under the Mocap Studio
   license rule); the other files have no license note of their own and fall
   under the repository's GPL-3.0-or-later (`setup.cfg`). `quotes.txt` holds
@@ -43,4 +43,4 @@ desktop entry. Files are addressed as `trelby/resources/<file>` relative to
 ## Touchpoints
 - Called by: `trelby/trelbyframe.py`, `trelby/splash.py`, `trelby/misc.py`.
 - Packaged by: `setup.cfg` (`resources/*`), `debian/install`,
-  `tools/update_icns.py` (meant to rebuild `resources_mac/icon.icns`).
+  `tools/update_icns.py` (rebuilds `resources_mac/icon.icns`).

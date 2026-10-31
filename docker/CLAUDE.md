@@ -16,14 +16,19 @@ pytest result.
 ## Files
 - `Dockerfile` — `ubuntu:24.04@sha256:…`; apt installs Python, GTK3 and the
   libraries the prebuilt wxPython wheel links against, DejaVu and Liberation
-  fonts; `/opt/venv` from `requirements.lock` with `--require-hashes`,
+  fonts, `evince` (GPL-2.0+; the PDF viewer for Print and reports),
+  `librsvg2-common` (LGPL-2.1+; GTK's SVG theme assets, the check marks
+  among them, bugs/tooling/10) and
+  `docbook-xsl` (permissive DocBook XSL licence; Help → Manual); `/opt/venv` from `requirements.lock` with `--require-hashes`,
   wxPython from the `extras.wxpython.org` Ubuntu 24.04 wheels;
-  `XDG_CONFIG_HOME=/config`, `GSETTINGS_BACKEND=memory`, user `ubuntu`,
-  default command `python /app/trelby.py` (`docker/Dockerfile:5-25`).
+  `XDG_CONFIG_HOME=/config`, `PYTHONPATH` = the `mocap-contracts`
+  submodule and its `gen/python` under `/app`, `GSETTINGS_BACKEND=memory`, user `ubuntu`,
+  default command `python /app/trelby.py` (`docker/Dockerfile:5-32`).
 - `requirements.in` — direct dependencies: `wxPython==4.2.5`, `lxml`,
   `reportlab`, `pytest`, `pdfplumber` (for pdf-import; MIT, its
-  `pdfminer.six` MIT and `pypdfium2` Apache-2.0/BSD-3).
-- `requirements.lock` — hashed lock of 16 packages (wxPython 4.2.5, lxml
+  `pdfminer.six` MIT and `pypdfium2` Apache-2.0/BSD-3), `protobuf<5`
+  (BSD-3, 4.25.9, for `mocap-contracts`).
+- `requirements.lock` — hashed lock of 17 packages (wxPython 4.2.5, lxml
   6.1.3, reportlab 5.1.0, pillow 13.0.0, pytest 9.1.1, pdfplumber 0.11.10,
   pdfminer.six 20260107, pypdfium2 5.14.0, …). Regenerated with uv run
   from its image (no uv on the host): `docker run --rm --user "$(id -u):$(id -g)"
@@ -32,16 +37,17 @@ pytest result.
   https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-24.04/`
   (the header omits it because of `--no-emit-find-links`); existing pins
   are kept.
-- `run.sh` — builds the image if it does not exist, then runs it as the host
+- `run.sh` — rebuilds the image quietly (cached, as `test.sh`), then runs it as the host
   user with the repo at `/app:ro`, `~/.config/mocap-writer` at `/config`,
-  X11 or WSLg display sockets, every Windows drive `/mnt/<letter>` and the
-  work dir **at their own paths** (`docker/run.sh:46-61`), so the file
-  dialogs show the same paths as WSL; `MOCAP_WRITER_WORK_DIR` = the work
+  X11 or WSLg display sockets, every Windows drive `/mnt/<letter>`, the
+  host home `$HOME` and the work dir **at their own paths**
+  (`docker/run.sh:48-69`), so the file dialogs show the same paths as WSL
+  and every folder under the home can be written (bugs/tooling/8); `MOCAP_WRITER_WORK_DIR` = the work
   dir makes the dialogs start there (`trelby/trelby.py:102-108`). When the
   config holds `Theme:1` (Dark) it adds `GTK_THEME=Adwaita:dark` so menus,
-  toolbar and dialogs are dark (`docker/run.sh:32-37`); a host
+  toolbar and dialogs are dark (`docker/run.sh:34-39`); a host
   `MOCAP_WRITER_PDF_TRACE` (a WSL path) is passed through
-  (`docker/run.sh:39-44`) for the instrumented PDF import.
+  (`docker/run.sh:41-46`) for the instrumented PDF import.
 - `pdfimport.sh` — rebuilds the image quietly, then runs
   `python -m trelby.pdfimport "$@"` with the current directory mounted at
   its own path (also the working directory) and the repo at `/app:ro`
@@ -51,17 +57,28 @@ pytest result.
   `python -m pytest -p no:cacheprovider` in `/app` (`docker/test.sh:6-12`).
 
 ## Key facts / gotchas
-- `run.sh` builds only when the image is missing
-  (`docker/run.sh:18-20`): after a lockfile change, run `test.sh` once (it
-  always builds) or `docker build` by hand, or `run.sh` keeps the old image.
+- Every script rebuilds the image on start; Docker's cache makes that
+  instant unless `docker/` changed (`docker/run.sh:22-24`).
+- The container has no desktop to hand files to: PDFs open in `evince`
+  through WSLg / X11 (`util.getPDFViewer`, `trelby/util.py:1217-1222`), and
+  the manual is shown inside the editor (`trelby/manual.py`). The 2026-10-27
+  image is about 1.5 GB.
 - The repository is mounted read-only, so the program cannot write next to
   its code; Trelby writes only to `$XDG_CONFIG_HOME/trelby` (`/config`),
-  the work dir, the Windows drives and temp files.
-- A work dir inside a Windows drive is mounted twice (the drive and the
-  dir itself, same path); Docker allows the nested mount.
+  the work dir, the host home, the Windows drives and temp files.
+- A work dir inside a Windows drive or the home is mounted twice (the
+  drive or home and the dir itself, same path); Docker allows the nested
+  mount.
+- Without the home mount, the folders above the work dir were empty
+  root-owned stand-ins Docker creates for a mount point: visible in the
+  dialogs, not writable, not the host's folders (bugs/tooling/8, fixed
+  2026-10-25).
+- The container sees the whole host home read-write (as the host user):
+  the editor can open and save anywhere under it, like a native program.
 - `-p no:cacheprovider` because `/app` is read-only.
-- The image has no DocBook toolchain, so `trelby/manual.html` is never
-  built in it.
+- `trelby/manual.html` is still never built in the image (the repo is
+  read-only); Help → Manual makes the page from `doc/manual.xml` with lxml
+  and `docbook-xsl` each time it opens (`trelby/manual.py`).
 - Upstream's `../requirements.txt` and the GitHub workflow still install
   unpinned packages; the lockfile here is what Mocap Studio uses.
 

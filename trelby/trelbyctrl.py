@@ -12,7 +12,9 @@ import trelby.autocompletiondlg as autocompletiondlg
 import trelby.cfgdlg as cfgdlg
 import trelby.config as config
 import trelby.dialoguechart as dialoguechart
+import trelby.error as error
 import trelby.finddlg as finddlg
+import trelby.fountain as fountain
 import trelby.gutil as gutil
 import trelby.headersdlg as headersdlg
 import trelby.locationsdlg as locationsdlg
@@ -20,8 +22,11 @@ import trelby.misc as misc
 import trelby.myimport as myimport
 import trelby.opts as opts
 import trelby.pml as pml
+import trelby.clicks as clicks
 import trelby.propwords as propwords
 import trelby.reports as reports
+import trelby.scenenumbers as scenenumbers
+import trelby.scriptsettings as scriptsettings
 import trelby.screenplay as screenplay
 import trelby.spellcheck as spellcheck
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
@@ -29,7 +34,6 @@ import trelby.spellcheckdlg as spellcheckdlg
 import trelby.titlesdlg as titlesdlg
 import trelby.util as util
 import trelby.watermarkdlg as watermarkdlg
-from trelby.error import TrelbyError
 from trelby.ids import ID_EDIT_REDO, ID_EDIT_UNDO, idToLTMap
 from trelby.line import Line
 
@@ -61,7 +65,7 @@ class MyCtrl(wx.Control):
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
         self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
-        self.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDown)
+        self.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
         self.Bind(wx.EVT_MOTION, self.OnMotion)
         self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseWheel)
@@ -88,6 +92,14 @@ class MyCtrl(wx.Control):
 
     def clearVars(self):
         self.mouseSelectActive = False
+
+        # the annotations placed at the last paint, {id: Place}, for the
+        # hover text (fountain-native/notes/1)
+        self.annotationPlaces = {}
+
+        # counts clicks: two select the word, three the element
+        # (bugs/editor/14-16)
+        self.clicks = clicks.ClickCounter()
 
         # find dialog stored settings
         self.findDlgFindText = ""
@@ -123,25 +135,19 @@ class MyCtrl(wx.Control):
     def getCfgGui(self):
         return self.gd.cfgGui
 
+    # open a script: every file is read as Fountain (UTF-8); .trelby is
+    # refused (fountain-native/io/3)
     def loadFile(self, fileName):
-        s = str(util.loadFile(fileName, self.gd.mainFrame))
-        if s == None:
-            return
-
-        try:
-            (sp, msg) = screenplay.Screenplay.load(s, self.gd.cfgGl)
-        except TrelbyError as e:
-            wx.MessageBox(
-                _("Error loading file:\n\n{}".format(e)),
-                _("Error"),
-                wx.OK,
-                self.gd.mainFrame,
+        if fileName.lower().endswith(".trelby"):
+            self.loadError(
+                _(".trelby files are no longer supported; scripts are Fountain.")
             )
 
             return
 
-        if msg:
-            misc.showText(self.gd.mainFrame, msg, _("Warning"))
+        sp = self.readFountain(fileName)
+        if sp is None:
+            return
 
         self.clearVars()
         self.sp = sp
@@ -152,34 +158,267 @@ class MyCtrl(wx.Control):
         # display the first page
         self.makeLineVisible(self.sp.line)
 
-    # save script to given filename. returns True on success.
-    def saveFile(self, fileName):
-        fileName = str(util.ensureEndsIn(fileName, ".trelby"))
+        # scene number problems are reported, never fixed
+        # (fountain-native/scenes/2)
+        msg = scenenumbers.report(self.sp)
+        if msg:
+            misc.showText(
+                self.gd.mainFrame,
+                _("Scene numbers in {}:").format(os.path.basename(fileName))
+                + "\n\n"
+                + msg,
+                _("Scene numbers"),
+            )
 
-        if util.writeToFile(fileName, self.sp.save(), self.gd.mainFrame):
+    # a .fountain file -> Screenplay, or None after telling the user why
+    def readFountain(self, fileName):
+        data = util.loadFile(fileName, self.gd.mainFrame, binary=True)
+        if data is None:
+            return None
+
+        try:
+            return fountain.load(data.decode("UTF-8"), self.gd.cfgGl)
+        except UnicodeDecodeError:
+            self.loadError(_("The file is not UTF-8 text."))
+
+            return None
+
+    def loadError(self, msg):
+        wx.MessageBox(
+            _("Error loading file:\n\n{}").format(msg),
+            _("Error"),
+            wx.OK,
+            self.gd.mainFrame,
+        )
+
+    # save script to given filename as Fountain (".fountain" is added
+    # unless the name ends in it). returns True on success.
+    def saveFile(self, fileName):
+        fileName = str(util.ensureEndsIn(fileName, ".fountain"))
+
+        if not self.numberScenes():
+            return False
+
+        res = fountain.generate(self.sp)
+
+        if util.writeToFile(fileName, res.text.encode("UTF-8"), self.gd.mainFrame):
+            self.sp.fountainSource = res.source
             self.setFile(fileName)
             self.sp.markChanged(False)
             self.gd.mru.add(fileName)
+            self.saveFilmSettings()
+            self.renameFilmScenes()
+            self.saveFilmAnnotations()
+
+            if res.lost:
+                self.showLost(res.lost)
 
             return True
         else:
             return False
 
-    def importFile(self, fileName):
-        titlePages = False
-        if fileName.endswith("fdx"):
-            lines = myimport.importFDX(fileName, self.gd.mainFrame)
-        elif fileName.endswith("celtx"):
-            lines = myimport.importCeltx(fileName, self.gd.mainFrame)
-        elif fileName.endswith("astx"):
-            lines = myimport.importAstx(fileName, self.gd.mainFrame)
-        elif fileName.endswith("fountain"):
-            lines, titlePages = myimport.importFountain(
-                fileName, self.gd.mainFrame, self.sp.titles.pages
+    # the open film whose script this tab holds (an openfilms.OpenFilm), or
+    # None; its own film, not the current tab's, so Save on exit writes every
+    # film's records (bugs/editor/20)
+    def openFilm(self):
+        frame = self.gd.mainFrame
+
+        return frame.filmOf(self) if hasattr(frame, "filmOf") else None
+
+    # the script is an open film's script: its settings go to the film's
+    # settings record too (fountain-native/settings/1)
+    def saveFilmSettings(self):
+        of = self.openFilm()
+
+        if of is None:
+            return
+
+        try:
+            scriptsettings.saveFor(of.film, self.sp)
+        except Exception as e:
+            wx.MessageBox(
+                _("The script was saved, but its settings were not:") + "\n\n" + str(e),
+                _("Error"),
+                wx.OK,
+                self.gd.mainFrame,
             )
-        elif fileName.endswith("fadein"):
+
+    # scenes moved or renumbered since the last save: the film's records
+    # that name them follow, written through the film so the change log has
+    # them (fountain-native/scenes/5). outside a film there is nothing to
+    # rewrite.
+    def renameFilmScenes(self):
+        moves, self.sp.sceneMoves = self.sp.sceneMoves, {}
+        frame = self.gd.mainFrame
+        of = self.openFilm()
+
+        if not moves or of is None:
+            return
+
+        try:
+            of.bible.renameScenes(moves)
+
+            if of.bible is frame.bible:
+                frame.biblePanel.changed()
+
+            of.annotations.renameScenes(moves)
+        except Exception as e:
+            wx.MessageBox(
+                _("The script was saved, but the records naming its moved scenes were not:")
+                + "\n\n"
+                + str(e),
+                _("Error"),
+                wx.OK,
+                frame,
+            )
+
+    # the annotations' anchors as the saved script has them: placed again
+    # and the ones that moved written (fountain-native/notes/1)
+    def saveFilmAnnotations(self):
+        frame = self.gd.mainFrame
+        of = self.openFilm()
+
+        if of is None:
+            return
+
+        try:
+            of.annotations.resolve(self.sp)
+            of.annotations.flush()
+        except Exception as e:
+            wx.MessageBox(
+                _("The script was saved, but its annotations' places were not:") + "\n\n" + str(e),
+                _("Error"),
+                wx.OK,
+                frame,
+            )
+
+    # the annotations to draw on this script, {line: [(c1, c2)]} and the
+    # lines to mark, or None when they are not shown
+    def annotationMarks(self):
+        frame = self.gd.mainFrame
+
+        of = self.openFilm()
+
+        if not getattr(frame, "showAnnotations", False) or of is None:
+            self.annotationPlaces = {}
+
+            return None
+
+        self.annotationPlaces = of.annotations.resolve(self.sp)
+        spans = {}
+        marks = set()
+
+        for p in self.annotationPlaces.values():
+            for l, c1, c2 in p.spans:
+                spans.setdefault(l, []).append((c1, c2))
+
+            if p.attached and p.line is not None:
+                marks.add(p.line)
+
+        return (spans, marks)
+
+    # give the scenes their numbers before a save (fountain-native/scenes/3).
+    # returns False if the save must wait: a duplicate number or a scene
+    # with no room, and the user does not renumber all scenes.
+    def numberScenes(self):
+        msgs = scenenumbers.prepareSave(self.sp)
+
+        if msgs:
+            text = (
+                _("The script was not saved:")
+                + "\n\n"
+                + "\n".join(msgs)
+                + "\n\n"
+                + _(
+                    "Renumber all scenes 1, 2, 3... and save? Every number "
+                    "given before changes."
+                )
+            )
+
+            if (
+                wx.MessageBox(
+                    text,
+                    _("Scene numbers"),
+                    wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
+                    self.gd.mainFrame,
+                )
+                != wx.YES
+            ):
+                return False
+
+            scenenumbers.renumberAll(self.sp)
+            scenenumbers.prepareSave(self.sp)
+
+        self.updateScreen()
+
+        return True
+
+    # Script -> Renumber all scenes
+    def OnRenumberScenes(self):
+        self.clearAutoComp()
+
+        if (
+            wx.MessageBox(
+                _(
+                    "Renumber every scene 1, 2, 3... in order? Scene numbers "
+                    "are permanent: every number given before changes, and "
+                    "the OMITTED headings are removed. Call sheets, schedules "
+                    "and notes outside the script will no longer match."
+                ),
+                _("Renumber all scenes"),
+                wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
+                self.gd.mainFrame,
+            )
+            != wx.YES
+        ):
+            return
+
+        scenenumbers.renumberAll(self.sp)
+
+        self.makeLineVisible(self.sp.line)
+        self.updateScreen()
+
+    # elements a Fountain save could not write so that they read back the
+    # same (fountain.Result.lost)
+    def showLost(self, lost):
+        msg = _(
+            "These elements cannot be written as Fountain the way they are. "
+            "When the file is opened again they will read back differently "
+            "(another type, or joined to the element before):"
+        )
+        msg += "\n\n"
+
+        for lt, text in lost:
+            msg += "%s: %s\n" % (config.lt2ti(lt).name, text.replace("\n", " / ")[:70])
+
+        misc.showText(self.gd.mainFrame, msg, _("Warning"))
+
+    def importFile(self, fileName):
+        # a .fountain is read like Open (fountain-native/io/5); the tab
+        # stays untitled, as after every import
+        if fileName.lower().endswith(".fountain"):
+            sp = self.readFountain(fileName)
+            if sp is None:
+                return
+
+            self.createEmptySp()
+            self.sp = sp
+            self.refreshCache()
+            self.sp.markChanged(True)
+
+            return
+
+        ext = os.path.splitext(fileName)[1].lower()
+
+        if ext == ".fdx":
+            lines = myimport.importFDX(fileName, self.gd.mainFrame)
+        elif ext == ".celtx":
+            lines = myimport.importCeltx(fileName, self.gd.mainFrame)
+        elif ext == ".astx":
+            lines = myimport.importAstx(fileName, self.gd.mainFrame)
+        elif ext == ".fadein":
             lines = myimport.importFadein(fileName, self.gd.mainFrame)
-        elif fileName.lower().endswith(".pdf"):
+        elif ext == ".pdf":
             lines = myimport.importPdf(fileName, self.gd.mainFrame)
         else:
             lines = myimport.importTextFile(fileName, self.gd.mainFrame)
@@ -190,8 +429,6 @@ class MyCtrl(wx.Control):
         self.createEmptySp()
 
         self.sp.lines = lines
-        if titlePages:
-            self.sp.titles.pages = titlePages
         self.sp.reformatAll()
         self.sp.paginate()
         self.sp.markChanged(True)
@@ -236,6 +473,7 @@ class MyCtrl(wx.Control):
 
         self.setTabText()
         self.gd.mainFrame.setTitle(self.fileNameDisplay)
+        self.gd.mainFrame.scriptFileChanged(self)
 
     def setDisplayName(self, name):
         i = 1
@@ -315,6 +553,9 @@ class MyCtrl(wx.Control):
             return True
 
     def updateScreen(self, redraw=True, setCommon=True):
+        # a finished scene heading gets its number (fountain-native/scenes/6)
+        scenenumbers.numberFinished(self.sp)
+
         self.adjustScrollBar()
 
         if setCommon:
@@ -341,6 +582,14 @@ class MyCtrl(wx.Control):
         self.gd.mainFrame.statusCtrl.SetValues(
             page, pageCnt, cur.ti.name, tabNext, enterNext
         )
+
+        self.panel.actPanel.update(self.sp)
+
+        # the bible's items in the cursor's scene (film-bible/links/1)
+        biblePanel = getattr(self.gd.mainFrame, "biblePanel", None)
+
+        if biblePanel is not None:
+            biblePanel.showScene(self.sp)
 
         canUndo = self.sp.canUndo()
         canRedo = self.sp.canRedo()
@@ -381,6 +630,9 @@ class MyCtrl(wx.Control):
             c.refreshCache()
             c.makeLineVisible(c.sp.line)
             c.adjustScrollBar()
+
+            # in case the theme changed
+            c.panel.actPanel.Refresh(False)
 
         self.updateScreen()
 
@@ -456,9 +708,9 @@ class MyCtrl(wx.Control):
                 if (
                     wx.MessageBox(
                         _(
-                            "The script seems to contain errors.\nAre you sure you want to {} it?".format(
-                                action
-                            )
+                            "The script seems to contain errors.\nAre you sure you want to {} it?"
+                        ).format(
+                            action
                         ),
                         _("Confirm"),
                         wx.YES_NO | wx.NO_DEFAULT,
@@ -508,13 +760,77 @@ class MyCtrl(wx.Control):
             self.updateScreen()
 
         pos = event.GetPosition()
+
+        # a click on a scene number: numbers are permanent, never edited
+        # (fountain-native/scenes/4)
+        if not mark:
+            sceneLine = self.gd.vm.sceneNumberAt(self, pos.x, pos.y)
+
+            if sceneLine is not None:
+                self.sp.gotoPos(sceneLine, 0, False)
+                self.updateScreen()
+                self.sceneNumberWarning()
+
+                return
+
         line, col = self.gd.vm.pos2linecol(self, pos.x, pos.y)
 
         self.mouseSelectActive = True
 
         if line is not None:
             self.sp.gotoPos(line, col, mark)
+
+            if not mark:
+                self.multiClick(line, col, False)
+
             self.updateScreen()
+
+    def OnLeftDClick(self, event):
+        self.SetFocus()
+        pos = event.GetPosition()
+        line, col = self.gd.vm.pos2linecol(self, pos.x, pos.y)
+
+        if line is not None:
+            self.multiClick(line, col, True)
+            self.updateScreen()
+
+    # a second click selects the word under the pointer, a third and more
+    # the whole element
+    def multiClick(self, line, col, isDouble):
+        n = self.clicks.click(time.monotonic(), line, isDouble)
+
+        if n == 2:
+            self.sp.gotoPos(line, col)
+
+            if not self.sp.selectWordAt(line, col):
+                self.sp.selectElementAt(line)
+        elif n >= 3:
+            self.sp.selectElementAt(line)
+
+    def sceneNumberWarning(self):
+        if not scenenumbers.clickWarning.click():
+            return
+
+        dlg = wx.RichMessageDialog(
+            self.gd.mainFrame,
+            _(
+                "Scene numbers are permanent: a scene keeps its number for "
+                "good, so call sheets, schedules and notes that name it stay "
+                "right. A new scene gets its number when the script is saved; "
+                "a scene inserted between two others gets a letter (12.A). "
+                "To number every scene again, use Script > Renumber all "
+                "scenes."
+            ),
+            _("Scene numbers"),
+            wx.OK | wx.ICON_INFORMATION,
+        )
+        dlg.ShowCheckBox(_("Do not show this again for the next 5 clicks"))
+        dlg.ShowModal()
+
+        if dlg.IsCheckBoxChecked():
+            scenenumbers.clickWarning.snooze()
+
+        dlg.Destroy()
 
     def OnLeftUp(self, event):
         self.mouseSelectActive = False
@@ -529,6 +845,24 @@ class MyCtrl(wx.Control):
     def OnMotion(self, event):
         if event.LeftIsDown():
             self.OnLeftDown(event, mark=True)
+        elif self.annotationPlaces:
+            self.annotationTip(event.GetPosition())
+
+    # the hover text of the annotations under the pointer
+    def annotationTip(self, pos):
+        line, col = self.gd.vm.pos2linecol(self, pos.x, pos.y)
+        of = self.openFilm()
+        an = of.annotations if of else None
+        ids = an.at(self.annotationPlaces, line, col) if line is not None and an else []
+        tip = "\n\n".join(an.describe(an.records[rid]) for rid in ids if rid in an.records)
+
+        if tip != getattr(self, "lastTip", ""):
+            self.lastTip = tip
+
+            if tip:
+                self.SetToolTip(tip)
+            else:
+                self.UnsetToolTip()
 
     def OnRightDown(self, event):
         pos = event.GetPosition()
@@ -631,7 +965,7 @@ class MyCtrl(wx.Control):
 
     def OnWatermark(self):
         dlg = watermarkdlg.WatermarkDlg(
-            self.gd.mainFrame, self.sp, self.fileNameDisplay.replace(".trelby", "")
+            self.gd.mainFrame, self.sp, os.path.splitext(self.fileNameDisplay)[0]
         )
         dlg.ShowModal()
         dlg.Destroy()
@@ -805,7 +1139,9 @@ class MyCtrl(wx.Control):
         if not cd:
             return
 
+        # the script's own settings, so a formatted copy uses its widths
         tmpSp = screenplay.Screenplay(self.gd.cfgGl)
+        tmpSp.cfg = copy.deepcopy(self.sp.cfg)
         tmpSp.lines = cd.lines
 
         if formatted:
@@ -901,22 +1237,35 @@ class MyCtrl(wx.Control):
 
         scenes = self.sp.getSceneLocations()
 
+        if not scenes:
+            wx.MessageBox(
+                _(
+                    "No scene has a number yet: numbers are given when the "
+                    "script is saved."
+                ),
+                _("Goto scene"),
+                wx.OK,
+                self.gd.mainFrame,
+            )
+
+            return
+
         def validateFunc(s):
-            if s in [x[0] for x in scenes]:
+            if s.strip().upper() in [x[0] for x in scenes]:
                 return ""
             else:
                 return _("Invalid scene number.")
 
         dlg = misc.TextInputDlg(
             self.gd.mainFrame,
-            _("Enter scene number ({} - {}):".format(scenes[0][0], scenes[-1][0])),
+            _("Enter scene number ({} - {}):").format(scenes[0][0], scenes[-1][0]),
             _("Goto scene"),
             validateFunc,
         )
 
         if dlg.ShowModal() == wx.ID_OK:
             for it in scenes:
-                if it[0] == dlg.input:
+                if it[0] == dlg.input.strip().upper():
                     self.sp.line = it[1]
                     self.sp.column = 0
 
@@ -941,7 +1290,7 @@ class MyCtrl(wx.Control):
 
         dlg = misc.TextInputDlg(
             self.gd.mainFrame,
-            _("Enter page number ({} - {}):".format(pages[0], pages[-1])),
+            _("Enter page number ({} - {}):").format(pages[0], pages[-1]),
             _("Goto page"),
             validateFunc,
         )
@@ -1089,7 +1438,7 @@ class MyCtrl(wx.Control):
             _("Filename to save as"),
             defaultDir=dDir,
             defaultFile=dFile,
-            wildcard="Trelby files (*.trelby)|*.trelby|All files|*",
+            wildcard="Fountain (*.fountain)|*.fountain|" + _("All files") + "|*",
             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
         )
         if dlg.ShowModal() == wx.ID_OK:
@@ -1120,7 +1469,7 @@ class MyCtrl(wx.Control):
 
             choice = dlg.GetFilterIndex()
             if choice == 0:
-                data = sp.generatePDF(True)
+                data = self.makePDF(sp, True)
                 suffix = ".pdf"
             elif choice == 1:
                 data = sp.generateRTF()
@@ -1132,8 +1481,12 @@ class MyCtrl(wx.Control):
                 data = self.getExportHtml(sp)
                 suffix = ".html"
             elif choice == 4:
-                data = sp.generateFountain()
+                res = fountain.generate(sp)
+                data = res.text
                 suffix = ".fountain"
+
+                if res.lost:
+                    self.showLost(res.lost)
             else:
                 data = self.getExportText(sp)
                 suffix = ".txt"
@@ -1150,8 +1503,19 @@ class MyCtrl(wx.Control):
         if not sp:
             return
 
-        s = sp.generatePDF(False)
-        gutil.showTempPDF(s, self.gd.cfgGl, self.gd.mainFrame)
+        s = self.makePDF(sp, False)
+        if s:
+            gutil.showTempPDF(s, self.gd.cfgGl, self.gd.mainFrame)
+
+    # the script as PDF, or None after telling the user why (a custom PDF
+    # font that cannot be used, pdf.getFontForFlags)
+    def makePDF(self, sp, isExport):
+        try:
+            return sp.generatePDF(isExport)
+        except error.TrelbyError as e:
+            wx.MessageBox(str(e), _("Error"), wx.OK, self.gd.mainFrame)
+
+            return None
 
     def OnSettings(self):
         dlg = cfgdlg.CfgDlg(
@@ -1319,7 +1683,7 @@ class MyCtrl(wx.Control):
 
             t = time.time() - t
 
-            print(_("{.5f} seconds per {}".format(t / count, name)))
+            print(_("{.5f} seconds per {}").format(t / count, name))
 
         print("-" * 20)
 
@@ -1354,11 +1718,13 @@ class MyCtrl(wx.Control):
             if addChar:
                 cs.char = chr(kc)
 
-                if opts.isTest and (cs.char == "�"):
-                    self.loadFile("sample.trelby")
-                elif opts.isTest and (cs.char == "�"):
+                # test-mode hotkeys, written as escapes so no encoding
+                # conversion can break them again (bugs/editor/10)
+                if opts.isTest and (cs.char == "\xe5"):  # å
+                    self.loadFile("trelby/sample.fountain")
+                elif opts.isTest and (cs.char == "\xa4"):  # ¤
                     self.cmdTest(cs)
-                elif opts.isTest and (cs.char == "�"):
+                elif opts.isTest and (cs.char == "\xbd"):  # ½
                     self.cmdSpeedTest(cs)
                 else:
                     self.sp.addCharCmd(cs)
@@ -1456,6 +1822,8 @@ class MyCtrl(wx.Control):
                 dc.DrawLine(dp.x1 + 1, dp.y2 + 1, dp.x2 + 1, dp.y2 + 1)
                 dc.DrawLine(dp.x2 + 1, dp.y1 + 1, dp.x2 + 1, dp.y2 + 2)
 
+        amarks = self.annotationMarks()
+
         for t in strings:
             i = t.line
             y = t.y
@@ -1464,6 +1832,29 @@ class MyCtrl(wx.Control):
 
             if i != -1:
                 l = ls[i]
+
+                # scene headings get a hatch behind them, on screen only,
+                # so a scene's start stands out from Action
+                if l.lt == screenplay.SCENE:
+                    dc.SetPen(wx.TRANSPARENT_PEN)
+                    dc.SetBrush(self.gd.cfgGui.sceneHatchBrush)
+                    dc.DrawRectangle(
+                        t.x - 5, y, self.sp.cfg.getType(l.lt).width * fx + 10, lineh
+                    )
+
+                # annotated text, tinted, and a mark in the margin where an
+                # annotation starts, when annotations are shown
+                if amarks:
+                    dc.SetPen(self.gd.cfgGui.annotationPen)
+                    dc.SetBrush(self.gd.cfgGui.annotationBrush)
+
+                    for c1, c2 in amarks[0].get(i, []):
+                        dc.DrawRectangle(t.x + c1 * fx, y, max(c2 - c1, 1) * fx, lineh)
+
+                    if i in amarks[1]:
+                        dc.SetPen(self.gd.cfgGui.textPen)
+                        dc.SetBrush(self.gd.cfgGui.annotationBrush)
+                        dc.DrawRectangle(t.x - 14, y + 2, 7, lineh - 4)
 
                 if l.lt == screenplay.NOTE:
                     dc.SetPen(self.gd.cfgGui.notePen)
@@ -1561,12 +1952,15 @@ class MyCtrl(wx.Control):
 
                     uli.append((t.x, y + lineh - 1, len(t.text) * fx - 1))
 
-                # capitalized words in Action lines are props: underline
-                # them, on screen only. the line's own text, not t.text,
-                # which is all caps if the Action style is.
+                # runs of capitalized words in Action lines are props:
+                # underline them, on screen only; the run being typed at
+                # the cursor waits until something ends it. the line's own
+                # text, not t.text, which is all caps if the Action style is.
                 elif (t.line != -1) and (ls[t.line].lt == screenplay.ACTION):
+                    typing = self.sp.column if t.line == self.sp.line else None
+
                     for start, end, word in propwords.find_prop_words(
-                        ls[t.line].text
+                        ls[t.line].text, typing
                     ):
                         ulines.append(
                             (t.x + start * fx, y + lineh - 1, (end - start) * fx - 1)

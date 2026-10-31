@@ -5,7 +5,7 @@
 Since 2026-10-24 (Rafael) File → Import detects the layout and asks nothing;
 a profile is only for the command line (`--profile`), for a PDF the
 detection reads wrongly, and for tests.
-**Entry points:** `pdfimport.loadProfile(path)` (`trelby/pdfimport.py:166`).
+**Entry points:** `pdfimport.loadProfile(path)` (`trelby/pdfimport.py:167`).
 **Inputs → Outputs:** `python -m trelby.pdfimport probe <pdf>` output (the
 indents and the detected layout) → a hand-written profile → `.fountain`.
 
@@ -14,13 +14,13 @@ indents and the detected layout) → a hand-written profile → `.fountain`.
   settings (A4, Courier 12): scene/action 108, dialogue 180, parenthetical
   223.2, character 266.4, transition 432; drops page numbers, `CONTINUED:`,
   `(CONTINUED)`, `(MORE)`. Built with `probe` on an export of
-  `tests/fixtures/test.trelby`.
+  `tests/fixtures/test.trelby` (now `test.fountain`).
 
 ## Profile format
 
 Positions are PDF points (1/72 in) from the **top left** of the page, as
 `probe` prints them. Keys (any other key is an error,
-`trelby/pdfimport.py:178-192`):
+`trelby/pdfimport.py:179-193`):
 
 | key | default | meaning |
 |---|---|---|
@@ -47,12 +47,12 @@ action otherwise). Prefixes are compared upper-cased and literally, so
 - **TOML table scoping:** a top-level key written after a `[[indent]]`,
   `[[drop]]` or `[dual]` header belongs to that table. Put the top-level
   keys first; the parser rejects the misplaced key with its table's name
-  (`trelby/pdfimport.py:189-192`).
+  (`trelby/pdfimport.py:190-193`).
 - Regexes in basic strings (`"..."`) need doubled backslashes; literal
   strings (`'...'`) do not.
 - No per-program profiles: the planned Final Draft / Celtx / Word / Google
-  Docs profiles were dropped when the layout became detected (task file
-  `initiatives/pdf-import/epics/importer/tasks/1-pdf-importer.md`).
+  Docs profiles were dropped when the layout became detected (pdf-import
+  initiative, task importer/1, now in git history).
 
 ## Touchpoints
 - Read by: `trelby/pdfimport.py` (CLI `--profile`),

@@ -1,19 +1,13 @@
 import os
-import sys
 from typing import Union
 from unittest import mock
 
+import wx
+
 import tests.u as u
+import trelby.myimport as myimport
 import trelby.screenplay as screenplay
 from trelby.line import Line
-
-wxMock = mock.Mock()
-wxMock.ID_OK = 1
-wxMock.Dialog.ShowModal.return_value = wxMock.ID_OK
-
-sys.modules["wx"] = wxMock
-
-import trelby.myimport as myimport
 
 
 def testImportCeltx() -> None:
@@ -30,7 +24,8 @@ def testImportCeltx() -> None:
     importedScreenplay.lines = importedLines
     importedScreenplay.reformatAll()
 
-    expectedScreenplay = u.load()
+    # test.celtx holds the same script with test.trelby's old ending
+    expectedScreenplay = u.withOldEnding(u.load())
 
     for line, expectedLine in zip(importedScreenplay.lines, expectedScreenplay.lines):
         assert line == expectedLine
@@ -41,7 +36,10 @@ def testImportTextFile() -> None:
     location = os.path.dirname(__file__)
     pathToTestScriptTxt = os.path.join(location, "fixtures/test.txt")
 
-    lines = myimport.importTextFile(pathToTestScriptTxt, mock.Mock())
+    # the indent dialog needs a display; answer it with OK
+    with mock.patch.object(myimport, "ImportDlg") as importDlg:
+        importDlg.return_value.ShowModal.return_value = wx.ID_OK
+        lines = myimport.importTextFile(pathToTestScriptTxt, mock.Mock())
 
     expectedScreenplay = u.load()
     for line, expectedLine in zip(lines, expectedScreenplay.lines):

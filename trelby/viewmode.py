@@ -3,16 +3,20 @@
 import trelby.config as config
 import trelby.mypager as mypager
 import trelby.pml as pml
+import trelby.scenenumbers as scenenumbers
 import trelby.util as util
 
 # Number of lines the smooth scroll will try to search. 15-20 is a good
 # number to use with the layout mode margins we have.
 MAX_JUMP_DISTANCE = 17
 
+# side by side: gap between pages, and before the first one (pixels)
+SBS_PAGE_GAP = 10
+
 
 # a piece of text on screen.
 class TextString:
-    def __init__(self, line, text, x, y, fi, isUnderlined):
+    def __init__(self, line, text, x, y, fi, isUnderlined, sceneLine=-1):
 
         # if this object is a screenplay line, this is the index of the
         # corresponding line in the Screenplay.lines list. otherwise this
@@ -27,6 +31,10 @@ class TextString:
         self.text = text
         self.fi = fi
         self.isUnderlined = isUnderlined
+
+        # if this is a scene heading's number, the heading's line; -1
+        # otherwise (fountain-native/scenes/4)
+        self.sceneLine = sceneLine
 
 
 # a page shown on screen.
@@ -112,6 +120,21 @@ class ViewMode:
     # to be off. cs = CommandState. texts and dpages are the usual.
     def pageCmd(self, ctrl, cs, dir, texts, dpages):
         raise Exception("pageCmd " + _("not implemented"))
+
+    # the line of the scene heading whose number is at position (x, y)
+    # (screen coordinates), or None (fountain-native/scenes/4)
+    def sceneNumberAt(self, ctrl, x, y):
+        lineh = self.getLineHeight(ctrl)
+
+        for t in self.getScreen(ctrl, True)[0]:
+            if (
+                t.sceneLine >= 0
+                and t.x <= x < t.x + len(t.text) * t.fi.fx
+                and t.y <= y < t.y + lineh
+            ):
+                return t.sceneLine
+
+        return None
 
     # semi-generic implementation, for use by Draft and Layout modes.
     def pos2linecolGeneric(self, ctrl, x, y):
@@ -217,6 +240,9 @@ class ViewModeDraft(ViewMode):
 
         texts = []
 
+        # scene numbers, left of their headings (fountain-native/scenes/4)
+        labs = scenenumbers.labels(ctrl.sp) if doExtra else {}
+
         while (y < height) and (i < length):
             y += int((ctrl.sp.getSpacingBefore(i) / 10.0) * fyd)
 
@@ -237,17 +263,15 @@ class ViewModeDraft(ViewMode):
             fi = cfgGui.tt2fi(tcfg.screen)
 
             extraIndent = 1 if ctrl.sp.needsExtraParenIndent(i) else 0
+            x = cox + marginLeft + (tcfg.indent + extraIndent) * fi.fx
 
-            texts.append(
-                TextString(
-                    i,
-                    text,
-                    cox + marginLeft + (tcfg.indent + extraIndent) * fi.fx,
-                    y,
-                    fi,
-                    tcfg.screen.isUnderlined,
+            texts.append(TextString(i, text, x, y, fi, tcfg.screen.isUnderlined))
+
+            if i in labs:
+                lab = labs[i]
+                texts.append(
+                    TextString(-1, lab, x - (len(lab) + 2) * fi.fx, y, fi, False, i)
                 )
-            )
 
             y += fyd
             i += 1
@@ -301,8 +325,11 @@ class ViewModeLayout(ViewMode):
         topLine = ctrl.sp.getTopLine()
         pageNr = ctrl.sp.line2page(topLine)
 
-        if doExtra and ctrl.sp.cfg.pdfShowSceneNumbers:
-            pager.scene = ctrl.sp.getSceneNumber(ctrl.sp.page2lines(pageNr)[0] - 1)
+        if doExtra:
+            pager.sceneLabels = scenenumbers.labels(ctrl.sp)
+            pager.scene = scenenumbers.labelAt(
+                pager.sceneLabels, ctrl.sp.page2lines(pageNr)[0] - 1
+            )
 
         # find out starting place (if something bugs, generatePMLPage
         # below could return None, but it shouldn't happen...)
@@ -339,10 +366,8 @@ class ViewModeLayout(ViewMode):
                 if pageNr >= len(ctrl.sp.pages):
                     break
 
-                # we'd have to go back an arbitrary number of pages to
-                # get an accurate number for this in the worst case,
-                # so disable it altogether.
-                pager.sceneContNr = 0
+                # the number the PDF would have here (bugs/editor/8)
+                pager.sceneContNr = ctrl.sp.sceneContNrAt(pageNr)
 
                 if pageCache:
                     pg = pageCache.getPage(pager, pageNr)
@@ -379,6 +404,7 @@ class ViewModeLayout(ViewMode):
                         ypos,
                         cfgGui.fonts[op.flags & 3],
                         op.flags & pml.UNDERLINED,
+                        getattr(op, "sceneLine", -1),
                     )
                 )
 
@@ -433,18 +459,20 @@ class ViewModeSideBySide(ViewMode):
         mm2p = ctrl.mm2p
 
         # gap between pages (+ screen left edge)
-        pageGap = 10
+        pageGap = SBS_PAGE_GAP
 
-        # how many pages fit on screen
-        pageCnt = max(1, (width - pageGap) // (ctrl.pageW + pageGap))
+        pageCnt = self.pageCount(ctrl)
 
         pager = mypager.Pager(ctrl.sp.cfg)
 
         topLine = ctrl.sp.getTopLine()
         pageNr = ctrl.sp.line2page(topLine)
 
-        if doExtra and ctrl.sp.cfg.pdfShowSceneNumbers:
-            pager.scene = ctrl.sp.getSceneNumber(ctrl.sp.page2lines(pageNr)[0] - 1)
+        if doExtra:
+            pager.sceneLabels = scenenumbers.labels(ctrl.sp)
+            pager.scene = scenenumbers.labelAt(
+                pager.sceneLabels, ctrl.sp.page2lines(pageNr)[0] - 1
+            )
 
         pagesDone = 0
 
@@ -452,10 +480,8 @@ class ViewModeSideBySide(ViewMode):
             if (pagesDone >= pageCnt) or (pageNr >= len(ctrl.sp.pages)):
                 break
 
-            # we'd have to go back an arbitrary number of pages to get an
-            # accurate number for this in the worst case, so disable it
-            # altogether.
-            pager.sceneContNr = 0
+            # the number the PDF would have here (bugs/editor/8)
+            pager.sceneContNr = ctrl.sp.sceneContNrAt(pageNr)
 
             if pageCache:
                 pg = pageCache.getPage(pager, pageNr)
@@ -482,6 +508,7 @@ class ViewModeSideBySide(ViewMode):
                         int(sy + op.y * mm2p),
                         cfgGui.fonts[op.flags & 3],
                         op.flags & pml.UNDERLINED,
+                        getattr(op, "sceneLine", -1),
                     )
                 )
 
@@ -536,8 +563,29 @@ class ViewModeSideBySide(ViewMode):
 
         return (line, column)
 
+    # how many pages fit on screen
+    def pageCount(self, ctrl):
+        width = ctrl.GetClientSize()[0]
+
+        return max(1, (width - SBS_PAGE_GAP) // (ctrl.pageW + SBS_PAGE_GAP))
+
+    # the screen shows whole pages from the top line's page on: scrolling
+    # down makes the line's page the last one shown, scrolling up the first,
+    # anything else (or recenterOnScroll) puts it in the middle
+    # (bugs/editor/7)
     def makeLineVisible(self, ctrl, line, texts, direction=config.SCROLL_CENTER):
-        ctrl.sp.setTopLine(line)
+        pageNr = ctrl.sp.line2page(line)
+        cnt = self.pageCount(ctrl)
+        recenter = ctrl.sp.cfgGl.recenterOnScroll
+
+        if (direction == config.SCROLL_DOWN) and not recenter:
+            first = pageNr - cnt + 1
+        elif (direction == config.SCROLL_UP) and not recenter:
+            first = pageNr
+        else:
+            first = pageNr - cnt // 2
+
+        ctrl.sp.setTopLine(ctrl.sp.page2lines(max(1, first))[0])
 
     def pageCmd(self, ctrl, cs, dir, texts, dpages):
         if dir < 0:
