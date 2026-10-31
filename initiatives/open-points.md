@@ -5,6 +5,10 @@ Everything still open, in one list, to pick the work up again (Rafael,
 is settled, record the decision there and remove its line here. Bugs are
 not listed: they are the backlog in `bugs/bugs.md`.
 
+Settled on 2026-10-31 and removed from here: how agents write proposals —
+static files, option (a), no agent on the writer side
+([agent-proposals](agent-proposals/agent-proposals.md)).
+
 Settled on 2026-10-30 and removed from here: fountain-native settings/1,
 scenes/5 and notes/1, done (`mocap-contracts` `v0.6.0`).
 
@@ -32,10 +36,10 @@ nothing is waiting to be implemented in this repository.
 
 ## Decisions for Rafael
 
-- **How agents write proposals** — (a) they write `item.json` and the
-  writer refuses an invalid file, or (b) a validating `bible propose`
-  command; deferred to the mocap-preprod planning (preprod-link, done
-  2026-10-31: git log -- initiatives/preprod-link).
+- **The proposal file's form and the agents' space codes** — asked of the
+  mocap-preprod planning (a proposal-only bible item, or a new
+  `mocap-contracts` message; one space per agent or one shared); the
+  [agent-proposals](agent-proposals/agent-proposals.md) tasks wait for it.
 
 ## Work for another repository
 
@@ -43,8 +47,9 @@ nothing is waiting to be implemented in this repository.
   there): pin `mocap-contracts` `v0.7.0`; the specialists read
   `bible/scene-index.json`, `bible/` and the latest
   `bible/sync/*-changes.json`, and cite scene numbers and item ids; after
-  a sync a specialist works only on what the change set touched; how
-  proposals are written (the decision above); the Copilot adapters
+  a sync a specialist works only on what the change set touched;
+  proposals written as static files into the agent's own part
+  (agent-proposals); the Copilot adapters
   regenerated with `scripts/sync_agents.py` in the same commit as each
   agent change. preprod-link's gate (a specialist run citing the ids) was
   waived with the others on 2026-10-31.
