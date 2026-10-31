@@ -201,14 +201,21 @@ Model and file format
   (`trelby/sceneindex.py:192`).
 - `changeset.py` — the change set between two scene indexes
   (preprod-link/contract/2), no wx: `diff(old, new, time)` → a
-  `mocap_contracts.ChangeSet` (`trelby/changeset.py:68`), scenes matched
+  `mocap_contracts.ChangeSet` (`trelby/changeset.py:64`), scenes matched
   by number: removed, added, moved (not in the longest run of common
-  scenes in the same order, `_kept`, `trelby/changeset.py:30`; old and new
+  scenes in the same order, `_kept`, `trelby/changeset.py:31`; old and new
   order), heading changed, text changed (the scene's hash: a heading change
   is also a text change), characters entered / left and props added /
   removed (by bible id, else by the name as compared), set link changed;
   `from_hash` / `to_hash` the indexes' `indexHash` (absent on a first
   sync, `old` None: every scene added).
+- `sync.py` — Sync to spec's snapshot and diff (preprod-link/sync/1), no
+  wx: `run(film, b, sp)` → a `Run(index, changes, rel)`
+  (`trelby/sync.py:48`): the scene index now, its change set against
+  `lastIndex` (`<bible part>/sync/last-sync.json`, None before the first
+  accept), written to `<bible part>/sync/<yyyymmddThhmmssZ>-changes.json`
+  and nothing else; `accept(film, r)` writes the run's index as the
+  snapshot and as the agents' `scene-index.json` (`trelby/sync.py:63`).
 - `openfilms.py` — the films open in the window (bugs/editor/20), no wx:
   `OpenFilm(film)` holds the film with its `Bible` and `Annotations`
   (`reload` reads both again, `trelby/openfilms.py:12`); `OpenFilms` keeps
