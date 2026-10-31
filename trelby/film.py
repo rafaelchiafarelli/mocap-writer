@@ -182,6 +182,19 @@ class Film:
         self.index = index
         self.saveIndex()
 
+    # add a part (import-to-film: `source`); a folder part's folder is made.
+    # the contract checks the new index before it is saved
+    def addPart(self, name, rel):
+        index = mc.Film()
+        index.CopyFrom(self.index)
+        index.parts.add(name=name, path=rel, owner=cf.WRITER)
+        mc.to_json(index)
+        self.index = index
+        self.saveIndex()
+
+        if rel.endswith("/"):
+            (self.root / rel).mkdir(parents=True, exist_ok=True)
+
     # the part named name, or None
     def part(self, name):
         for p in self.index.parts:
