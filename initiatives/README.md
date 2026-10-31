@@ -24,4 +24,8 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 
 11. **front-matter** — a film's title page and three optional pages (overview, pitch, argument) as a record, edited in a form, printed before the script, the Fountain title block written from it, and the Fountain import options (done 2026-10-31, gate waived; history: git log -- initiatives/front-matter)
 
+12. **workflow-link** — the creator decides the agents' proposals and answers their requests in the review view, from the film's workflow database (planned 2026-10-31; needs `mocap-contracts` `v0.8.0`)
+
+13. **versioning** — one versioning system for the whole workflow (asked by Rafael 2026-10-31; to be planned)
+
 `film-bible` needs `fountain-native/scenes` (scene numbers). `preprod-link` needs `film-bible`. `film-bible`, `preprod-link` and `fountain-native/settings/1` (per-script settings, was io/2) need `file-format/layout/1`. `pdf-import`, `editor-ux` and `spellcheck` need nothing.
