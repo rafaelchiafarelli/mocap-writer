@@ -9,7 +9,7 @@ paging and hit testing; it draws nothing itself except in `drawTexts`.
 
 ## Classes
 
-- `TextString(line, text, x, y, fi, isUnderlined)` (`trelby/viewmode.py:18`)
+- `TextString(line, text, x, y, fi, isUnderlined)` (`trelby/viewmode.py:244`)
   — one piece of text at pixel `(x, y)` from the widget's top-left;
   `line` is the index in `Screenplay.lines`, or −1 for generated text
   (headers, `CONTINUED:`, `(MORE)`); `fi` is a `config.FontInfo`.
@@ -47,7 +47,7 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:77-90`):
   is the screen font for the type's screen style (`cfgGui.tt2fi`). Text is
   upper-cased if the type's screen style says caps. With `doExtra`, a
   scene heading's number label is drawn left of it, as a −1 `TextString`
-  (`trelby/viewmode.py:244`, fountain-native/scenes/4).
+  (`trelby/viewmode.py:18`, fountain-native/scenes/4).
 - **Layout** (`trelby/viewmode.py:306-423`): builds PML pages from the page
   containing the top line, with `generatePMLPage(..., forPDF=False,
   doExtra)`, and converts every `TextOp`'s millimeter position with
@@ -60,7 +60,7 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:77-90`):
   `trelby/viewmode.py:525-528`; draft `trelby/viewmode.py:284-290`):
   `paperWidth / chX * fonts[NORMAL].fx` — page width in characters times the
   screen font's character width. `MyCtrl.refreshCache` derives `mm2p` from it
-  (`trelby/trelbyctrl.py:126-129`).
+  (`trelby/trelbyctrl.py:127-130`).
 - `getLineHeight`: `fontYdelta` in draft, `chY * mm2p + 1` otherwise
   (`trelby/viewmode.py:281-282`, `trelby/viewmode.py:425-428`).
 
@@ -95,8 +95,8 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:77-90`):
 - **A new view mode**: subclass `ViewMode`, implement the seven methods,
   add a `VIEWMODE_*` constant and instance in `GlobalData`
   (`trelby/globaldata.py:25-29`, `trelby/globaldata.py:79-83`), a menu item
-  and handler in `MyFrame` (`trelby/trelbyframe.py:146-158`,
-  `trelby/trelbyframe.py:1393-1429`), and widen the `ViewMode` range in
+  and handler in `MyFrame` (`trelby/trelbyframe.py:147-159`,
+  `trelby/trelbyframe.py:1408-1444`), and widen the `ViewMode` range in
   `GlobalData` (`trelby/globaldata.py:62-68`).
 
 ## Gotchas
@@ -116,7 +116,7 @@ Returns `(texts, dpages)` (`trelby/viewmode.py:77-90`):
   before the page (`trelby/viewmode.py:329`, `trelby/viewmode.py:472`), and `sceneContNr`
   (`CONTINUED (2)`) from `Screenplay.sceneContNrAt(pageNr)`, the number the
   PDF has there (`trelby/viewmode.py:370`, `trelby/viewmode.py:484`,
-  `trelby/screenplay.py:1591`).
+  `trelby/screenplay.py:1598`).
 - `ViewModeSideBySide.makeLineVisible` (`trelby/viewmode.py:576`) moves by
   whole pages: scrolling down makes the line's page the last one shown,
   up the first, otherwise (or with `recenterOnScroll`) the middle one;
