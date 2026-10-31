@@ -100,7 +100,10 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   writes nothing, the change log has the write; an invalid file is a
   problem; an older film gets the part on first save; title/1: record →
   block, block → record, a film opened with a block and no record keeps
-  it, the save writes the block from the record. The form and the
+  it, the save writes the block from the record; print/1: the overview
+  page (cast, sets with children, acts with pages and scenes), the pitch
+  and a multi-page argument, nothing included adds no page; the script's
+  first page follows. The form and the
   panel node need a display: checked through the real window (2026-10-31).
 - `test_spellcheck.py` — spellcheck/pt-br/1: a correct pt-BR scene
   (accents, plurals, conjugated verbs, INT.) has no unknown word in pt-BR;
