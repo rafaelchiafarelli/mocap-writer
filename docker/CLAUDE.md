@@ -16,12 +16,14 @@ pytest result.
 ## Files
 - `Dockerfile` — `ubuntu:24.04@sha256:…`; apt installs Python, GTK3 and the
   libraries the prebuilt wxPython wheel links against, DejaVu and Liberation
-  fonts, `evince` (GPL-2.0+; the PDF viewer for Print and reports) and
+  fonts, `evince` (GPL-2.0+; the PDF viewer for Print and reports),
+  `librsvg2-common` (LGPL-2.1+; GTK's SVG theme assets, the check marks
+  among them, bugs/tooling/10) and
   `docbook-xsl` (permissive DocBook XSL licence; Help → Manual); `/opt/venv` from `requirements.lock` with `--require-hashes`,
   wxPython from the `extras.wxpython.org` Ubuntu 24.04 wheels;
   `XDG_CONFIG_HOME=/config`, `PYTHONPATH` = the `mocap-contracts`
   submodule and its `gen/python` under `/app`, `GSETTINGS_BACKEND=memory`, user `ubuntu`,
-  default command `python /app/trelby.py` (`docker/Dockerfile:5-25`).
+  default command `python /app/trelby.py` (`docker/Dockerfile:5-32`).
 - `requirements.in` — direct dependencies: `wxPython==4.2.5`, `lxml`,
   `reportlab`, `pytest`, `pdfplumber` (for pdf-import; MIT, its
   `pdfminer.six` MIT and `pypdfium2` Apache-2.0/BSD-3), `protobuf<5`
