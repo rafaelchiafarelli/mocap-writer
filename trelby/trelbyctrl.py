@@ -1541,6 +1541,13 @@ class MyCtrl(wx.Control):
     # the script as PDF, or None after telling the user why (a custom PDF
     # font that cannot be used, pdf.getFontForFlags)
     def makePDF(self, sp, isExport):
+        of = self.openFilm()
+
+        if of is not None:
+            # a film's front matter after the title page (front-matter/print/1)
+            fm = frontmatter.load(of.film)
+            sp.frontPages = lambda doc: frontmatter.addPages(doc, fm, of.bible, sp)
+
         try:
             return sp.generatePDF(isExport)
         except error.TrelbyError as e:

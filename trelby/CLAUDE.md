@@ -35,7 +35,7 @@ Model and file format
   cursor, selection, pagination, every editing command, undo chain and all
   exports; also the `LB_*` and line-type constants;
   `fountainSource` holds the parsed `.fountain` the script came from
-  (`trelby/screenplay.py:66`). Detail:
+  (`trelby/screenplay.py:70`). Detail:
   [screenplay.as-built.md](screenplay.as-built.md).
 - `fountain.py` — Fountain 1.1 as the native format, no wx: `parse` keeps
   each element's exact source and the hidden source before it,
@@ -285,13 +285,21 @@ Model and file format
   Author or Authors, Contact; "" for an empty title page,
   `trelby/frontmatter.py:79`), `fromBlock(block)` (a block's title page;
   a second Title line is the subtitle, the first Contact line with an @
-  the e-mail, `trelby/frontmatter.py:114`), `applyTitle(sp, fm)` (the
-  script's `fountainSource.title` and its title pages from the record, so
-  the next save writes exactly that block), `syncTitle(film, sp)` (an
+  the e-mail, `trelby/frontmatter.py:114`), `titlePages(fm)` (the printed
+  title page: makeTitles' places for title, authors and contact, the
+  subtitle and `Episode n` centered under the title,
+  `trelby/frontmatter.py:152`), `applyTitle(sp, fm)` (the script's
+  `fountainSource.title` from `titleBlock` and its title pages from
+  `titlePages`, so the next save writes exactly that block), `syncTitle(film, sp)` (an
   empty record takes the script's block once, by `writer`, then
-  `applyTitle`, `trelby/frontmatter.py:166`), called by
+  `applyTitle`, `trelby/frontmatter.py:205`), called by
   `MyCtrl.saveFile` before every save of a film's script and by
-  `MyFrame.loadFilmSettings`.
+  `MyFrame.loadFilmSettings`; print/1: `overviewLines(fm, b, sp)` (Cast:
+  the bible's characters, Sets: its sets with children indented, Act
+  breakdown: per act its pages and scene numbers, as chosen),
+  `addPages(doc, fm, b, sp)` adds the included overview, pitch and
+  argument pages (`pml.TextFormatter`, the argument over as many pages
+  as it needs) and returns how many (`trelby/frontmatter.py:268`).
 - `frontmatterform.py` — `FrontMatterForm` (`trelby/frontmatterform.py:47`):
   the front matter's form under the bible tree: the title page's fields
   (co-authors one per line), then the overview, pitch and argument pages,
@@ -406,7 +414,7 @@ Model and file format
   sends with a second press not counted twice (bugs/editor/14-16).
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1750`).
+  (`trelby/trelbyctrl.py:1757`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and

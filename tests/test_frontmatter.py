@@ -116,3 +116,81 @@ def test_the_save_writes_the_block_from_the_record(tmp_path):
 
     assert text.startswith(frontmatter.titleBlock(filled()) + "\nINT. SALA - DIA #1#")
     assert sp.titles.pages and sp.titles.pages[0][0].items == ["A XÍCARA AZUL"]
+
+
+ACTS = """\
+INT. SALA - DIA #1#
+
+Nada.
+
+# ATO DOIS
+
+EXT. RUA - NOITE #2#
+
+Nada.
+
+INT. QUARTO - DIA #3#
+
+Nada.
+"""
+
+
+def pdfTexts(doc):
+    import trelby.pml as pml
+
+    return [[op.text for op in pg.ops if isinstance(op, pml.TextOp)] for pg in doc.pages]
+
+
+def withFront(tmp_path, change):
+    import trelby.bible as bible
+
+    f = film.Film.create(tmp_path, ACTS)
+    b = bible.Bible(f)
+    sala = b.create("set", "Sala")
+    b.create("set", "Canto", parent=sala)
+    b.create("character", "Ana")
+    fm = frontmatter.empty()
+    change(fm)
+    sp = u.loadString(ACTS)
+    sp.frontPages = lambda doc: frontmatter.addPages(doc, fm, b, sp)
+
+    return sp
+
+
+def test_the_overview_page(tmp_path):
+    def change(fm):
+        fm.overview.include = frontmatter.ON
+
+    sp = withFront(tmp_path, change)
+    pages = pdfTexts(sp.generatePML(True))
+
+    assert pages[0] == ["OVERVIEW", "Cast", "Ana", "Sets", "Sala", "    Canto", "Act breakdown",
+                        "Opening: pages 1-1, 1 scenes (1)", "ATO DOIS: pages 1-1, 2 scenes (2, 3)"]
+    # the script's first page follows and keeps its number
+    assert "INT. SALA - DIA" in " ".join(pages[1])
+
+
+def test_pitch_and_argument_and_a_page_left_out(tmp_path):
+    long = "Uma frase longa sobre a xícara azul que some no café da manhã. " * 120
+
+    def change(fm):
+        fm.pitch.include = frontmatter.ON
+        fm.pitch.pitch, fm.pitch.logline, fm.pitch.target_audience = "P", "L", "Todos"
+        fm.argument.include = frontmatter.ON
+        fm.argument.text = long
+
+    sp = withFront(tmp_path, change)
+    pages = pdfTexts(sp.generatePML(True))
+
+    assert pages[0] == ["PITCH", "P", "Logline", "L", "Target audience", "Todos"]
+    script = next(i for i, p in enumerate(pages) if "INT. SALA - DIA" in " ".join(p))
+
+    # the argument runs over more than one page, then the script starts
+    assert pages[1][0] == "ARGUMENT" and script > 2
+    assert all(p[0].startswith("Uma frase") for p in pages[2:script])
+
+
+def test_nothing_included_adds_no_page(tmp_path):
+    sp = withFront(tmp_path, lambda fm: None)
+
+    assert "INT. SALA - DIA" in " ".join(pdfTexts(sp.generatePML(True))[0])
