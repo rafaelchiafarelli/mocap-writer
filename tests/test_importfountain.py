@@ -22,9 +22,14 @@ class FakeCtrl:
         self.read = []
         self.emptied = False
 
-    def readFountain(self, fileName):
+    def readFountain(self, fileName, options=None):
         self.read.append(fileName)
+        self.options = options
         return self.loaded
+
+    # the options dialog, answered with nothing ticked
+    def askFountainOptions(self):
+        return {}
 
     # MyCtrl.createEmptySp: an empty script, no file name
     def createEmptySp(self):
@@ -75,3 +80,11 @@ def testImportPicksFormatByExtension():
         with mock.patch.object(trelbyctrl.myimport, func, return_value=None) as f:
             trelbyctrl.MyCtrl.importFile(ctrl, fileName)
         assert f.called, fileName
+
+
+def testCancelledOptionsImportNothing():
+    ctrl = FakeCtrl(FakeSp())
+    ctrl.askFountainOptions = lambda: None
+
+    assert trelbyctrl.MyCtrl.importFile(ctrl, "a.fountain") is False
+    assert ctrl.read == [] and not ctrl.emptied

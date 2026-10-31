@@ -105,6 +105,11 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   and a multi-page argument, nothing included adds no page; the script's
   first page follows. The form and the
   panel node need a display: checked through the real window (2026-10-31).
+- `test_fountain_import_options.py` — front-matter/import/1: no option
+  changes nothing; emphasis removed in the body only (title page and
+  boneyard kept); sections and synopses as notes, act breaks kept; title
+  page lines as action; the title page dropped. `test_importfountain.py`
+  also: cancelled options import nothing.
 - `test_spellcheck.py` — spellcheck/pt-br/1: a correct pt-BR scene
   (accents, plurals, conjugated verbs, INT.) has no unknown word in pt-BR;
   a misspelled word found and `xícara` suggested; English unchanged; the
