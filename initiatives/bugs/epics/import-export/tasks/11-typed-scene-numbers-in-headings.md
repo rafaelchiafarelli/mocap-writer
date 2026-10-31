@@ -1,6 +1,6 @@
 ## 11. A scene number typed into the heading is read as part of the place
 
-- **Status:** Open
+- **Status:** Fixed (2026-10-31) — fixes/0000ae/typed-scene-numbers
 - **Symptom:** A Fountain script whose headings carry their number as text,
   `.1. INT. SPACESHIP` and `.3. INT. SPACESHIP`, gets no scene numbers
   (`Line.num` stays empty, so the save numbers the scenes again) and every
@@ -18,5 +18,5 @@
   the bible gets one set per scene and the numbers are not the scenes'
   identity.
 - **Likely fix:** read a leading `N.` of a forced heading as its number, as
-  the PDF import does; whether the save then writes `#N#` in place of the
-  typed number (changing the script's text) is Rafael's call.
+  the PDF import does; the save then writes `#N#` in place of the typed
+  number (Rafael, 2026-10-31).

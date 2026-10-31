@@ -673,7 +673,7 @@ Data and folders
   keeps them in the film's settings record (`scriptsettings`,
   fountain-native/settings/1): saved with the script, applied when Open
   film opens it. Shot is written as upper case + two trailing spaces,
-  Trelby's own convention (`trelby/fountain.py:504`).
+  Trelby's own convention (`trelby/fountain.py:518`).
 - **`_` is a builtin installed by `translations.trelby_translations_load()`**
   (`trelby/translations.py:26`); no module imports it. The tests get it
   from `tests/u.py:16`.

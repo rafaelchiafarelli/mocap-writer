@@ -376,7 +376,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   `writer`, so the change log has them (Rafael, 2026-10-30: records follow
   the save; an editor Undo changes only the script, a rewrite is taken back
   in the change log).
-- **Save**: `fountain.generate(sp)` (`trelby/fountain.py:562`)
+- **Save**: `fountain.generate(sp)` (`trelby/fountain.py:576`)
   writes unchanged elements, the title page and everything the editor does
   not show (boneyard, synopses, `##` sections, page breaks, blank lines)
   from the source read at open, and edited or new elements in canonical
@@ -397,10 +397,13 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   current tab if it is untouched, else opens a new one, and calls
   `MyCtrl.loadFile`: `readFountain` reads the file as bytes, decodes it as
   UTF-8 (else an error box, `trelby/trelbyctrl.py:175-192`) and builds it by
-  `fountain.load` (`trelby/fountain.py:483`): elements and title page from
+  `fountain.load` (`trelby/fountain.py:497`): elements and title page from
   the file, default headers and settings, `reformatAll`, `paginate`,
   refresh locations; its parsed source is kept in `sp.fountainSource` for
-  the next save; each heading's `#n#` becomes its line's `num`. Problems
+  the next save; each heading's `#n#` becomes its line's `num`, and so
+  does a number typed before a forced heading's text (`.12. INT. ROOM`;
+  the next save writes that heading as `INT. ROOM #12#`,
+  bugs/import-export/11). Problems
   with the scene numbers (duplicates, order, another tool's form, scenes
   with no number) are shown in a window, never fixed
   (`scenenumbers.report`, fountain-native/scenes/2). If the open fails, the
