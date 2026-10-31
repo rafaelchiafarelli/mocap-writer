@@ -1347,12 +1347,16 @@ class MyCtrl(wx.Control):
 
         wx.BeginBusyCursor()
 
-        if not spellcheck.loadDict(self.gd.mainFrame):
+        lang = self.gd.cfgGl.spellLanguage
+        err = spellcheck.loadLanguage(lang, self.gd.mainFrame)
+
+        if err:
             wx.EndBusyCursor()
+            wx.MessageBox(err, _("Spell checker"), wx.OK, self.gd.mainFrame)
 
             return
 
-        sc = spellcheck.SpellChecker(self.sp, self.gd.scDict)
+        sc = spellcheck.SpellChecker(self.sp, self.gd.scDict, lang)
         found = sc.findNext()
 
         wx.EndBusyCursor()

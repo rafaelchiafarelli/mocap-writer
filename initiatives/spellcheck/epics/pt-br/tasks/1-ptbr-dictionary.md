@@ -1,5 +1,6 @@
 ## 1. The spell checker in pt-BR
 
+- **Status:** Done (2026-10-31) — `spellcheck.LANGUAGES` / `loadLanguage` / `suggest`, the `spellLanguage` setting on the Misc page, `hunspell-pt-br` + `pyenchant` in the image; checked through the real window.
 - **Type:** code (and the Docker image)
 - **Depends on:** study/1 (in git history: git log --
   initiatives/spellcheck/epics/study; Rafael's decision on the dictionary and on

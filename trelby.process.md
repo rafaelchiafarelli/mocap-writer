@@ -59,11 +59,11 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   5. **config load**: `ConfigGlobal()` + `setDefaults()`
      (`trelby/trelby.py:82-84`; `setDefaults` checks that the command list is
      alphabetical, picks the platform screen fonts and looks for a PDF
-     viewer, `trelby/config.py:1542`). If `default.conf` exists it is loaded
+     viewer, `trelby/config.py:1550`). If `default.conf` exists it is loaded
      (`trelby/trelby.py:90`), otherwise the defaults are written out
      (`trelby/trelby.py:94`). `ConfigGui(cfgGl)` turns colors and font names
      into wx pens, brushes and fonts (`trelby/trelby.py:97`,
-     `trelby/config.py:1602`). The file dialogs start in the config's
+     `trelby/config.py:1610`). The file dialogs start in the config's
      `scriptDir`, or in `$MOCAP_WRITER_WORK_DIR` when that is a directory
      (set by `docker/run.sh`, `trelby/trelby.py:102-108`);
   6. window state and view mode (`trelby/trelby.py:114-116`) and the global
@@ -172,7 +172,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 - **Line types** (`trelby/screenplay.py:17-25`): `SCENE`, `ACTION`,
   `CHARACTER`, `DIALOGUE`, `PAREN`, `TRANSITION`, `SHOT`, `NOTE`, `ACTBREAK`.
   Each has a one-character code and a name in `config._init`
-  (`trelby/config.py:1783`).
+  (`trelby/config.py:1791`).
 - **Line breaks** (`trelby/screenplay.py:6-14`): `LB_SPACE` (soft wrap at a
   space), `LB_NONE` (soft wrap inside a word), `LB_FORCED` (hard line break
   inside an element), `LB_LAST` (end of element). `LB_SPACE2` exists only to
@@ -236,7 +236,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   **Shift-Tab** converts to the previous one (`trelby/screenplay.py:2872`).
   The cycle is `ConfigGlobal.tabOrder`, Scene → Action → Character →
   Dialogue → Scene by default; an element outside it converts to Action
-  both ways (`ConfigGlobal.nextTypeTab`, `trelby/config.py:1438-1454`).
+  both ways (`ConfigGlobal.nextTypeTab`, `trelby/config.py:1446-1462`).
 - The Enter/Tab table and the cycle are **global**, not per script:
   `ConfigGlobal.types` (`trelby/config.py:693-739`), one `TypeGlobal` per
   line type (`trelby/config.py:230`), editable in Settings → Elements; the
@@ -305,8 +305,8 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   heading's text; a click on one shows a warning that numbers are
   permanent instead of placing the cursor in it
   (`MyCtrl.sceneNumberWarning`, fountain-native/scenes/4).
-- Screen fonts are the four global `font*` settings (`trelby/config.py:1266`)
-  turned into `wx.Font`s by `ConfigGui` (`trelby/config.py:1672-1723`); the
+- Screen fonts are the four global `font*` settings (`trelby/config.py:1271`)
+  turned into `wx.Font`s by `ConfigGui` (`trelby/config.py:1680-1731`); the
   element's screen style (caps/bold/italic/underline) comes from the script's
   `Type.screen` (`trelby/config.py:193`). In Action lines, runs of words
   written fully in capitals (accents included; a one-letter word only
@@ -314,13 +314,13 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   the run being typed at the cursor waits until something ends it (`propwords.find_prop_words`, `trelby/trelbyctrl.py:1955-1967`). **Zoom** (50–300 % in steps of
   10, Ctrl `+` / `-` / `0`, Ctrl + wheel, the status control) scales those
   fonts and the draft row height only; it is a global setting and never
-  touches the PDF (`trelby/config.py:1714-1726`, `trelby/trelbyctrl.py:654`). Colors are the global `*Color`
-  settings (`trelby/config.py:1275-1330`) of the chosen theme, Light or Dark
+  touches the PDF (`trelby/config.py:1722-1734`, `trelby/trelbyctrl.py:654`). Colors are the global `*Color`
+  settings (`trelby/config.py:1280-1335`) of the chosen theme, Light or Dark
   (Settings → Colors, or the View → Dark theme check item, which switches
   at once and saves the config: `MyFrame.OnDarkTheme`,
   `trelby/trelbyframe.py:1193-1200`, `MyCtrl.OnDarkTheme`,
   `trelby/trelbyctrl.py:679-692`); each theme keeps its own colors
-  (`trelby/config.py:1392-1421`). Under Docker, Dark also starts GTK's dark
+  (`trelby/config.py:1397-1426`). Under Docker, Dark also starts GTK's dark
   variant (`docker/run.sh:34-39`).
 
 ## Stage 5 — save / open (`.fountain`)
@@ -542,7 +542,10 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 ## Other tools (menus)
 
 Find & replace (`trelby/finddlg.py`), spell checker (`trelby/spellcheck.py`,
-`trelby/spellcheckdlg.py`), character name database (`trelby/namesdlg.py`),
+`trelby/spellcheckdlg.py`; in English from `dict_en.dat` or in pt-BR from
+Hunspell's VERO dictionary through `pyenchant`, chosen by the global
+setting `spellLanguage`, File → Settings → Misc, spellcheck/pt-br/1; a
+missing dictionary is a message, not a crash), character name database (`trelby/namesdlg.py`),
 character map (`trelby/charmapdlg.py`), title pages (`trelby/titlesdlg.py`),
 headers (`trelby/headersdlg.py`), locations (`trelby/locationsdlg.py`),
 auto-completion lists (`trelby/autocompletiondlg.py`), global and script

@@ -6,7 +6,9 @@ FROM ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884
 # GTK3 and the libraries the prebuilt wxPython wheel links against; fonts for the editor;
 # evince (GPL-2.0+) shows Print and report PDFs, docbook-xsl (permissive DocBook XSL
 # licence) turns doc/manual.xml into the Help → Manual page; librsvg2-common (LGPL-2.1+)
-# lets GTK load its SVG theme assets, the check marks among them (bugs/tooling/10).
+# lets GTK load its SVG theme assets, the check marks among them (bugs/tooling/10);
+# libenchant-2-2 (LGPL-2.1+) with its Hunspell provider and hunspell-pt-br (VERO,
+# LGPL-3 or MPL, used unmodified) let the spell checker read pt-BR (spellcheck/pt-br/1).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 python3-venv \
@@ -14,6 +16,7 @@ RUN apt-get update \
         libgl1 libglu1-mesa libegl1 librsvg2-common \
         fonts-dejavu-core fonts-liberation \
         evince docbook-xsl \
+        libenchant-2-2 hunspell-pt-br \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /build-py
 COPY requirements.lock ./
