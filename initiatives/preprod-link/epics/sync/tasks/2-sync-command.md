@@ -1,5 +1,6 @@
 ## 2. Sync to spec command
 
+- **Status:** Done (2026-10-31) — Script → Sync to spec… (F5, toolbar `sync.svg`), `trelby/syncdlg.py`; checked through the real window.
 - **Type:** code (UI)
 - **Depends on:** sync/1
 - **Contract:**
