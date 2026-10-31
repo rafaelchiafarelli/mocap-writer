@@ -4,14 +4,14 @@
 desktop entry. Files are addressed as `trelby/resources/<file>` relative to
 `misc.progPath` (the repository root, `trelby/misc.py:54`).
 **Entry points:** none; read by `MyFrame.addTB` (toolbar SVGs,
-`trelby/trelbyframe.py:243-289`), `MyFrame.mySetIcons` (window icons,
-`trelby/trelbyframe.py:486-494`), `SplashWindow` (`trelby/splash.py:39`,
+`trelby/trelbyframe.py:244-290`), `MyFrame.mySetIcons` (window icons,
+`trelby/trelbyframe.py:487-495`), `SplashWindow` (`trelby/splash.py:39`,
 `trelby/splash.py:124`), `MyFSButton` (`trelby/misc.py:131`).
 **Inputs → Outputs:** static files → bitmaps and text in the GUI.
 
 ## Files
 - Toolbar icons (SVG, 32 × 32, black fills recolored to `#CCCCCC` when the
-  system theme is dark, `trelby/trelbyframe.py:250-251`): `new.svg`,
+  system theme is dark, `trelby/trelbyframe.py:251-252`): `new.svg`,
   `open.svg`, `save.svg`, `saveas.svg`, `close.svg`, `scrset.svg`
   (script settings), `pdf.svg` (print), `import.svg`, `export.svg`,
   `undo.svg`, `redo.svg`, `find.svg`, `sync.svg` (Sync to spec, two

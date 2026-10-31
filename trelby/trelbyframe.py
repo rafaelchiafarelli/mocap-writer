@@ -15,6 +15,7 @@ import trelby.commandsdlg as commandsdlg
 import trelby.annotationdlg as annotationdlg
 import trelby.annotations as annotations
 import trelby.biblepanel as biblepanel
+import trelby.biblereviewdlg as biblereviewdlg
 import trelby.config as config
 import trelby.film as film
 import trelby.importfilm as importfilm
@@ -1148,6 +1149,8 @@ class MyFrame(wx.Frame):
         if path is None:
             return
 
+        pick = None
+
         if self.film is not None:
             choices = [_("Into this film"), _("Into a new folder (a new film)"), _("Just open it")]
             dlg = wx.SingleChoiceDialog(
@@ -1167,7 +1170,17 @@ class MyFrame(wx.Frame):
 
                 return
 
-        self.importIntoTab(path)
+        ctrl = self.importIntoTab(path)
+
+        if ctrl is not None and self.film is not None and pick == 0:
+            # into this film: its bible gets the new items; this script's
+            # scene numbers are not the film's, so no scene is linked
+            biblereviewdlg.review(
+                self, self.bible, ctrl.sp, True, False,
+                _("Into this film's bible. The imported script is not the film's script, "
+                  "so the new items are made without scenes."),
+            )
+            self.biblePanel.changed()
 
     # File -> Import into film (import-to-film/flow/1)
     def OnImportIntoFilm(self, event=None):
@@ -1218,8 +1231,18 @@ class MyFrame(wx.Frame):
             )
 
         self.setFilm(f)
+        self.reviewImport(ctrl)
 
         return f
+
+    # the end of an import into a new film (import-to-film/flow/2): the
+    # bible review, new items ticked (decision 1)
+    def reviewImport(self, ctrl):
+        b = self.openFilms.at(self.film.root).bible if self.film else None
+
+        if b is not None:
+            biblereviewdlg.review(self, b, ctrl.sp, True)
+            self.biblePanel.changed()
 
     def OnExportScript(self, event=None):
         self.panel.ctrl.OnExportScript()

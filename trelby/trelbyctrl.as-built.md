@@ -173,7 +173,7 @@ Settings and dialogs
   theme at start).
 - **Import formats**: one more `elif` on the file-name ending in
   `importFile` (`trelby/trelbyctrl.py:412-425`) plus the file-dialog
-  wildcard in `MyFrame.askImportFile` (`trelby/trelbyframe.py:1086-1120`).
+  wildcard in `MyFrame.askImportFile` (`trelby/trelbyframe.py:1087-1121`).
 - **Export formats**: one more filter in the wildcard and branch in
   `OnExportScript` (`trelby/trelbyctrl.py:1461-1495`); the branch order is
   the filter index.
@@ -183,7 +183,7 @@ Settings and dialogs
 ## Gotchas
 
 - When `loadFile` fails, `MyFrame.openScript` has already made a new tab
-  if the current one was touched (`trelby/trelbyframe.py:591-596`), so an
+  if the current one was touched (`trelby/trelbyframe.py:592-597`), so an
   empty tab stays open.
 - `importFile` picks the importer by the lower-cased extension
   (`trelby/trelbyctrl.py:412`); anything not listed, a name without an
