@@ -206,9 +206,9 @@ class MyCtrl(wx.Control):
             self.setFile(fileName)
             self.sp.markChanged(False)
             self.gd.mru.add(fileName)
-            self.saveFilmSettings(fileName)
-            self.renameFilmScenes(fileName)
-            self.saveFilmAnnotations(fileName)
+            self.saveFilmSettings()
+            self.renameFilmScenes()
+            self.saveFilmAnnotations()
 
             if res.lost:
                 self.showLost(res.lost)
@@ -217,18 +217,24 @@ class MyCtrl(wx.Control):
         else:
             return False
 
-    # the script is the open film's script: its settings go to the film's
-    # settings record too (fountain-native/settings/1)
-    def saveFilmSettings(self, fileName):
-        film = getattr(self.gd.mainFrame, "film", None)
+    # the open film whose script this tab holds (an openfilms.OpenFilm), or
+    # None; its own film, not the current tab's, so Save on exit writes every
+    # film's records (bugs/editor/20)
+    def openFilm(self):
+        frame = self.gd.mainFrame
 
-        if film is None or os.path.realpath(fileName) != os.path.realpath(
-            str(film.partPath("script"))
-        ):
+        return frame.filmOf(self) if hasattr(frame, "filmOf") else None
+
+    # the script is an open film's script: its settings go to the film's
+    # settings record too (fountain-native/settings/1)
+    def saveFilmSettings(self):
+        of = self.openFilm()
+
+        if of is None:
             return
 
         try:
-            scriptsettings.saveFor(film, self.sp)
+            scriptsettings.saveFor(of.film, self.sp)
         except Exception as e:
             wx.MessageBox(
                 _("The script was saved, but its settings were not:") + "\n\n" + str(e),
@@ -241,23 +247,21 @@ class MyCtrl(wx.Control):
     # that name them follow, written through the film so the change log has
     # them (fountain-native/scenes/5). outside a film there is nothing to
     # rewrite.
-    def renameFilmScenes(self, fileName):
+    def renameFilmScenes(self):
         moves, self.sp.sceneMoves = self.sp.sceneMoves, {}
         frame = self.gd.mainFrame
-        film = getattr(frame, "film", None)
+        of = self.openFilm()
 
-        if not moves or film is None or os.path.realpath(fileName) != os.path.realpath(
-            str(film.partPath("script"))
-        ):
+        if not moves or of is None:
             return
 
         try:
-            if frame.bible is not None:
-                frame.bible.renameScenes(moves)
+            of.bible.renameScenes(moves)
+
+            if of.bible is frame.bible:
                 frame.biblePanel.changed()
 
-            if frame.annotations is not None:
-                frame.annotations.renameScenes(moves)
+            of.annotations.renameScenes(moves)
         except Exception as e:
             wx.MessageBox(
                 _("The script was saved, but the records naming its moved scenes were not:")
@@ -270,15 +274,16 @@ class MyCtrl(wx.Control):
 
     # the annotations' anchors as the saved script has them: placed again
     # and the ones that moved written (fountain-native/notes/1)
-    def saveFilmAnnotations(self, fileName):
+    def saveFilmAnnotations(self):
         frame = self.gd.mainFrame
+        of = self.openFilm()
 
-        if getattr(frame, "annotations", None) is None or not frame.isFilmScript(self):
+        if of is None:
             return
 
         try:
-            frame.annotations.resolve(self.sp)
-            frame.annotations.flush()
+            of.annotations.resolve(self.sp)
+            of.annotations.flush()
         except Exception as e:
             wx.MessageBox(
                 _("The script was saved, but its annotations' places were not:") + "\n\n" + str(e),
@@ -292,17 +297,14 @@ class MyCtrl(wx.Control):
     def annotationMarks(self):
         frame = self.gd.mainFrame
 
-        if not getattr(frame, "showAnnotations", False) or frame.annotations is None:
+        of = self.openFilm()
+
+        if not getattr(frame, "showAnnotations", False) or of is None:
             self.annotationPlaces = {}
 
             return None
 
-        if not frame.isFilmScript(self):
-            self.annotationPlaces = {}
-
-            return None
-
-        self.annotationPlaces = frame.annotations.resolve(self.sp)
+        self.annotationPlaces = of.annotations.resolve(self.sp)
         spans = {}
         marks = set()
 
@@ -471,6 +473,7 @@ class MyCtrl(wx.Control):
 
         self.setTabText()
         self.gd.mainFrame.setTitle(self.fileNameDisplay)
+        self.gd.mainFrame.scriptFileChanged(self)
 
     def setDisplayName(self, name):
         i = 1
@@ -848,7 +851,8 @@ class MyCtrl(wx.Control):
     # the hover text of the annotations under the pointer
     def annotationTip(self, pos):
         line, col = self.gd.vm.pos2linecol(self, pos.x, pos.y)
-        an = self.gd.mainFrame.annotations
+        of = self.openFilm()
+        an = of.annotations if of else None
         ids = an.at(self.annotationPlaces, line, col) if line is not None and an else []
         tip = "\n\n".join(an.describe(an.records[rid]) for rid in ids if rid in an.records)
 
