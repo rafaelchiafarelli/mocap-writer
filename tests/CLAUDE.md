@@ -44,7 +44,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `archive/`: one found file's pattern finds the rest and the next open
   has no problems; nothing is written before an accept; skip keeps it
   listed; wrong kind and outside the film refused; `pattern` /
-  `applyPattern`. `RelinkDlg` needs a display: checked through the real
+  `applyPattern`; `warningText` for missing files, notices and both
+  (bugs/editor/21). `RelinkDlg` needs a display: checked through the real
   window with stubbed dialogs (2026-10-28).
 - `test_changelog.py` — file-format/layout/5: create / update / delete
   each log one `Change` line, an unchanged write none, bookkeeping and the

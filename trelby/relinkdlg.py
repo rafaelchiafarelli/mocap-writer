@@ -5,7 +5,8 @@ import trelby.util as util
 
 # the warning for a film's missing files (file-format/layout/3): one list of
 # everything the open could not find or read, shown over the film, which is
-# already open behind it. a missing file can be searched for or skipped; a
+# already open behind it; a row with nothing to search for is a notice
+# (bugs/editor/21). a missing file can be searched for or skipped; a
 # skipped one stays missing and is asked for again on the next open. a found
 # one gives a pattern that is tried on the others, and what it finds is
 # shown for the creator to accept, never applied silently.
@@ -13,11 +14,13 @@ import trelby.util as util
 
 class RelinkDlg(wx.Dialog):
     def __init__(self, parent, root, problems):
+        title, intro = relink.warningText(problems)
+
         wx.Dialog.__init__(
             self,
             parent,
             -1,
-            _("Missing files"),
+            title,
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
         )
 
@@ -30,20 +33,7 @@ class RelinkDlg(wx.Dialog):
 
         vsizer = wx.BoxSizer(wx.VERTICAL)
 
-        vsizer.Add(
-            wx.StaticText(
-                self,
-                -1,
-                _(
-                    "The film is open, but these were not found where the "
-                    "film expects them.\nSearch for each one, or skip it: a "
-                    "skipped one is asked for again next time."
-                ),
-            ),
-            0,
-            wx.BOTTOM,
-            10,
-        )
+        vsizer.Add(wx.StaticText(self, -1, intro), 0, wx.BOTTOM, 10)
 
         self.list = wx.ListCtrl(
             self, -1, size=wx.Size(640, 200), style=wx.LC_REPORT | wx.LC_SINGLE_SEL
@@ -55,9 +45,13 @@ class RelinkDlg(wx.Dialog):
         for i, p in enumerate(problems):
             self.list.InsertItem(i, p.what)
             self.list.SetItem(i, 1, p.where)
-            self.list.SetItem(i, 2, _("missing") if p.ref else p.why)
+            self.list.SetItem(i, 2, _("missing") if p.ref else _("nothing to search for"))
 
         vsizer.Add(self.list, 1, wx.EXPAND)
+
+        # the selected row's reason in full
+        self.detail = wx.StaticText(self, -1, "")
+        vsizer.Add(self.detail, 0, wx.EXPAND | wx.TOP, 10)
 
         hsizer = wx.BoxSizer(wx.HORIZONTAL)
         self.searchBtn = wx.Button(self, -1, _("Search..."))
@@ -69,6 +63,11 @@ class RelinkDlg(wx.Dialog):
         hsizer.Add(closeBtn)
         vsizer.Add(hsizer, 0, wx.EXPAND | wx.TOP, 10)
 
+        # only notices: nothing to search for or skip
+        if not any(p.ref for p in problems):
+            self.searchBtn.Hide()
+            self.skipBtn.Hide()
+
         util.finishWindow(self, vsizer)
 
         self.Bind(wx.EVT_BUTTON, self.OnSearch, id=self.searchBtn.GetId())
@@ -76,7 +75,8 @@ class RelinkDlg(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnClose, id=closeBtn.GetId())
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnSelect, id=self.list.GetId())
 
-        self.select(self.nextOpen(0))
+        first = self.nextOpen(0)
+        self.select(first if first != -1 else (0 if problems else -1))
 
     # index of the first row from i on that still can be searched, or -1
     def nextOpen(self, i):
@@ -101,6 +101,17 @@ class RelinkDlg(wx.Dialog):
         ok = i != -1 and self.state[i] == "missing"
         self.searchBtn.Enable(bool(ok))
         self.skipBtn.Enable(bool(ok))
+
+        if i == -1:
+            text = ""
+        elif self.problems[i].ref:
+            text = _("Expected at %s.") % self.problems[i].where
+        else:
+            text = self.problems[i].why
+
+        self.detail.SetLabel(text)
+        self.detail.Wrap(640)
+        self.Layout()
 
     def setState(self, i, state, text):
         self.state[i] = state
