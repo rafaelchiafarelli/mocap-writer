@@ -107,3 +107,54 @@ def byScene(cs):
         out.setdefault(c.scene, []).append(c)
 
     return list(out.items())
+
+
+# sync/3: the bible values a change set touches. a value needs review when
+# its scene (a per-scene value) or its source (the scene number that states
+# it) is a scene the sync changed; a move alone changes nothing in a scene.
+# "needs review" is not stored (Rafael, 2026-10-26): it lives in the change
+# panel of that sync only, and no state changes.
+class Affected:
+    def __init__(self, item, value, scene):
+        self.item = item
+        self.value = value
+        self.scene = scene
+
+
+def changedScenes(cs):
+    moved = mc.SceneChangeType.Value("SCENE_CHANGE_TYPE_SCENE_MOVED")
+
+    return {c.scene for c in cs.changes if c.type != moved}
+
+
+# [Affected] of the bible b for the change set cs, by scene, then item name
+def affected(b, cs):
+    scenes = changedScenes(cs)
+    out = []
+
+    if b is None:
+        return out
+
+    for it in b.items.values():
+        for v in it.msg.values:
+            scene = v.scene if v.HasField("scene") else None
+
+            if scene in scenes:
+                out.append(Affected(it, v, scene))
+            elif v.source.strip() in scenes:
+                out.append(Affected(it, v, v.source.strip()))
+
+    out.sort(key=lambda a: (a.scene, a.item.name.lower(), a.item.id, a.value.field))
+
+    return out
+
+
+# what an affected value says in the panel: "Ana — Emotional state: angry"
+def affectedText(a):
+    import mocap_contracts.bible as cb
+
+    f = cb.fields(a.item.map).get(a.value.field)
+    label = f.label if f else a.value.field
+    text = a.value.text or (a.value.number + (" " + a.value.unit if a.value.unit else ""))
+
+    return _("needs review: %s — %s: %s") % (a.item.name, label, text)

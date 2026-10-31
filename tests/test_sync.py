@@ -98,3 +98,42 @@ def test_set_link_line_names_the_set(tmp_path):
     names = lambda rid: b.get(rid).name
 
     assert [sync.changeText(c, names) for c in r.changes.changes] == ["set link changed: Sala"]
+
+
+def withValues(tmp_path):
+    b = newBible(tmp_path)
+    ana = b.create("character", "Ana")
+    b.setValues(ana, "identity.occupation", ["nurse"], "script-stated", "1", "creator")
+    b.setValues(ana, "per_scene.emotional_state", ["calm"], "creator-approved",
+                "creator 2026-10-31", "creator", scene="2")
+    b.setValues(ana, "identity.age", ["34"], "creator-approved", "creator 2026-10-31", "creator")
+    sync.accept(b.film, sync.run(b.film, b, u.loadString(SCRIPT)))
+
+    return b, ana
+
+
+def test_renamed_character_lists_the_values_its_scene_states(tmp_path):
+    b, ana = withValues(tmp_path)
+    r = sync.run(b.film, b, u.loadString(SCRIPT.replace("ANA pega", "BIA pega")))
+    aff = sync.affected(b, r.changes)
+
+    assert [(a.item.name, a.value.field, a.scene) for a in aff] == [
+        ("Ana", "identity.occupation", "1")]
+    assert sync.affectedText(aff[0]) == "needs review: Ana — Occupation: nurse"
+
+
+def test_removed_scene_lists_its_per_scene_values(tmp_path):
+    b, ana = withValues(tmp_path)
+    r = sync.run(b.film, b, u.loadString(SCRIPT.split("EXT. RUA")[0]))
+
+    assert [(a.value.field, a.scene) for a in sync.affected(b, r.changes)] == [
+        ("per_scene.emotional_state", "2")]
+
+
+def test_untouched_scenes_list_nothing_and_no_state_changes(tmp_path):
+    b, ana = withValues(tmp_path)
+    before = ana.msg.SerializeToString()
+    r = sync.run(b.film, b, u.loadString(SCRIPT))
+
+    assert sync.affected(b, r.changes) == []
+    assert ana.msg.SerializeToString() == before

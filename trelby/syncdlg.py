@@ -54,12 +54,16 @@ class SyncDlg(wx.Dialog):
 
         return it.name if it else rid
 
-    # one branch per scene, one line per change; each line's data is the
-    # scene number
+    # one branch per scene, one line per change, then the bible values
+    # that need review there (sync/3); each line's data is the scene number
     def fill(self):
         root = self.tree.AddRoot("")
         heads = {e.scene: e for e in self.run.index.scenes}
         self.sceneNodes = {}
+        review = {}
+
+        for a in sync.affected(self.bible, self.run.changes):
+            review.setdefault(a.scene, []).append(a)
 
         for scene, changes in sync.byScene(self.run.changes):
             e = heads.get(scene)
@@ -71,6 +75,10 @@ class SyncDlg(wx.Dialog):
 
             for c in changes:
                 self.tree.AppendItem(node, sync.changeText(c, self.name), data=scene)
+
+            for a in review.get(scene, []):
+                line = self.tree.AppendItem(node, sync.affectedText(a), data=scene)
+                self.tree.SetItemBold(line)
 
             self.tree.Expand(node)
 
