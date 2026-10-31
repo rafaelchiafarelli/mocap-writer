@@ -75,7 +75,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - `test_sync.py` — preprod-link/sync/1: a first run reports every scene
   added and writes only the change set; accept then run again → empty; a
   run not accepted repeats the same changes; the sync files are not
-  logged and the bible opens with no problem.
+  logged and the bible opens with no problem; sync/2's change lines and
+  their grouping by scene, a set link named. The menu, the prompt and the
+  panel need a display: checked through the real window (2026-10-31).
 - `test_spellcheck.py` — spellcheck/pt-br/1: a correct pt-BR scene
   (accents, plurals, conjugated verbs, INT.) has no unknown word in pt-BR;
   a misspelled word found and `xícara` suggested; English unchanged; the

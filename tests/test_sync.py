@@ -74,3 +74,27 @@ def test_sync_files_are_not_in_the_change_log_and_the_bible_still_opens(tmp_path
     assert len(b.film.changes()) == n
     f = film.Film.open(tmp_path)
     assert bible.Bible(f).items == {} and f.problems == []
+
+
+def test_change_lines_and_grouping_by_scene(tmp_path):
+    b = newBible(tmp_path)
+    sync.accept(b.film, sync.run(b.film, b, u.loadString(SCRIPT)))
+    edited = SCRIPT.replace("RUA - DIA", "RUA - NOITE").replace("a CAIXA", "o FÓSFORO")
+    r = sync.run(b.film, b, u.loadString(edited))
+    groups = [(s, [sync.changeText(c) for c in cs]) for s, cs in sync.byScene(r.changes)]
+
+    assert groups == [
+        ("1", ["text changed", "prop added: FÓSFORO", "prop removed: CAIXA"]),
+        ("2", ["heading changed: EXT. RUA - DIA → EXT. RUA - NOITE", "text changed"]),
+    ]
+
+
+def test_set_link_line_names_the_set(tmp_path):
+    b = newBible(tmp_path)
+    sync.accept(b.film, sync.run(b.film, b, u.loadString(SCRIPT)))
+    sala = b.create("set", "Sala")
+    b.link(sala, "1")
+    r = sync.run(b.film, b, u.loadString(SCRIPT))
+    names = lambda rid: b.get(rid).name
+
+    assert [sync.changeText(c, names) for c in r.changes.changes] == ["set link changed: Sala"]
