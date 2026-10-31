@@ -1,5 +1,6 @@
 ## 2. The screenplay model
 
+- **Status:** Done (2026-10-31) — published privately: https://claude.ai/artifact/KyZacNpzPJsvbTkca2gHAj (page `model.html`), built from the as-built docs at commit 959bc3c.
 - **Type:** explainer page
 - **Contract:**
   - In: `trelby/screenplay.as-built.md`, `trelby/line.py`, `trelby/undo.py`
