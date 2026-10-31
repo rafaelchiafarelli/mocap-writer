@@ -1,5 +1,6 @@
 ## 5. The film root and its records
 
+- **Status:** Done (2026-10-31) — published privately: https://claude.ai/artifact/KyZacNpzPJsvbTkca2gHAj (page `film.html`), built from the as-built docs at commit 959bc3c.
 - **Type:** explainer page
 - **Contract:**
   - In: `trelby/film.py`, `trelby/bible.py`, `trelby/relink.py`, the
