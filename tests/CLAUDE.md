@@ -3,8 +3,7 @@
 **Role:** Unit tests that run without a display: they build `Screenplay`
 objects directly and never create the wx GUI. 385 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
-`python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`);
-upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
+`python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`).
 **Inputs → Outputs:** `tests/fixtures/*` → pass/fail.
 
 ## Files
@@ -325,4 +324,4 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `trelby/pdfimport.py`, `trelby/fountain.py`, `trelby/pdf.py`,
   the report modules, `trelby/locations.py`, `trelby/pagelist.py`,
   `trelby/util.py`.
-- Run by: `docker/test.sh`, `.github/workflows/main.yml`.
+- Run by: `docker/test.sh`.

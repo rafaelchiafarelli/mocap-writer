@@ -1,30 +1,28 @@
-# doc — the user manual, man page and architecture overview
+# doc — the user manual and architecture overview
 
-**Role:** Sources of Trelby's user manual (HTML) and Unix man page, and the
+**Role:** Source of Trelby's user manual (Help → Manual), and the
 architecture overview of mocap-writer, in two forms with the same content:
 `architecture.md` for AI agents and `architecture/` (HTML pages) for human
 architects. Neither is as-built documentation: the manual describes what the user sees, and the
 code-level docs are the `CLAUDE.md` files and `../trelby.process.md`.
-**Entry points:** `make -C doc html` → `manual.html`; `make -C doc manpage`
-→ `trelby.1.gz` (`doc/Makefile`). The root `Makefile` moves both into
-`trelby/` for packaging (`Makefile:12-16`).
-**Inputs → Outputs:** DocBook XML + XSL stylesheets → `manual.html`,
-`trelby.1.gz` (needs `xsltproc` and the DocBook XSL stylesheets installed).
+**Entry points:** `trelby/manual.py` (`build`) turns `manual.xml` into HTML
+with lxml and a stylesheet here each time the manual opens.
+**Inputs → Outputs:** DocBook XML + XSL stylesheet → the page in the
+manual window (needs the DocBook XSL stylesheets; the image has
+`docbook-xsl`).
 The architecture overview is built from the as-built docs by hand (no
 build step); open `architecture/index.html` in a browser.
 
 ## Files
 - `manual.xml` — the manual: concepts, editing, view modes, every menu
   command, import/export formats (Fountain at `doc/manual.xml:1695`).
-- `refentry.xml` — the man page.
-- `version.xml` — `trelby.version` entity, `2.4.16.2` (`doc/version.xml:1`).
+- `version.xml` — `trelby.version` entity, `2.4.16.2` (`doc/version.xml:1`),
+  pulled into `manual.xml` (`doc/manual.xml:5`).
 - `html-stylesheet.xsl` — HTML stylesheet importing the DocBook XSL from
   `/usr/share/sgml/docbook/xsl-stylesheets/` (Fedora-style path).
-- `html-stylesheet-deb.xsl` — the same for Debian's path; `Makefile` picks
-  it when `/usr/share/sgml/docbook/stylesheet/xsl/` exists
-  (`doc/Makefile:13-19`).
-- `Makefile` — `html`, `manpage`, `clean` targets.
-- `.gitignore` — ignores `book.html`.
+- `html-stylesheet-deb.xsl` — the same for Debian / Ubuntu's path;
+  `manual.py` picks it when `/usr/share/sgml/docbook/stylesheet/xsl/`
+  exists (the Docker image).
 - `architecture.md` — the architecture overview for AI agents: the map
   (parts, what each holds, its files, what it hands to whom) and one
   section per layer (model, editor, Fountain and numbers, film root,
@@ -44,12 +42,12 @@ build step); open `architecture/index.html` in a browser.
     show-answer buttons.
 
 ## Key facts / gotchas
-- The built `manual.html` is not in git and not in the Docker image; Help →
-  Manual makes the same page from `manual.xml` with lxml and the
-  `html-stylesheet*.xsl` here (`trelby/manual.py`), so edits to this folder
-  show at the next opening.
-- `version.xml` duplicates the version in `trelby/misc.py:20`,
-  `setup.cfg` and `choco/trelby.nuspec`; nothing keeps them in sync.
+- Nothing builds a `manual.html` or a man page any more (the `Makefile`
+  and `refentry.xml` were removed 2026-10-31): Help → Manual makes the page
+  from `manual.xml` (`trelby/manual.py`), so edits to this folder show at
+  the next opening.
+- `version.xml` duplicates the version in `trelby/misc.py:20`; nothing
+  keeps them in sync.
 - Out of scope for the as-built rule: the manual is user documentation, not
   updated per code change unless a task says so.
 - The architecture overview **is** updated with the code: a change to the
@@ -60,6 +58,4 @@ build step); open `architecture/index.html` in a browser.
 - The pages load Google Fonts; offline they fall back to the system fonts.
 
 ## Touchpoints
-- Built by: root `Makefile`, `debian/rules` (`make -C doc manpage html`).
-- Installed by: `debian/install`, `debian/links`, `setup.cfg`
-  (`manual.html`, `trelby.1.gz` as package data).
+- Read by: `trelby/manual.py`; `tests/test_manual.py`.

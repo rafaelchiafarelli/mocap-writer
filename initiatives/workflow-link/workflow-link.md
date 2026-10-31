@@ -9,6 +9,8 @@ writer lists them in its review view, records each decision there, and
 writes approved values into the bible itself.
 
 **Decided (Rafael, 2026-10-31):**
+- Replaces `agent-proposals` (static proposal files, planned and
+  superseded the same day: git log -- initiatives/agent-proposals).
 - No agent on the writer side, no live connection: the writer reads and
   writes the database file with `mocap_contracts.db`, plain code.
 - Agents never write into `bible/`. Approving is the writer's write:

@@ -6,9 +6,10 @@ is settled, record the decision there and remove its line here. Bugs are
 not listed: they are the backlog in `bugs/bugs.md`.
 
 Settled on 2026-10-31 and removed from here: how agents write
-proposals (through an MCP tool into the film's workflow database,
-`workflow-link`); the agents' side of preprod-link, planned in
-`mocap-preprod` `initiatives/preprod-link/`.
+proposals: first as static files (agent-proposals, planned and
+superseded the same day), then through an MCP tool into the film's
+workflow database (`workflow-link`); the agents' side of preprod-link,
+planned in `mocap-preprod` `initiatives/preprod-link/`.
 
 Settled on 2026-10-30 and removed from here: fountain-native settings/1,
 scenes/5 and notes/1, done (`mocap-contracts` `v0.6.0`).
