@@ -3,6 +3,7 @@ import os
 import wx
 
 import trelby.bible as bible
+import trelby.bibleedit as bibleedit
 import trelby.misc as misc
 import trelby.biblelinks as biblelinks
 import trelby.bibleform as bibleform
@@ -53,6 +54,13 @@ class BiblePanel(wx.Panel):
         # what the bible links to the cursor's scene (film-bible/links/1)
         self.sceneText = wx.StaticText(self, -1, "")
         vsizer.Add(self.sceneText, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 6)
+
+        # what is in the cursor's scene, by hand (film-bible/links/6)
+        self.thisSceneBtn = wx.Button(self, -1, _("This scene..."), style=wx.BU_EXACTFIT)
+        self.thisSceneBtn.SetToolTip(_("Tick the sets, characters and props in this scene"))
+        self.thisSceneBtn.Bind(wx.EVT_BUTTON, self.OnThisScene)
+        self.thisSceneBtn.Enable(False)
+        vsizer.Add(self.thisSceneBtn, 0, wx.LEFT | wx.BOTTOM, 4)
 
         # (scene, text) last shown, so a cursor move repaints nothing
         self.sceneShown = None
@@ -482,11 +490,46 @@ class BiblePanel(wx.Panel):
 
             text = _("Scene %s") % num + (" - " + "; ".join(parts) if parts else "")
 
+        self.thisSceneBtn.Enable(bool(num))
+
         if (num, text) != self.sceneShown:
             self.sceneShown = (num, text)
             self.sceneText.SetLabel(text)
             self.sceneText.Wrap(max(self.GetSize().width - 12, 100))
             self.Layout()
+
+    # links/6: tick every set, character and prop in the cursor's scene;
+    # OK links and unlinks the changes only
+    def OnThisScene(self, event=None):
+        sp = self.script()
+        num = biblelinks.sceneAt(sp, sp.line)
+
+        if self.bible is None or not num:
+            return
+
+        self.form.commitFocused()
+        rows = bibleedit.sceneItemChoices(self.bible)
+
+        if not rows:
+            wx.MessageBox(_("There are no sets, characters or props in the bible yet."),
+                          _("Bible"), wx.OK, self)
+
+            return
+
+        linked = bibleedit.sceneItems(self.bible, num)
+        labels = [
+            "%s: %s%s" % (_(MAP_LABELS[it.map]), "    " * depth, it.name) for it, depth in rows
+        ]
+        dlg = wx.MultiChoiceDialog(self, _("What is in scene %s:") % num, _("Bible"), labels)
+        dlg.SetSelections([i for i, (it, _d) in enumerate(rows) if it.id in linked])
+
+        if dlg.ShowModal() == wx.ID_OK:
+            ids = [rows[i][0].id for i in dlg.GetSelections()]
+            self.guard(bibleedit.setSceneItems, self.bible, num, ids)
+            self.changed()
+            self.form.build()
+
+        dlg.Destroy()
 
     # links/2: runs of capitalized words in Action -> props
     def OnFindProps(self, event=None):
