@@ -1,7 +1,7 @@
 # tests — pytest suite for the screenplay model, import and reports
 
 **Role:** Unit tests that run without a display: they build `Screenplay`
-objects directly and never create the wx GUI. 385 tests.
+objects directly and never create the wx GUI. 462 tests.
 **Entry points:** `docker/test.sh [pytest args]` (the Mocap Studio way: runs
 `python -m pytest` in the `mocap-writer` image, `docker/test.sh:10-12`).
 **Inputs → Outputs:** `tests/fixtures/*` → pass/fail.
@@ -95,6 +95,9 @@ objects directly and never create the wx GUI. 385 tests.
   scenes; flow/3: the report's text for a neutral film. Import into film (a
   `.fountain` and a PDF into new folders, a failed import making nothing)
   needs a display: checked through the real window (2026-10-31).
+- `test_fixture_film_tool.py` — `tools/make_fixture_film.py` builds a
+  film whose scene index lists `1`, `2`, `2.A`, `3`, with two change sets,
+  the last one's `to_hash` matching the index, and eight bible items.
 - `test_frontmatter.py` — front-matter/record/1: a film without the file
   has an empty front matter; save → load round trip, an unchanged save
   writes nothing, the change log has the write; an invalid file is a
