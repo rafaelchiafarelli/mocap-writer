@@ -673,7 +673,7 @@ Data and folders
 - `configpages/` — the settings-dialog pages (its own `CLAUDE.md`).
 - `resources/` — icons, toolbar SVGs, splash logo, quotes (its own
   `CLAUDE.md`).
-- `locales/` — compiled gettext catalogs `en` and `it` (its own `CLAUDE.md`).
+- `locales/` — the compiled English gettext catalog (its own `CLAUDE.md`).
 
 ## Key facts / gotchas
 - **A `.fountain` keeps no per-script settings** (page setup, element
@@ -690,8 +690,8 @@ Data and folders
   translated string is never an attribute or save name: helpers that build
   attribute names take a fixed key and a separate label
   (`tests/test_i18n.py` checks both). English is the only GUI language
-  Mocap Studio needs (Rafael, 2026-10-27): the inherited `it` catalog is
-  not kept in step, so a changed message is simply untranslated there.
+  Mocap Studio needs (Rafael, 2026-10-27); only the `en` catalog is kept
+  (`locales/CLAUDE.md`).
 - **`TRELBY_TESTING` env var** makes `config`, `misc`, `util` and `gutil`
   import a `Mock` instead of `wx` (`trelby/config.py:14-19`) and leaves
   `ConfigGlobal.commands` empty (`trelby/config.py:742-745`).
@@ -705,10 +705,10 @@ Data and folders
 - `misc.progPath` is the repository root (parent of `trelby/`,
   `trelby/misc.py:54`), so resources are addressed as
   `trelby/resources/...` (`trelby/splash.py:39`).
-- `trelby/manual.html`, `dict_en.dat.gz`, `names.txt.gz` and `trelby.1.gz`
-  are build products of `../Makefile`, not in git; without
-  `manual.html`, Help → Manual makes the page from `doc/manual.xml`
-  (`manual.py`).
+- Help → Manual makes its page from `doc/manual.xml` each time
+  (`manual.py`); nothing builds `trelby/manual.html` any more, and
+  `dict_en.dat` / `names.txt` are read uncompressed
+  (`loadMaybeCompressedFile`, `trelby/util.py:1042-1051`).
 - The toolbar (vertical, `trelby/trelbyframe.py:244`) has no GTK
   tooltips: GTK placed them by screen position, partly off-screen on
   WSLg, where the window's X position lies on no monitor (seen

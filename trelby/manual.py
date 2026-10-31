@@ -1,8 +1,8 @@
 # Help -> Manual: the user manual as one HTML page, shown in a window of
-# the program (the Docker image has no browser). A packaged install ships a
-# prebuilt trelby/manual.html (Makefile); otherwise the page is made from
-# doc/manual.xml with the DocBook XSL stylesheets (the docbook-xsl package)
-# through lxml, the same transform as doc/Makefile's "html" target.
+# the program (the Docker image has no browser). A trelby/manual.html is
+# used if one exists (nothing builds it any more); otherwise the page is
+# made from doc/manual.xml with the DocBook XSL stylesheets (the docbook-xsl
+# package) through lxml.
 
 import os
 import webbrowser
