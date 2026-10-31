@@ -243,6 +243,10 @@ class MyFrame(wx.Frame):
 
         self.toolBar = self.CreateToolBar(wx.TB_VERTICAL)
 
+        # each tool's tooltip, shown by OnToolEnter instead of GTK
+        # (bugs/editor/3)
+        self.toolTips = {}
+
         def addTB(id, iconFilename, toolTip):
             filepath = misc.getFullPath(("trelby/resources/%s" % iconFilename))
 
@@ -257,12 +261,8 @@ class MyFrame(wx.Frame):
             # svg_image = wx.svg.SVGimage.CreateFromBytes(svg_content)
             bitmap = wx.BitmapBundle.FromSVG(svg_content, wx.Size(32, 32))
 
-            self.toolBar.AddTool(
-                id,
-                "",
-                bitmap,
-                shortHelp=toolTip,
-            )
+            self.toolBar.AddTool(id, "", bitmap)
+            self.toolTips[id] = toolTip
 
         addTB(ID_FILE_NEW, "new.svg", _("New script"))
         addTB(ID_FILE_OPEN, "open.svg", _("Open Script") + "..")
@@ -332,6 +332,19 @@ class MyFrame(wx.Frame):
         vsizer.Add(self.splitter, 1, wx.EXPAND)
 
         vsizer.Add(wx.StaticLine(self, -1), 0, wx.EXPAND)
+
+        # the toolbar's tooltip, inside the window right of the tool: GTK
+        # places its own tooltips by screen position, and on WSLg's
+        # monitors that put them partly off-screen (bugs/editor/3). made
+        # last, so it is drawn over the rest; not in the sizer.
+        self.toolTipPanel = wx.Panel(self, -1, style=wx.BORDER_SIMPLE)
+        self.toolTipPanel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOBK))
+        self.toolTipText = wx.StaticText(self.toolTipPanel, -1, "")
+        self.toolTipText.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOTEXT))
+        self.toolTipPanel.Hide()
+
+        self.toolBar.Bind(wx.EVT_TOOL_ENTER, self.OnToolEnter)
+        self.toolBar.Bind(wx.EVT_LEAVE_WINDOW, self.OnToolBarLeave)
 
         gd.mru.useMenu(fileMenu, 14)
 
@@ -633,6 +646,33 @@ class MyFrame(wx.Frame):
     # If we get focus, pass it on to ctrl.
     def OnFocus(self, event):
         self.panel.ctrl.SetFocus()
+
+    # the mouse is over a tool (its id in the selection), or over none (-1)
+    def OnToolEnter(self, event):
+        tip = self.toolTips.get(event.GetSelection())
+
+        if not tip:
+            self.toolTipPanel.Hide()
+
+            return
+
+        self.toolTipText.SetLabel(tip)
+        tw, th = self.toolTipText.GetBestSize()
+        pad = 4
+        w, h = tw + 2 * pad, th + 2 * pad
+
+        # level with the mouse, kept inside the window's client area
+        y = self.ScreenToClient(wx.GetMousePosition()).y - h // 2
+        y = util.clamp(y, 0, max(0, self.GetClientSize().height - h))
+
+        self.toolTipText.SetPosition((pad, pad))
+        self.toolTipPanel.SetSize(4, y, w, h)
+        self.toolTipPanel.Show()
+        self.toolTipPanel.Raise()
+
+    def OnToolBarLeave(self, event):
+        self.toolTipPanel.Hide()
+        event.Skip()
 
     def OnMenuHighlight(self, event):
         # default implementation modifies status bar, so we need to
