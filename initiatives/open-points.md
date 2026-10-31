@@ -29,9 +29,6 @@ Rafael, 2026-10-31: finish every open initiative in one stretch; gates
 that wait only on him are waived ("waive and close"); bugs are fixed only
 when they get in the way.
 
-- **film-bible/links/6** — link sets, characters and props to scenes by
-  hand, from the item's form and from the cursor's scene (planned
-  2026-10-31, [links/6](film-bible/epics/links/tasks/6-link-by-hand.md)).
 - **spellcheck/pt-br/1** — the pt-BR spell checker on study/1's decision
   (VERO through Hunspell via `pyenchant`, 2026-10-27)
   ([pt-br/1](spellcheck/epics/pt-br/tasks/1-ptbr-dictionary.md)).

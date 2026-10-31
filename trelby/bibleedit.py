@@ -7,6 +7,8 @@
 import datetime
 import re
 
+import mocap_contracts as mc
+
 import trelby.bible as bible
 import trelby.scenenumbers as scenenumbers
 
@@ -24,6 +26,10 @@ FILE_FOLDERS = {
     "look.drawings": "drawings",
     "files.patterns": "patterns",
 }
+
+# the maps whose items are linked to scenes by hand (links/6); wardrobe
+# keeps Worn by
+SCENE_MAPS = ("set", "character", "prop")
 
 DECIMAL = re.compile(r"^-?[0-9]+([.,][0-9]+)?$")
 
@@ -283,3 +289,107 @@ def setWorn(b, item, character, scenes):
     for s in scenes:
         if s not in old:
             b.link(item, s, character.id, "creator")
+
+
+# links/6: scenes by hand
+
+# {scene number: heading text} of the open script's numbered scenes, in
+# script order
+def sceneHeadings(sp):
+    out = {}
+
+    for line, num in scenenumbers.scenesOf(sp):
+        if num:
+            last = sp.getElemLastIndexFromLine(line)
+            out[num] = " ".join(sp.lines[i].text for i in range(line, last + 1))
+
+    return out
+
+
+# the item's scene choices as [(number, "12 — INT. ROOM - DAY")]: the
+# script's numbered scenes and the scenes the item names that the script no
+# longer has (the number alone)
+def sceneLabels(b, item, sp=None):
+    heads = sceneHeadings(sp) if sp is not None else {}
+
+    return [
+        (n, "%s \u2014 %s" % (n, heads[n]) if n in heads else n)
+        for n in sceneChoices(b, item, sp)
+    ]
+
+
+# the scenes the item is linked to (not its per-scene values, not
+# wardrobe's links with a character)
+def linkedScenes(item):
+    return [l.scene for l in item.msg.links if not l.HasField("item")]
+
+
+# link item to exactly scenes, in one write (one change-log entry); returns
+# True if anything changed. the item is put back if the contract refuses it
+def setScenes(b, item, scenes, by="creator"):
+    want = set(scenes)
+    old = set(linkedScenes(item))
+
+    if want == old:
+        return False
+
+    before = item.msg.SerializeToString()
+    keep = [l for l in item.msg.links if l.HasField("item") or l.scene in want]
+    del item.msg.links[:]
+    item.msg.links.extend(keep)
+
+    for s in sorted(want - old, key=lambda n: scenenumbers.key(n) or (999999, n)):
+        item.msg.links.add(scene=s)
+
+    try:
+        b.save(item, by)
+    except mc.ContractError:
+        item.msg.ParseFromString(before)
+
+        raise
+
+    return True
+
+
+# the ids of the sets, characters and props linked to scene
+def sceneItems(b, scene):
+    return {
+        it.id
+        for it in b.items.values()
+        if it.map in SCENE_MAPS and scene in linkedScenes(it)
+    }
+
+
+# the scene side's choices: [(item, depth)] per map in SCENE_MAPS, child
+# items under their parent, by name
+def sceneItemChoices(b):
+    out = []
+
+    def walk(map_, parentId, depth):
+        for it in b.children(map_, parentId):
+            out.append((it, depth))
+            walk(map_, it.id, depth + 1)
+
+    for map_ in SCENE_MAPS:
+        walk(map_, None, 0)
+
+    return out
+
+
+# the sets, characters and props linked to scene are exactly ids; only the
+# items whose link changes are written. returns the items changed
+def setSceneItems(b, scene, ids, by="creator"):
+    ids = set(ids)
+    changed = []
+
+    for it in list(b.items.values()):
+        if it.map not in SCENE_MAPS:
+            continue
+
+        scenes = set(linkedScenes(it))
+        want = scenes | {scene} if it.id in ids else scenes - {scene}
+
+        if want != scenes and setScenes(b, it, want, by):
+            changed.append(it)
+
+    return changed
