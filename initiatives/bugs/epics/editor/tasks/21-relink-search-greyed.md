@@ -1,6 +1,6 @@
 ## 21. The Missing files dialog lists a problem it can't act on
 
-- **Status:** Open
+- **Status:** Fixed (2026-10-31) — fixes/0000af/film-notices
 - **Symptom:** On Open film, the Missing files dialog lists "Script
   settings — The title page was edited outside the writer…", and Search
   and Skip stay greyed out for it, with nothing saying why or what to do.

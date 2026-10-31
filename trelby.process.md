@@ -423,7 +423,9 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   open tab is selected, `showScript`,
   `trelby/trelbyframe.py:604`) and lists the film's problems in one
   warning, `RelinkDlg` (file-format/layout/3): each missing file can be
-  searched for or skipped, and the move a found file shows is offered for
+  searched for or skipped (a problem with no file to search for is listed
+  as a notice, its reason under the list; only notices: titled Film
+  notices, no Search or Skip, bugs/editor/21), and the move a found file shows is offered for
   the others; accepted paths are saved in `film.json`, and a script found
   there is opened after the dialog; a folder with no or an invalid
   `film.json` gives a message, never a crash; the bible is read before the

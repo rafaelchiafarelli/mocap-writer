@@ -408,7 +408,10 @@ Model and file format
   `trelby/relink.py:140`); `pattern(oldRel, newRel)` → the changed prefix
   (`trelby/relink.py:84`), `applyPattern`, `suggest(root, pat, refs)` →
   the refs the pattern finds at an existing path of the right kind
-  (`trelby/relink.py:122`).
+  (`trelby/relink.py:122`); `warningText(problems)` → the open's warning
+  title and text: Missing files, Film notices when no problem has a file
+  to search for, or Missing files saying which rows are notices
+  (`trelby/relink.py:158`, bugs/editor/21).
 - `clicks.py` — `ClickCounter` (`trelby/clicks.py:5`), no wx: counts
   mouse presses on the same line within 0.5 s, the double-click event wx
   sends with a second press not counted twice (bugs/editor/14-16).
@@ -601,12 +604,16 @@ Reports
   (`trelby/pagelist.py:6`).
 
 Dialogs
-- `relinkdlg.py` — `RelinkDlg` (`trelby/relinkdlg.py:14`): the one
+- `relinkdlg.py` — `RelinkDlg` (`trelby/relinkdlg.py:15`): the one
   warning for a film's problems on open; per missing file Search… (a file
   or folder dialog, `askPath`) or Skip; a found file is applied at once and
   its pattern's finds are offered in a `wx.MultiChoiceDialog`, all checked,
-  and applied only when accepted (`OnSearch`, `trelby/relinkdlg.py:134`);
-  an invalid file shows its reason and can't be searched for.
+  and applied only when accepted (`OnSearch`, `trelby/relinkdlg.py:145`);
+  a problem with no file to search for (an invalid file, a title page
+  edited elsewhere) is a notice: its status says "nothing to search for",
+  its reason shows in full under the list (`updateButtons`,
+  `trelby/relinkdlg.py:99`), and with only notices the dialog is titled
+  Film notices and has no Search or Skip (bugs/editor/21).
 - `cfgdlg.py` — `CfgDlg`: settings dialog; global pages or script pages
   from `configpages/` (`trelby/cfgdlg.py:21`).
 - `finddlg.py` — `FindDlg`: find and replace, optional element-type filter;
