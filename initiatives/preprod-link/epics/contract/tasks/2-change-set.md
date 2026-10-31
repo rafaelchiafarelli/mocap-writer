@@ -1,5 +1,6 @@
 ## 2. Change set
 
+- **Status:** Done (2026-10-31) — `trelby/changeset.py` (`diff`), `mocap-contracts` `v0.7.0` (`change_set.harpia`).
 - **Type:** code, here and in `mocap-contracts`
 - **Depends on:** contract/1; a `mocap-contracts` task for a `change_set`
   message, done and tagged

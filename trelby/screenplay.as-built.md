@@ -177,8 +177,8 @@ Export
   command in the alphabetical command list (`trelby/config.py:742`), a
   `cmdChangeTo<Type>` in `MyCtrl` (`trelby/trelbyctrl.py:1540-1568`) and a
   `to<Type>Cmd` here (`trelby/screenplay.py:2987-3012`); a menu id in
-  `trelby/ids.py:80-100` and the right-click menu
-  (`trelby/trelbyframe.py:337-345`); entries in the export maps `htmlMap`
+  `trelby/ids.py:82-102` and the right-click menu
+  (`trelby/trelbyframe.py:344-352`); entries in the export maps `htmlMap`
   (`trelby/screenplay.py:250`), `xmlMap` (`trelby/screenplay.py:371`) and
   `trelby/fountain.py` (parse and generate); pagination rules if it should not end a page
   (`trelby/screenplay.py:1291-1367`); `findError` rules if it has sequencing

@@ -1,5 +1,6 @@
 ## 1. Snapshot and diff
 
+- **Status:** Done (2026-10-31) — `trelby/sync.py` (`run`, `accept`; the task's `sync_run` / `sync_accept`).
 - **Type:** code
 - **Depends on:** contract/1, contract/2
 - **Contract:**
