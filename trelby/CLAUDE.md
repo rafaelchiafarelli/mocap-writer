@@ -154,7 +154,7 @@ Model and file format
   title page stays as Fountain built it and a problem is returned
   (`trelby/scriptsettings.py:201`); `saveFor(film, sp)` /
   `loadFor(film, sp)` (an invalid record is a film problem and the script
-  keeps the defaults, `trelby/scriptsettings.py:318-347`).
+  keeps the defaults, `trelby/scriptsettings.py:318-346`).
 - `film.py` — a film root (file-format/layout/1), no wx except the
   version in `_origin` (`trelby/film.py:457`): `Film.open(root, owner)`
   reads `film.json` through `mocap_contracts` and lists what is missing or
@@ -323,7 +323,7 @@ Application and editor (wx)
   (`updateThemeMenu`, `trelby/trelbyframe.py:1196-1200`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
-  + `ActPanel` at the right (`trelby/trelbypanel.py:7`); the act panel is
+  + `ActPanel` at the right (`trelby/trelbypanel.py:9`); the act panel is
   made before `MyCtrl`, whose constructor already updates it
   (`trelby/trelbypanel.py:28`).
 - `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:23`): the bible
@@ -387,7 +387,7 @@ Application and editor (wx)
 - `util.py` — text and number helpers, the text-measuring DC,
   `eventKeyCode` (key code of a char event, `trelby/util.py:209`), `Key`
   (keyboard shortcut ↔ int, `trelby/util.py:820`), file load/write
-  (`trelby/util.py:994-1091`), PDF viewer lookup and launch
+  (`trelby/util.py:999-1091`), PDF viewer lookup and launch
   (`trelby/util.py:1206-1269`).
 - `error.py` — `TrelbyError`, `ConfigError`, `MiscError`.
 - `translations.py` — `trelby_translations_load()`: picks the gettext
