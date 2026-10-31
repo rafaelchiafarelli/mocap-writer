@@ -84,7 +84,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   (recolored for dark system themes, `trelby/trelbyframe.py:235-283`), the tab bar
   (`misc.MyTabCtrl`), the status area (`misc.MyStatus`) and the right-click
   menus (`trelby/trelbyframe.py:331-354`).
-- Each open script is one tab: a `MyPanel` (`trelby/trelbypanel.py:7`)
+- Each open script is one tab: a `MyPanel` (`trelby/trelbypanel.py:9`)
   holding a `MyCtrl` editor widget (`trelby/trelbyctrl.py:54`), a vertical
   scroll bar and, at the right, the act panel (`trelby/actpanel.py:12`):
   the acts, their sizes in scenes and the cursor's act, untouched by zoom

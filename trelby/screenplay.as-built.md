@@ -130,8 +130,9 @@ Editing commands (`cmd(name)` calls `<name>Cmd` then `cmdPost`,
   (`trelby/screenplay.py:2079`).
 - Queries for reports and dialogs: `getSceneLocations` (the numbered
   scenes, `[(number, line)]`, for Go to scene, `trelby/screenplay.py:1623`),
-  `getSceneNames`, `getCharacterNames`, `getCharCount`
-  (`trelby/screenplay.py:1166-1650`).
+  `getSceneNames` (`trelby/screenplay.py:1630`), `getCharacterNames`
+  (`trelby/screenplay.py:1641`), `getCharCount`
+  (`trelby/screenplay.py:1220`).
 
 Undo (`trelby/screenplay.py:3015-3124`)
 - Doubly linked list of `undo.*` objects. A new edit while inside the
