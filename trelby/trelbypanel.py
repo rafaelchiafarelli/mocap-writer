@@ -22,6 +22,11 @@ class MyPanel(wx.Panel):
 
         self.scrollBar = wx.ScrollBar(self, -1, style=wx.SB_VERTICAL)
 
+        # under the script, shown only while the page is wider than it
+        # (bugs/editor/12)
+        self.hScrollBar = wx.ScrollBar(self, -1, style=wx.SB_HORIZONTAL)
+        self.hScrollBar.Hide()
+
         # the acts of this script, fixed at the right
         # (story-structure/acts/2). made before MyCtrl, whose constructor
         # already updates it.
@@ -29,13 +34,20 @@ class MyPanel(wx.Panel):
 
         self.ctrl = MyCtrl(self, -1, gd)
 
-        hsizer.Add(self.ctrl, 1, wx.EXPAND)
+        vsizer = wx.BoxSizer(wx.VERTICAL)
+        vsizer.Add(self.ctrl, 1, wx.EXPAND)
+        vsizer.Add(self.hScrollBar, 0, wx.EXPAND)
+
+        hsizer.Add(vsizer, 1, wx.EXPAND)
         hsizer.Add(self.scrollBar, 0, wx.EXPAND)
         hsizer.Add(self.actPanel, 0, wx.EXPAND)
 
         self.scrollBar.Bind(wx.EVT_COMMAND_SCROLL, self.ctrl.OnScroll)
 
         self.scrollBar.Bind(wx.EVT_SET_FOCUS, self.OnScrollbarFocus)
+
+        self.hScrollBar.Bind(wx.EVT_COMMAND_SCROLL, self.ctrl.OnHScroll)
+        self.hScrollBar.Bind(wx.EVT_SET_FOCUS, self.OnScrollbarFocus)
 
         self.SetSizer(hsizer)
 

@@ -3,9 +3,11 @@ import os
 import wx
 
 import trelby.bible as bible
+import trelby.bibleedit as bibleedit
 import trelby.misc as misc
 import trelby.biblelinks as biblelinks
 import trelby.bibleform as bibleform
+import trelby.frontmatterform as frontmatterform
 
 # the bible panel (film-bible/tree/1): left of the script, one tree per map
 # (sets, characters, props, wardrobe) like a file explorer, over the open
@@ -54,6 +56,13 @@ class BiblePanel(wx.Panel):
         self.sceneText = wx.StaticText(self, -1, "")
         vsizer.Add(self.sceneText, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, 6)
 
+        # what is in the cursor's scene, by hand (film-bible/links/6)
+        self.thisSceneBtn = wx.Button(self, -1, _("This scene..."), style=wx.BU_EXACTFIT)
+        self.thisSceneBtn.SetToolTip(_("Tick the sets, characters and props in this scene"))
+        self.thisSceneBtn.Bind(wx.EVT_BUTTON, self.OnThisScene)
+        self.thisSceneBtn.Enable(False)
+        vsizer.Add(self.thisSceneBtn, 0, wx.LEFT | wx.BOTTOM, 4)
+
         # (scene, text) last shown, so a cursor move repaints nothing
         self.sceneShown = None
 
@@ -68,6 +77,10 @@ class BiblePanel(wx.Panel):
         )
 
         self.form = self.makeForm(self.splitter)
+        # the front matter's form takes the item form's place when its node
+        # is selected (front-matter/record/1)
+        self.fmForm = frontmatterform.FrontMatterForm(self.splitter, -1, self)
+        self.fmForm.Hide()
         self.splitter.SplitHorizontally(self.tree, self.form, 220)
 
         vsizer.Add(self.splitter, 1, wx.EXPAND)
@@ -100,7 +113,31 @@ class BiblePanel(wx.Panel):
         return bibleform.BibleForm(parent, -1, self)
 
     def showItem(self, item):
+        self.showLower(self.form)
         self.form.setItem(item)
+
+    # the form under the tree: the item form or the front matter's
+    def showLower(self, win):
+        cur = self.splitter.GetWindow2()
+
+        if cur is not win:
+            if cur is self.form:
+                self.form.commitFocused()
+            else:
+                self.fmForm.commitFocused()
+
+            self.splitter.ReplaceWindow(cur, win)
+            cur.Hide()
+            win.Show()
+
+    def selectFrontMatter(self):
+        for n, key in self.nodes.items():
+            if key[0] == "front":
+                self.tree.SelectItem(n)
+
+    def showFrontMatter(self):
+        self.showLower(self.fmForm)
+        self.fmForm.setFilm(self.bible.film)
 
     def setBible(self, b):
         if b is not self.bible and self.bible is not None:
@@ -108,6 +145,7 @@ class BiblePanel(wx.Panel):
             # saved into its own film, and nothing stays selected, since
             # ids like set-w-1 repeat from film to film
             self.form.commitFocused()
+            self.fmForm.commitFocused()
             self.tree.DeleteAllItems()
             self.nodes = {}
 
@@ -126,7 +164,7 @@ class BiblePanel(wx.Panel):
     def refresh(self, selectId=None):
         if selectId is None:
             sel = self.selected()
-            selectId = sel[1] if sel else None
+            selectId = (sel[1] if sel[0] != "front" else "front") if sel else None
 
         expanded = {
             self.nodes[n] for n in self.nodes if self.tree.IsExpanded(n)
@@ -142,6 +180,11 @@ class BiblePanel(wx.Panel):
             return
 
         toSelect = None
+        fmNode = self.tree.AppendItem(root, _("Front matter"))
+        self.nodes[fmNode] = ("front", None)
+
+        if selectId == "front":
+            toSelect = fmNode
 
         for map_ in bible.MAPS:
             mapNode = self.tree.AppendItem(root, _(MAP_LABELS[map_]))
@@ -192,14 +235,14 @@ class BiblePanel(wx.Panel):
     def selectedMap(self):
         sel = self.selected()
 
-        if not sel:
+        if not sel or sel[0] == "front":
             return None
 
         return sel[1] if sel[0] == "map" else self.bible.get(sel[1]).map
 
     def updateButtons(self):
         sel = self.selected()
-        self.newBtn.Enable(bool(sel))
+        self.newBtn.Enable(bool(sel and sel[0] != "front"))
         self.childBtn.Enable(bool(sel and sel[0] == "item"))
         self.renameBtn.Enable(bool(sel and sel[0] == "item"))
         self.deleteBtn.Enable(bool(sel and sel[0] == "item"))
@@ -208,7 +251,12 @@ class BiblePanel(wx.Panel):
         self.updateButtons()
 
         if self.bible is not None:
-            self.showItem(self.selectedItem())
+            sel = self.selected()
+
+            if sel and sel[0] == "front":
+                self.showFrontMatter()
+            else:
+                self.showItem(self.selectedItem())
 
     # run fn, showing what the film refused instead of crashing
     def guard(self, fn, *args):
@@ -317,6 +365,9 @@ class BiblePanel(wx.Panel):
 
     # (label, handler) of the right-click menu; None label: a separator
     def menuItems(self):
+        if self.selectedMap() is None:
+            return []
+
         items = [(_("New item"), self.OnNew)]
 
         if self.selectedItem():
@@ -358,6 +409,9 @@ class BiblePanel(wx.Panel):
         it = self.bible.get(dragId)
         key = self.nodes.get(target)
 
+        if key is None or key[0] == "front":
+            return
+
         if key[0] == "map":
             parent = None
 
@@ -396,7 +450,24 @@ class BiblePanel(wx.Panel):
             (_("Find characters..."), self.OnFindCharacters),
             (_("Find props..."), self.OnFindProps),
             (_("Wardrobe gaps..."), self.OnWardrobeGaps),
+            (_("Review all..."), self.OnReviewAll),
         ]
+
+    # import-to-film/flow/2: sets, characters and props in one review; new
+    # items unticked, as in the other From script commands
+    def OnReviewAll(self, event=None):
+        import trelby.biblereviewdlg as biblereviewdlg
+
+        sp = self.script()
+        made = self.guard(
+            biblereviewdlg.review, self, self.bible, sp, False, True, self.noteUnnumbered(sp).strip()
+        )
+
+        if made == {}:
+            wx.MessageBox(_("Nothing to do: the bible already matches the script."),
+                          _("Bible"), wx.OK, self)
+
+        self.changed()
 
     # warn if the script has scenes with no number yet: those are left out
     # until a save numbers them
@@ -482,11 +553,46 @@ class BiblePanel(wx.Panel):
 
             text = _("Scene %s") % num + (" - " + "; ".join(parts) if parts else "")
 
+        self.thisSceneBtn.Enable(bool(num))
+
         if (num, text) != self.sceneShown:
             self.sceneShown = (num, text)
             self.sceneText.SetLabel(text)
             self.sceneText.Wrap(max(self.GetSize().width - 12, 100))
             self.Layout()
+
+    # links/6: tick every set, character and prop in the cursor's scene;
+    # OK links and unlinks the changes only
+    def OnThisScene(self, event=None):
+        sp = self.script()
+        num = biblelinks.sceneAt(sp, sp.line)
+
+        if self.bible is None or not num:
+            return
+
+        self.form.commitFocused()
+        rows = bibleedit.sceneItemChoices(self.bible)
+
+        if not rows:
+            wx.MessageBox(_("There are no sets, characters or props in the bible yet."),
+                          _("Bible"), wx.OK, self)
+
+            return
+
+        linked = bibleedit.sceneItems(self.bible, num)
+        labels = [
+            "%s: %s%s" % (_(MAP_LABELS[it.map]), "    " * depth, it.name) for it, depth in rows
+        ]
+        dlg = wx.MultiChoiceDialog(self, _("What is in scene %s:") % num, _("Bible"), labels)
+        dlg.SetSelections([i for i, (it, _d) in enumerate(rows) if it.id in linked])
+
+        if dlg.ShowModal() == wx.ID_OK:
+            ids = [rows[i][0].id for i in dlg.GetSelections()]
+            self.guard(bibleedit.setSceneItems, self.bible, num, ids)
+            self.changed()
+            self.form.build()
+
+        dlg.Destroy()
 
     # links/2: runs of capitalized words in Action -> props
     def OnFindProps(self, event=None):

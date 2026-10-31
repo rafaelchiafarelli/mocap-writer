@@ -2,6 +2,20 @@ import trelby
 import trelby.mypickle as mypickle
 import trelby.util as util
 
+# the dictionary languages (spellcheck/pt-br/1): setting value, label, and
+# the Hunspell dictionary read through pyenchant (None: dict_en.dat)
+LANGUAGES = (
+    ("en", "English", None),
+    ("pt-BR", "Português (Brasil)", "pt_BR"),
+)
+
+# scene heading words every language knows (pt-BR scripts write INT. and
+# EXT. too; dict_en.dat has them)
+SCRIPT_WORDS = {"int", "ext", "est"}
+
+# Hunspell dictionaries opened, by enchant tag
+hunspell = {}
+
 # words loaded from dict_en.dat.
 gdict = set()
 
@@ -43,6 +57,82 @@ def loadDict(frame):
             prefixDict[gwp(word)].add(word)
 
     return True
+
+
+# open the dictionary of lang (a LANGUAGES value). returns None when it is
+# ready, else the message saying which one is missing and how to get it
+def loadLanguage(lang, frame=None):
+    tag = dict((k, t) for k, _l, t in LANGUAGES).get(lang)
+
+    if tag is None:
+        return None if loadDict(frame) else _("The English word list could not be read.")
+
+    if tag in hunspell:
+        return None
+
+    try:
+        import enchant
+
+        hunspell[tag] = enchant.Dict(tag)
+    except Exception as e:
+        return _(
+            "The {} dictionary is not installed ({}).\n\n"
+            "It comes with the mocap-writer Docker image (docker/run.sh); "
+            "elsewhere install pyenchant and the hunspell-pt-br package."
+        ).format(lang, e)
+
+    return None
+
+
+# the Hunspell dictionary of lang, or None for English
+def hunspellOf(lang):
+    tag = dict((k, t) for k, _l, t in LANGUAGES).get(lang)
+
+    return hunspell.get(tag) if tag else None
+
+
+# up to 5 suggestions for word, most likely first: the language's own
+# (Hunspell's, or the closest dict_en.dat words), then the closest words of
+# the user's dictionaries
+def suggest(lang, word, dicts):
+    word = util.lower(word)
+    wl = len(word)
+    wstart = word[:2]
+    hd = hunspellOf(lang)
+    fifo = util.FIFO(5)
+    d = 500
+
+    def tryWord(w, d):
+        if abs(wl - len(w)) > 3:
+            return d
+
+        d2 = lev(word, w)
+
+        if d2 <= d:
+            fifo.add(w)
+
+            return d2
+
+        return d
+
+    if hd is None:
+        for w in prefixDict.get(util.getWordPrefix(word), ()):
+            if w.startswith(wstart):
+                d = tryWord(w, d)
+
+    for dic in dicts:
+        for w in dic.words.keys():
+            if w.startswith(wstart):
+                d = tryWord(w, d)
+
+    items = fifo.get()
+
+    if hd is not None:
+        # the user's close words first, then Hunspell's
+        items = [w for w in items if lev(word, w) <= 2]
+        items += [w for w in hd.suggest(word) if " " not in w]
+
+    return list(dict.fromkeys(items))[:5]
 
 
 # dictionary, a list of known words that the user has specified.
@@ -134,8 +224,12 @@ class Dict:
 
 # spell check a script
 class SpellChecker:
-    def __init__(self, sp, gScDict):
+    def __init__(self, sp, gScDict, lang="en"):
         self.sp = sp
+
+        # the language's Hunspell dictionary (loadLanguage first), or None
+        # for dict_en.dat
+        self.hunspell = hunspellOf(lang)
 
         # user's global dictionary (Dict)
         self.gScDict = gScDict
@@ -184,10 +278,15 @@ class SpellChecker:
 
     # return True if word is a known word.
     def isKnown(self, word):
+        if self.hunspell is not None and self.hunspell.check(word):
+            return True
+
         word = util.lower(word)
 
         return (
-            word in gdict
+            (self.hunspell is None and word in gdict)
+            or (self.hunspell is not None and self.hunspell.check(word))
+            or word in SCRIPT_WORDS
             or word in self.cnames
             or self.sp.scDict.isKnown(word)
             or self.gScDict.isKnown(word)

@@ -15,16 +15,24 @@ import trelby.commandsdlg as commandsdlg
 import trelby.annotationdlg as annotationdlg
 import trelby.annotations as annotations
 import trelby.biblepanel as biblepanel
+import trelby.biblereviewdlg as biblereviewdlg
 import trelby.config as config
 import trelby.film as film
+import trelby.frontmatter as frontmatter
+import trelby.importfilm as importfilm
+import trelby.importreportdlg as importreportdlg
 import trelby.manual as manual
 import trelby.misc as misc
 import trelby.namesdlg as namesdlg
 import trelby.openfilms as openfilms
 import trelby.relinkdlg as relinkdlg
+import trelby.review as review
+import trelby.reviewdlg as reviewdlg
 import trelby.scriptsettings as scriptsettings
 import trelby.spellcheckcfgdlg as spellcheckcfgdlg
 import trelby.splash as splash
+import trelby.sync as sync
+import trelby.syncdlg as syncdlg
 import trelby.util as util
 from trelby.ids import *
 from trelby.trelbypanel import MyPanel
@@ -85,6 +93,7 @@ class MyFrame(wx.Frame):
         fileMenu.Append(ID_FILE_OPEN_FILM, _("Open film") + "...")
         fileMenu.AppendSeparator()
         fileMenu.Append(ID_FILE_IMPORT, "(&I) " + _("Import") + "...")
+        fileMenu.Append(ID_FILE_IMPORT_FILM, _("Import into film") + "...")
         fileMenu.Append(ID_FILE_EXPORT, "(&E) " + _("Export") + "...")
         fileMenu.AppendSeparator()
         fileMenu.Append(ID_FILE_PRINT, "(&P) " + _("Print (via PDF)") + "\tCTRL-P")
@@ -171,6 +180,8 @@ class MyFrame(wx.Frame):
         scriptMenu.Append(ID_SCRIPT_ANNOTATE, _("Annotate") + "...\tCTRL-SHIFT-A")
         scriptMenu.Append(ID_SCRIPT_ANNOTATIONS_HERE, _("Annotations here") + "...")
         scriptMenu.Append(ID_SCRIPT_ANNOTATIONS_UNATTACHED, _("Unattached annotations") + "...")
+        scriptMenu.Append(ID_SCRIPT_SYNC, _("Sync to spec") + "...\tF5")
+        scriptMenu.Append(ID_SCRIPT_REVIEW, _("Review proposals") + "...")
         scriptMenu.AppendSeparator()
         scriptMenu.Append(
             ID_SCRIPT_AUTO_COMPLETION, "(&A) " + _("Auto-completion") + "..."
@@ -232,6 +243,10 @@ class MyFrame(wx.Frame):
 
         self.toolBar = self.CreateToolBar(wx.TB_VERTICAL)
 
+        # each tool's tooltip, shown by OnToolEnter instead of GTK
+        # (bugs/editor/3)
+        self.toolTips = {}
+
         def addTB(id, iconFilename, toolTip):
             filepath = misc.getFullPath(("trelby/resources/%s" % iconFilename))
 
@@ -246,12 +261,8 @@ class MyFrame(wx.Frame):
             # svg_image = wx.svg.SVGimage.CreateFromBytes(svg_content)
             bitmap = wx.BitmapBundle.FromSVG(svg_content, wx.Size(32, 32))
 
-            self.toolBar.AddTool(
-                id,
-                "",
-                bitmap,
-                shortHelp=toolTip,
-            )
+            self.toolBar.AddTool(id, "", bitmap)
+            self.toolTips[id] = toolTip
 
         addTB(ID_FILE_NEW, "new.svg", _("New script"))
         addTB(ID_FILE_OPEN, "open.svg", _("Open Script") + "..")
@@ -274,6 +285,7 @@ class MyFrame(wx.Frame):
         self.toolBar.AddSeparator()
 
         addTB(ID_EDIT_FIND, "find.svg", _("Find / Replace"))
+        addTB(ID_SCRIPT_SYNC, "sync.svg", _("Sync to spec"))
         addTB(ID_TOOLBAR_VIEWS, "view.svg", _("View mode"))
         addTB(ID_TOOLBAR_REPORTS, "report.svg", _("Script reports"))
         addTB(ID_TOOLBAR_TOOLS, "tools.svg", _("Tools"))
@@ -321,6 +333,19 @@ class MyFrame(wx.Frame):
 
         vsizer.Add(wx.StaticLine(self, -1), 0, wx.EXPAND)
 
+        # the toolbar's tooltip, inside the window right of the tool: GTK
+        # places its own tooltips by screen position, and on WSLg's
+        # monitors that put them partly off-screen (bugs/editor/3). made
+        # last, so it is drawn over the rest; not in the sizer.
+        self.toolTipPanel = wx.Panel(self, -1, style=wx.BORDER_SIMPLE)
+        self.toolTipPanel.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOBK))
+        self.toolTipText = wx.StaticText(self.toolTipPanel, -1, "")
+        self.toolTipText.SetForegroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOTEXT))
+        self.toolTipPanel.Hide()
+
+        self.toolBar.Bind(wx.EVT_TOOL_ENTER, self.OnToolEnter)
+        self.toolBar.Bind(wx.EVT_LEAVE_WINDOW, self.OnToolBarLeave)
+
         gd.mru.useMenu(fileMenu, 14)
 
         self.Bind(wx.EVT_MENU_HIGHLIGHT_ALL, self.OnMenuHighlight)
@@ -360,6 +385,7 @@ class MyFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.OnSave, id=ID_FILE_SAVE)
             self.Bind(wx.EVT_MENU, self.OnSaveScriptAs, id=ID_FILE_SAVE_AS)
             self.Bind(wx.EVT_MENU, self.OnImportScript, id=ID_FILE_IMPORT)
+            self.Bind(wx.EVT_MENU, self.OnImportIntoFilm, id=ID_FILE_IMPORT_FILM)
             self.Bind(wx.EVT_MENU, self.OnExportScript, id=ID_FILE_EXPORT)
             self.Bind(wx.EVT_MENU, self.OnCloseScript, id=ID_FILE_CLOSE)
             self.Bind(wx.EVT_MENU, self.OnRevertScript, id=ID_FILE_REVERT)
@@ -397,6 +423,8 @@ class MyFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.OnViewBible, id=ID_VIEW_BIBLE)
             self.Bind(wx.EVT_MENU, self.OnViewAnnotations, id=ID_VIEW_ANNOTATIONS)
             self.Bind(wx.EVT_MENU, self.OnAnnotate, id=ID_SCRIPT_ANNOTATE)
+            self.Bind(wx.EVT_MENU, self.OnSyncToSpec, id=ID_SCRIPT_SYNC)
+            self.Bind(wx.EVT_MENU, self.OnReview, id=ID_SCRIPT_REVIEW)
             self.Bind(wx.EVT_MENU, self.OnAnnotationsHere, id=ID_SCRIPT_ANNOTATIONS_HERE)
             self.Bind(
                 wx.EVT_MENU, self.OnAnnotationsUnattached, id=ID_SCRIPT_ANNOTATIONS_UNATTACHED
@@ -619,6 +647,33 @@ class MyFrame(wx.Frame):
     def OnFocus(self, event):
         self.panel.ctrl.SetFocus()
 
+    # the mouse is over a tool (its id in the selection), or over none (-1)
+    def OnToolEnter(self, event):
+        tip = self.toolTips.get(event.GetSelection())
+
+        if not tip:
+            self.toolTipPanel.Hide()
+
+            return
+
+        self.toolTipText.SetLabel(tip)
+        tw, th = self.toolTipText.GetBestSize()
+        pad = 4
+        w, h = tw + 2 * pad, th + 2 * pad
+
+        # level with the mouse, kept inside the window's client area
+        y = self.ScreenToClient(wx.GetMousePosition()).y - h // 2
+        y = util.clamp(y, 0, max(0, self.GetClientSize().height - h))
+
+        self.toolTipText.SetPosition((pad, pad))
+        self.toolTipPanel.SetSize(4, y, w, h)
+        self.toolTipPanel.Show()
+        self.toolTipPanel.Raise()
+
+    def OnToolBarLeave(self, event):
+        self.toolTipPanel.Hide()
+        event.Skip()
+
     def OnMenuHighlight(self, event):
         # default implementation modifies status bar, so we need to
         # override it and do nothing
@@ -812,6 +867,12 @@ class MyFrame(wx.Frame):
 
         if os.path.realpath(ctrl.fileName or "") == os.path.realpath(str(f.partPath("script"))):
             scriptsettings.loadFor(f, ctrl.sp)
+
+            try:
+                frontmatter.syncTitle(f, ctrl.sp)
+            except Exception as e:
+                f.problem(_("Front matter"), frontmatter.PATH, str(e))
+
             ctrl.sp.markChanged(False)
             ctrl.updateScreen()
 
@@ -848,6 +909,62 @@ class MyFrame(wx.Frame):
     def OnViewAnnotations(self, event=None):
         self.showAnnotations = self.menuBar.IsChecked(ID_VIEW_ANNOTATIONS)
         self.panel.ctrl.updateScreen()
+
+    # Script -> Sync to spec (preprod-link/sync/2): the saved script's scene
+    # index against the last accepted sync, shown in the change panel
+    def OnSyncToSpec(self, event=None):
+        ctrl = self.panel.ctrl
+        of = self.filmOf(ctrl)
+
+        if of is None:
+            wx.MessageBox(
+                _("Sync to spec works on a film's script: open the film (File -> Open film) and use its script's tab."),
+                _("Sync to spec"),
+                wx.OK,
+                self,
+            )
+
+            return
+
+        if ctrl.sp.isModified():
+            if wx.MessageBox(
+                _("The script has unsaved changes. Save it and sync?"),
+                _("Sync to spec"),
+                wx.YES_NO | wx.YES_DEFAULT,
+                self,
+            ) != wx.YES:
+                return
+
+            ctrl.OnSave()
+
+            if ctrl.sp.isModified():
+                return
+
+        f, b = of.film, of.bible
+
+        try:
+            r = sync.run(f, b, ctrl.sp)
+        except Exception as e:
+            wx.MessageBox(str(e), _("Sync to spec"), wx.OK, self)
+
+            return
+
+        syncdlg.SyncDlg(self, f, b, r).Show()
+
+    # Script -> Review proposals (preprod-link/review/1): the film's
+    # proposals, TBDs and the values the latest sync lists as needs review
+    def OnReview(self, event=None):
+        if self.bible is None:
+            wx.MessageBox(
+                _("Proposals belong to a film: open the film (File -> Open film)."),
+                _("Review proposals"),
+                wx.OK,
+                self,
+            )
+
+            return
+
+        reviewdlg.ReviewDlg(self, self.bible, review.latestChanges(self.film)).Show()
 
     # Script -> Annotate: the selection's text, or the cursor's element
     def OnAnnotate(self, event=None):
@@ -1013,7 +1130,8 @@ class MyFrame(wx.Frame):
     def OnSaveScriptAs(self, event=None):
         self.panel.ctrl.OnSaveScriptAs()
 
-    def OnImportScript(self, event=None):
+    # the file to import, or None
+    def askImportFile(self):
         dlg = wx.FileDialog(
             self,
             _("File to import"),
@@ -1050,15 +1168,143 @@ class MyFrame(wx.Frame):
             style=wx.FD_OPEN,
         )
 
+        path = None
+
         if dlg.ShowModal() == wx.ID_OK:
             misc.scriptDir = dlg.GetDirectory()
+            path = dlg.GetPath()
 
-            if not self.tabCtrl.getPage(self.findPage(self.panel)).ctrl.isUntouched():
-                self.panel = self.createNewPanel()
+        dlg.Destroy()
 
-            self.panel.ctrl.importFile(dlg.GetPath())
-            self.panel.ctrl.updateScreen()
+        return path
 
+    # import path into a tab (a new one unless the current one is
+    # untouched); returns its ctrl, or None when the import failed
+    def importIntoTab(self, path):
+        if not self.tabCtrl.getPage(self.findPage(self.panel)).ctrl.isUntouched():
+            self.panel = self.createNewPanel()
+
+        ok = self.panel.ctrl.importFile(path)
+        self.panel.ctrl.updateScreen()
+
+        return self.panel.ctrl if ok else None
+
+    # File -> Import. with a film open (import-to-film, decision 3): into
+    # this film, into a new folder (a new film), or just open it
+    def OnImportScript(self, event=None):
+        path = self.askImportFile()
+
+        if path is None:
+            return
+
+        pick = None
+
+        if self.film is not None:
+            choices = [_("Into this film"), _("Into a new folder (a new film)"), _("Just open it")]
+            dlg = wx.SingleChoiceDialog(
+                self, _("Import %s:") % os.path.basename(path), _("Import"), choices
+            )
+            pick = dlg.GetSelection() if dlg.ShowModal() == wx.ID_OK else None
+            dlg.Destroy()
+
+            if pick is None:
+                return
+
+            if pick == 1:
+                root = self.chooseFilmFolder(_("Folder for the new film"))
+
+                if root is not None:
+                    self.importIntoNewFilm(path, root)
+
+                return
+
+        ctrl = self.importIntoTab(path)
+
+        if ctrl is not None and self.film is not None and pick == 0:
+            # into this film: its bible gets the new items; this script's
+            # scene numbers are not the film's, so no scene is linked
+            biblereviewdlg.review(
+                self, self.bible, ctrl.sp, True, False,
+                _("Into this film's bible. The imported script is not the film's script, "
+                  "so the new items are made without scenes."),
+            )
+            self.biblePanel.changed()
+
+    # File -> Import into film (import-to-film/flow/1)
+    def OnImportIntoFilm(self, event=None):
+        path = self.askImportFile()
+
+        if path is None:
+            return
+
+        root = self.chooseFilmFolder(_("Folder for the new film"))
+
+        if root is not None:
+            self.importIntoNewFilm(path, root)
+
+    # import path, then make the film in root as New film does: the script
+    # saved as its script.fountain (every scene numbered) and the original
+    # copied into its source part. a failed or cancelled import makes no
+    # film. returns the film, or None
+    def importIntoNewFilm(self, path, root):
+        if os.path.exists(os.path.join(root, "film.json")):
+            wx.MessageBox(_("%s already holds a film.") % root, _("Import into film"), wx.OK, self)
+
+            return None
+
+        ctrl = self.importIntoTab(path)
+
+        if ctrl is None:
+            return None
+
+        try:
+            f = film.Film.create(root, "")
+            importfilm.copySource(f, path)
+        except (film.FilmError, film.OwnerError, OSError) as e:
+            wx.MessageBox(str(e), _("Error"), wx.OK, self)
+
+            return None
+
+        # the imported title page goes into the film's front matter, and the
+        # script is saved with the block written from it
+        # (front-matter/import/1)
+        try:
+            frontmatter.syncTitle(f, ctrl.sp)
+        except Exception as e:
+            wx.MessageBox(str(e), _("Front matter"), wx.OK, self)
+
+        if ctrl.saveFile(str(f.partPath("script"))):
+            try:
+                scriptsettings.saveFor(f, ctrl.sp)
+            except Exception as e:
+                wx.MessageBox(str(e), _("Error"), wx.OK, self)
+        else:
+            wx.MessageBox(
+                _("The film was made, but the script was not saved into it."),
+                _("Import into film"),
+                wx.OK,
+                self,
+            )
+
+        self.setFilm(f)
+        self.reviewImport(ctrl)
+
+        return f
+
+    # the end of an import into a new film: the bible review, new items
+    # ticked (import-to-film/flow/2, decision 1), then the report (flow/3)
+    def reviewImport(self, ctrl):
+        b = self.openFilms.at(self.film.root).bible if self.film else None
+
+        if b is None:
+            return
+
+        made = biblereviewdlg.review(self, b, ctrl.sp, True)
+        self.biblePanel.changed()
+        dlg = importreportdlg.ImportReportDlg(
+            self, ctrl, importfilm.report(b, ctrl.sp, made or {})
+        )
+        dlg.ShowModal()
         dlg.Destroy()
 
     def OnExportScript(self, event=None):

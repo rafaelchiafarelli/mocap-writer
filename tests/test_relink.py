@@ -95,3 +95,19 @@ def test_apply_pattern():
     assert relink.applyPattern(("a", "c"), "a/d/y.png") == "c/d/y.png"
     assert relink.applyPattern(("a", "c"), "b/y.png") is None
     assert relink.applyPattern(("", "old"), "bible/") == "old/bible/"
+
+
+# the warning's title and text follow what it lists (bugs/editor/21)
+def test_warning_text_tells_notices_from_missing_files(tmp_path):
+    f = movedFilm(tmp_path)
+    missing = [p for p in f.problems if p.ref]
+    notice = film.Problem("Script settings", "settings/script-settings.json", "The title page was edited outside the writer.")
+
+    title, intro = relink.warningText(missing)
+    assert title == "Missing files" and "nothing to search for" not in intro
+
+    title, intro = relink.warningText([notice])
+    assert title == "Film notices" and "no file is missing" in intro
+
+    title, intro = relink.warningText(missing + [notice])
+    assert title == "Missing files" and "nothing to search for" in intro

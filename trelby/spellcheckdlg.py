@@ -178,27 +178,10 @@ class SpellCheckDlg(wx.Dialog):
         isAllCaps = self.sc.word == util.upper(self.sc.word)
         isCapitalized = self.sc.word[:1] == util.upper(self.sc.word[:1])
 
-        word = util.lower(self.sc.word)
-
-        wl = len(word)
-        wstart = word[:2]
-        d = 500
-        fifo = util.FIFO(5)
         wx.BeginBusyCursor()
-
-        for w in spellcheck.prefixDict[util.getWordPrefix(word)]:
-            if w.startswith(wstart):
-                d = self.tryWord(word, wl, w, d, fifo)
-
-        for w in self.gScDict.words.keys():
-            if w.startswith(wstart):
-                d = self.tryWord(word, wl, w, d, fifo)
-
-        for w in self.ctrl.sp.scDict.words.keys():
-            if w.startswith(wstart):
-                d = self.tryWord(word, wl, w, d, fifo)
-
-        items = fifo.get()
+        items = spellcheck.suggest(
+            self.ctrl.gd.cfgGl.spellLanguage, self.sc.word, (self.gScDict, self.ctrl.sp.scDict)
+        )
 
         wx.EndBusyCursor()
 
@@ -224,18 +207,3 @@ class SpellCheckDlg(wx.Dialog):
             self.replaceEntry.SetValue(newWord)
 
         dlg.Destroy()
-
-    # if w2 is closer to w1 in Levenshtein distance than d, add it to
-    # fifo. return min(d, new_distance).
-    def tryWord(self, w1, w1len, w2, d, fifo):
-        if abs(w1len - len(w2)) > 3:
-            return d
-
-        d2 = spellcheck.lev(w1, w2)
-
-        if d2 <= d:
-            fifo.add(w2)
-
-            return d2
-
-        return d

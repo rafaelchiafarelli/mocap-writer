@@ -15,6 +15,7 @@ import trelby.dialoguechart as dialoguechart
 import trelby.error as error
 import trelby.finddlg as finddlg
 import trelby.fountain as fountain
+import trelby.frontmatter as frontmatter
 import trelby.gutil as gutil
 import trelby.headersdlg as headersdlg
 import trelby.locationsdlg as locationsdlg
@@ -33,6 +34,7 @@ import trelby.spellcheckcfgdlg as spellcheckcfgdlg
 import trelby.spellcheckdlg as spellcheckdlg
 import trelby.titlesdlg as titlesdlg
 import trelby.util as util
+import trelby.viewmode as viewmode
 import trelby.watermarkdlg as watermarkdlg
 from trelby.ids import ID_EDIT_REDO, ID_EDIT_UNDO, idToLTMap
 from trelby.line import Line
@@ -59,6 +61,10 @@ class MyCtrl(wx.Control):
 
         self.panel = parent
         self.gd = gd
+
+        # pixels the page is scrolled left by when it is wider than the
+        # widget (bugs/editor/12)
+        self.hOffset = 0
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -171,13 +177,20 @@ class MyCtrl(wx.Control):
             )
 
     # a .fountain file -> Screenplay, or None after telling the user why
-    def readFountain(self, fileName):
+    # options: the Import -> Fountain options (fountain.importOptions
+    # keywords), applied to the text before it is read; None for Open
+    def readFountain(self, fileName, options=None):
         data = util.loadFile(fileName, self.gd.mainFrame, binary=True)
         if data is None:
             return None
 
         try:
-            return fountain.load(data.decode("UTF-8"), self.gd.cfgGl)
+            text = data.decode("UTF-8")
+
+            if options:
+                text = fountain.importOptions(text, **options)
+
+            return fountain.load(text, self.gd.cfgGl)
         except UnicodeDecodeError:
             self.loadError(_("The file is not UTF-8 text."))
 
@@ -198,6 +211,16 @@ class MyCtrl(wx.Control):
 
         if not self.numberScenes():
             return False
+
+        of = self.openFilm()
+
+        if of is not None:
+            # a film's script: the title block comes from the front matter
+            # (front-matter/title/1)
+            try:
+                frontmatter.syncTitle(of.film, self.sp)
+            except Exception as e:
+                wx.MessageBox(str(e), _("Front matter"), wx.OK, self.gd.mainFrame)
 
         res = fountain.generate(self.sp)
 
@@ -393,20 +416,45 @@ class MyCtrl(wx.Control):
 
         misc.showText(self.gd.mainFrame, msg, _("Warning"))
 
+    # the Import -> Fountain options (front-matter/import/1) as
+    # fountain.importOptions keywords, or None if cancelled; nothing ticked
+    # but the title page, which a film's import puts in its front matter
+    def askFountainOptions(self):
+        items = [
+            ("strip", misc.CheckBoxItem(_("Remove emphasis markup (*, **, _)"), False)),
+            ("notes", misc.CheckBoxItem(_("Sections and synopses as notes"), False)),
+            ("titleAsAction", misc.CheckBoxItem(_("Title page lines as action"), False)),
+            ("keepTitle", misc.CheckBoxItem(
+                _("Keep the title page (in a film: into its front matter)"), True)),
+        ]
+        dlg = misc.CheckBoxDlg(
+            self.gd.mainFrame, _("Fountain import options"), [i for _k, i in items],
+            _("Import options:"), False,
+        )
+        ok = dlg.ShowModal() == wx.ID_OK
+        dlg.Destroy()
+
+        return {k: i.selected for k, i in items} if ok else None
+
+    # returns True when the file was imported
     def importFile(self, fileName):
         # a .fountain is read like Open (fountain-native/io/5); the tab
         # stays untitled, as after every import
         if fileName.lower().endswith(".fountain"):
-            sp = self.readFountain(fileName)
+            options = self.askFountainOptions()
+            if options is None:
+                return False
+
+            sp = self.readFountain(fileName, options)
             if sp is None:
-                return
+                return False
 
             self.createEmptySp()
             self.sp = sp
             self.refreshCache()
             self.sp.markChanged(True)
 
-            return
+            return True
 
         ext = os.path.splitext(fileName)[1].lower()
 
@@ -424,7 +472,7 @@ class MyCtrl(wx.Control):
             lines = myimport.importTextFile(fileName, self.gd.mainFrame)
 
         if not lines:
-            return
+            return False
 
         self.createEmptySp()
 
@@ -432,6 +480,8 @@ class MyCtrl(wx.Control):
         self.sp.reformatAll()
         self.sp.paginate()
         self.sp.markChanged(True)
+
+        return True
 
     # generate exportable text from given screenplay, or None.
     def getExportText(self, sp):
@@ -519,10 +569,37 @@ class MyCtrl(wx.Control):
     def makeLineVisible(self, line, direction=config.SCROLL_CENTER):
         texts = self.gd.vm.getScreen(self, False)[0]
 
-        if self.isLineVisible(line, texts):
+        if not self.isLineVisible(line, texts):
+            self.gd.vm.makeLineVisible(self, line, texts, direction)
+            texts = None
+
+        self.followCursor(texts)
+
+    # keep the cursor's column in view when the page is wider than the
+    # widget (bugs/editor/12). texts = getScreen(self, False)[0], or None
+    def followCursor(self, texts=None):
+        width = self.GetClientSize().width
+        contentW = self.gd.vm.getContentWidth(self)
+
+        if contentW <= width:
+            self.hOffset = 0
+
             return
 
-        self.gd.vm.makeLineVisible(self, line, texts, direction)
+        if texts is None:
+            texts = self.gd.vm.getScreen(self, False)[0]
+
+        for t in texts:
+            if t.line == self.sp.line:
+                self.hOffset = viewmode.followOffset(
+                    self.hOffset,
+                    t.x + self.sp.column * t.fi.fx,
+                    t.fi.fx,
+                    width,
+                    contentW,
+                )
+
+                return
 
     def adjustScrollBar(self):
         height = self.GetClientSize().height
@@ -535,6 +612,20 @@ class MyCtrl(wx.Control):
         self.panel.scrollBar.SetScrollbar(
             self.sp.getTopLine(), approx, len(self.sp.lines) + approx - 1, approx
         )
+
+        # the horizontal one, while the page is wider (bugs/editor/12)
+        width = self.GetClientSize().width
+        contentW = self.gd.vm.getContentWidth(self)
+        hsb = self.panel.hScrollBar
+        wide = contentW > width
+        self.hOffset = viewmode.clampOffset(self.hOffset, width, contentW)
+
+        if wide:
+            hsb.SetScrollbar(self.hOffset, width, contentW, max(1, width - viewmode.H_MARGIN))
+
+        if hsb.IsShown() != wide:
+            hsb.Show(wide)
+            self.panel.Layout()
 
     def clearAutoComp(self):
         if self.sp.clearAutoComp():
@@ -888,12 +979,29 @@ class MyCtrl(wx.Control):
 
             return
 
+        # sideways: a horizontal wheel, or Shift (bugs/editor/12)
+        if event.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL or event.ShiftDown():
+            step = 3 * self.getCfgGui().fonts[pml.NORMAL].fx
+            rot = event.GetWheelRotation()
+
+            if event.GetWheelAxis() != wx.MOUSE_WHEEL_HORIZONTAL:
+                rot = -rot
+
+            self.hOffset += step if rot > 0 else -step
+            self.updateScreen()
+
+            return
+
         if event.GetWheelRotation() > 0:
             delta = -self.gd.cfgGl.mouseWheelLines
         else:
             delta = self.gd.cfgGl.mouseWheelLines
 
         self.sp.setTopLine(self.sp.getTopLine() + delta)
+        self.updateScreen()
+
+    def OnHScroll(self, event):
+        self.hOffset = self.panel.hScrollBar.GetThumbPosition()
         self.updateScreen()
 
     def OnScroll(self, event):
@@ -919,6 +1027,19 @@ class MyCtrl(wx.Control):
         dlg.Destroy()
 
     def OnTitlesDlg(self):
+        # a film's title page is its front matter (front-matter/title/1)
+        if self.openFilm() is not None:
+            wx.MessageBox(
+                _("In a film the title page is edited in the front matter: the first node of the bible panel."),
+                _("Title pages"),
+                wx.OK,
+                self.gd.mainFrame,
+            )
+            self.gd.mainFrame.showBible(True)
+            self.gd.mainFrame.biblePanel.selectFrontMatter()
+
+            return
+
         dlg = titlesdlg.TitlesDlg(
             self.gd.mainFrame, copy.deepcopy(self.sp.titles), self.sp.cfg, self.gd.cfgGl
         )
@@ -1347,12 +1468,16 @@ class MyCtrl(wx.Control):
 
         wx.BeginBusyCursor()
 
-        if not spellcheck.loadDict(self.gd.mainFrame):
+        lang = self.gd.cfgGl.spellLanguage
+        err = spellcheck.loadLanguage(lang, self.gd.mainFrame)
+
+        if err:
             wx.EndBusyCursor()
+            wx.MessageBox(err, _("Spell checker"), wx.OK, self.gd.mainFrame)
 
             return
 
-        sc = spellcheck.SpellChecker(self.sp, self.gd.scDict)
+        sc = spellcheck.SpellChecker(self.sp, self.gd.scDict, lang)
         found = sc.findNext()
 
         wx.EndBusyCursor()
@@ -1510,6 +1635,13 @@ class MyCtrl(wx.Control):
     # the script as PDF, or None after telling the user why (a custom PDF
     # font that cannot be used, pdf.getFontForFlags)
     def makePDF(self, sp, isExport):
+        of = self.openFilm()
+
+        if of is not None:
+            # a film's front matter after the title page (front-matter/print/1)
+            fm = frontmatter.load(of.film)
+            sp.frontPages = lambda doc: frontmatter.addPages(doc, fm, of.bible, sp)
+
         try:
             return sp.generatePDF(isExport)
         except error.TrelbyError as e:
@@ -1798,7 +1930,7 @@ class MyCtrl(wx.Control):
 
         if not dpages:
             # draft mode; draw an infinite page
-            lx = util.clamp((size.width - self.pageW) // 2, 0)
+            lx = viewmode.contentLeft(size.width, self.pageW, self.hOffset)
             rx = lx + self.pageW
 
             dc.SetBrush(self.gd.cfgGui.textBgBrush)

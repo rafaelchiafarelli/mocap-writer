@@ -65,21 +65,12 @@ class PDFTextOp(PDFDrawOp):
             matrix = TRANSFORM_MATRIX.get(pmlOp.angle)
 
             if matrix:
-                canvas.addLiteral(
-                    "BT\n"
-                    "%f %f %f %f %f %f Tm\n"
-                    "(%s) Tj\n"
-                    "ET\n"
-                    % (
-                        matrix[0],
-                        matrix[1],
-                        matrix[2],
-                        matrix[3],
-                        x,
-                        y,
-                        pe.escapeStr(pmlOp.text),
-                    )
-                )  # TODO: Doing this with addLiteral, non-latin characters won't work in watermarks. There must be a better way to do this with reportlab, that we do it this way is for historical reasons and because no one took the time to change it
+                # drawString encodes the text for the font, so accents
+                # come out right (bugs/import-export/8)
+                canvas.saveState()
+                canvas.transform(matrix[0], matrix[1], matrix[2], matrix[3], x, y)
+                canvas.drawString(0, 0, pmlOp.text)
+                canvas.restoreState()
             else:
                 # unsupported angle, don't print it.
                 pass

@@ -25,34 +25,32 @@ numbered `S1`, `S2` per scene; "needs review" not stored
 
 ## Ready to implement
 
-- **film-bible/links/6** — link sets, characters and props to scenes by
-  hand, from the item's form and from the cursor's scene (planned
-  2026-10-31, [links/6](film-bible/epics/links/tasks/6-link-by-hand.md)).
-- **spellcheck/pt-br/1** — the pt-BR spell checker: plan it against
-  study/1's decision (VERO through Hunspell via `pyenchant`, 2026-10-27),
-  then implement
-  ([pt-br/1](spellcheck/epics/pt-br/tasks/1-ptbr-dictionary.md)).
+Rafael, 2026-10-31: finish every open initiative in one stretch; gates
+that wait only on him are waived ("waive and close"); bugs are fixed only
+when they get in the way. Every initiative was done on 2026-10-31;
+nothing is waiting to be implemented in this repository.
 
 ## Decisions for Rafael
 
-- **film-bible gate, the agents' half** — keep "the mocap-preprod agents
-  read the records" in this gate (a mocap-preprod task first: pin
-  `mocap-contracts`, teach a specialist to read `bible/`), or move it to
-  preprod-link's gate, which already asks for it, so film-bible closes on
-  Rafael's half ([film-bible](film-bible/film-bible.md)).
-- **import-to-film** — new items ticked by default in the import's review
-  or not; new items named as the script writes them or capitalized;
-  whether File → Import into an open film also offers the bible
-  ([import-to-film](import-to-film/import-to-film.md)).
-
 - **How agents write proposals** — (a) they write `item.json` and the
   writer refuses an invalid file, or (b) a validating `bible propose`
-  command; deferred to the mocap-preprod planning
-  ([preprod-link](preprod-link/preprod-link.md)).
-- **Story structure** — study done 2026-10-26: an act is a marker only,
-  with a panel of act sizes (epic `acts`); models and beats wait for a
-  later talk with an agent (story-structure study/1, in git history:
-  git log -- initiatives/story-structure).
+  command; deferred to the mocap-preprod planning (preprod-link, done
+  2026-10-31: git log -- initiatives/preprod-link).
+
+## Work for another repository
+
+- **mocap-preprod, the agents' side of preprod-link** (to be planned
+  there): pin `mocap-contracts` `v0.7.0`; the specialists read
+  `bible/scene-index.json`, `bible/` and the latest
+  `bible/sync/*-changes.json`, and cite scene numbers and item ids; after
+  a sync a specialist works only on what the change set touched; how
+  proposals are written (the decision above); the Copilot adapters
+  regenerated with `scripts/sync_agents.py` in the same commit as each
+  agent change. preprod-link's gate (a specialist run citing the ids) was
+  waived with the others on 2026-10-31.
+- **Story structure** — models and beats wait for a later talk with an
+  agent (story-structure study/1, in git history: git log --
+  initiatives/story-structure).
 - **Across repositories** — mocap-previz decision D8, where the Fountain
   parser lives, is open there. Proposal to bring to it:
   `trelby/fountain.py` already is that parser (no wx; accents, dual
@@ -60,32 +58,13 @@ numbered `S1`, `S2` per scene; "needs review" not stored
   `sample_ptbr.fountain`), and with option A the writer can write the
   scene records itself. Not raised in mocap-previz yet.
 
-## Work waiting on something else
+## Gates waived (Rafael, 2026-10-31)
 
-- **`mocap-contracts` tasks, none planned yet** (Rafael's go-ahead
-  needed, another repository): `scene_index` (preprod-link/contract/1),
-  `change_set` (preprod-link/contract/2). `script_settings` and
-  `annotation` got the go-ahead on 2026-10-30 (`v0.6.0`).
-- **preprod-link** can start: film-bible is implemented (its gate is
-  open, above).
-
-## Gates left to a film session or to Rafael
-
-- film-bible (implemented 2026-10-28): on the neutral sample, Rafael
-  creates one item of each map, links it to scenes (also by hand,
-  links/6), copies one to a second
-  film root, and the mocap-preprod agents read the records
-  ([film-bible](film-bible/film-bible.md)). The agents' side needs
-  mocap-preprod to pin `mocap-contracts` `v0.5.0`.
-
-- fountain-native: one real scene survives open → save → open
-  byte-identical. The numbering behavior was approved on 2026-10-27
-  (rules and choices, with the number now given when a heading is
-  finished, scenes/6); Rafael tries it in the editor.
-- story-structure (done 2026-10-26, its folder removed 2026-10-28): Rafael
-  uses the act panel on a script and says it does what he wanted.
-- pdf-import (done): the import of a real script was left to a film
-  session.
+fountain-native (a real scene's round trip; numbering tried in the
+editor), film-bible (Rafael on the neutral sample; the agents' half is in
+preprod-link's gate) story-structure (the act panel on a script), spellcheck (Rafael's pt-BR scripts), import-to-film (a real PDF to a film), front-matter (Rafael on the sample), architecture (Rafael's read-through) and preprod-link (Rafael's sync on the sample; a specialist run):
+closed without them. pdf-import's real-script import stays a film
+session's.
 
 ## Known quirks (not bugs yet)
 

@@ -25,6 +25,7 @@ PROGRAM = "mocap-writer"
 DEFAULT_PARTS = (
     ("script", "script.fountain"),
     ("settings", "settings/script-settings.json"),
+    ("front-matter", "settings/front-matter.json"),
     ("bible", "bible/"),
     ("annotations", "annotations/"),
     ("history", "history/"),
@@ -182,6 +183,19 @@ class Film:
         self.index = index
         self.saveIndex()
 
+    # add a part (import-to-film: `source`); a folder part's folder is made.
+    # the contract checks the new index before it is saved
+    def addPart(self, name, rel):
+        index = mc.Film()
+        index.CopyFrom(self.index)
+        index.parts.add(name=name, path=rel, owner=cf.WRITER)
+        mc.to_json(index)
+        self.index = index
+        self.saveIndex()
+
+        if rel.endswith("/"):
+            (self.root / rel).mkdir(parents=True, exist_ok=True)
+
     # the part named name, or None
     def part(self, name):
         for p in self.index.parts:
@@ -299,7 +313,20 @@ class Film:
             and history
             and p.name not in ("history", cf.SCRIPT_PART)
             and self.owns(history.path)
+            and not self.derived(rel)
         )
+
+    # True for the files built from the script by code, never edited
+    # (preprod-link): the scene index and the sync folder in the bible part
+    def derived(self, rel):
+        p = self.part("bible")
+
+        if not p:
+            return False
+
+        base = p.path.rstrip("/") + "/"
+
+        return rel == base + "scene-index.json" or rel.startswith(base + "sync/")
 
     # append one Change to history/<yyyy-mm>.jsonl
     def log(self, rel, op, before, after, by):

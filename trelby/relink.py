@@ -150,3 +150,31 @@ def check(root, ref, path):
         rel += "/"
 
     return (rel, None)
+
+
+# the open's warning, by what it lists (bugs/editor/21): (title, intro). a
+# problem without a ref is a notice (an invalid record, a title page edited
+# elsewhere): there is no file to look for, and nothing to do in the dialog
+def warningText(problems):
+    missing = sum(1 for p in problems if p.ref)
+    searchText = _(
+        "The film is open, but these were not found where the "
+        "film expects them.\nSearch for each one, or skip it: a "
+        "skipped one is asked for again next time."
+    )
+
+    if missing == len(problems):
+        return (_("Missing files"), searchText)
+
+    if missing == 0:
+        return (
+            _("Film notices"),
+            _("The film is open. Read these notices: no file is missing, and nothing needs doing here."),
+        )
+
+    noticeText = _(
+        "The rows that say \"nothing to search for\" are notices: no file "
+        "is missing, and nothing needs doing here."
+    )
+
+    return (_("Missing files"), searchText + "\n" + noticeText)

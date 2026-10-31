@@ -36,13 +36,16 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   per kind and per space, ownership refusals, the invalid `film.json`
   fixtures of `mocap-contracts` (`fixtures/film-v1/invalid/`) refused
   naming their field, a film with parts deleted opening with its problems,
-  `problemsText`. The New film / Open film menu commands need a display:
-  checked through the real window with stubbed dialogs (2026-10-28).
+  `problemsText`, a new film's `front-matter` part not written yet and no
+  problem (front-matter/contract/1). The New film / Open film menu
+  commands need a display: checked through the real window with stubbed
+  dialogs (2026-10-28).
 - `test_relink.py` — file-format/layout/3: a film whose parts moved into
   `archive/`: one found file's pattern finds the rest and the next open
   has no problems; nothing is written before an accept; skip keeps it
   listed; wrong kind and outside the film refused; `pattern` /
-  `applyPattern`. `RelinkDlg` needs a display: checked through the real
+  `applyPattern`; `warningText` for missing files, notices and both
+  (bugs/editor/21). `RelinkDlg` needs a display: checked through the real
   window with stubbed dialogs (2026-10-28).
 - `test_changelog.py` — file-format/layout/5: create / update / delete
   each log one `Change` line, an unchanged write none, bookkeeping and the
@@ -63,6 +66,63 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   per-scene values, links shown by name keep their notes, files added and
   removed. The `BibleForm` needs a display: checked through the real
   window (2026-10-28).
+- `test_sceneindex.py` — preprod-link/contract/1: heading parts; the
+  neutral script's index without a bible (speakers, a speaker named in
+  Action, prop words, pages and lines); set, character and prop ids from
+  the bible, unknown names kept as written; "not a prop" words left out;
+  the same script twice → the same file, not logged; an edit changes only
+  its scene's hash.
+- `test_changeset.py` — preprod-link/contract/2: identical indexes →
+  no change; a first sync → every scene added; one test per change type;
+  a moved and edited scene reports both.
+- `test_sync.py` — preprod-link/sync/1: a first run reports every scene
+  added and writes only the change set; accept then run again → empty; a
+  run not accepted repeats the same changes; the sync files are not
+  logged and the bible opens with no problem; sync/2's change lines and
+  their grouping by scene, a set link named; sync/3: a renamed character
+  lists the values its scene states, a removed scene its per-scene values,
+  untouched scenes nothing and no state changes. The menu, the prompt and the
+  panel need a display: checked through the real window (2026-10-31).
+- `test_review.py` — preprod-link/review/1: the queue by scene,
+  item-level values last with their scenes; batch approve keeps sources
+  and writes each item once; reject puts back the replaced value, or
+  removes a proposal with nothing before; a per-scene override under its
+  scene only; edit; needs-review values from the latest sync. The dialog
+  needs a display: checked through the real window (2026-10-31).
+- `test_importfilm.py` — import-to-film: the original copied into a
+  `source` part added on first use, not logged; flow/2: the combined
+  plan of a neutral script, Create makes exactly the ticked items and
+  links (and "not a prop"), planning writes nothing, into an open film no
+  scenes; flow/3: the report's text for a neutral film. Import into film (a
+  `.fountain` and a PDF into new folders, a failed import making nothing)
+  needs a display: checked through the real window (2026-10-31).
+- `test_frontmatter.py` — front-matter/record/1: a film without the file
+  has an empty front matter; save → load round trip, an unchanged save
+  writes nothing, the change log has the write; an invalid file is a
+  problem; an older film gets the part on first save; title/1: record →
+  block, block → record, a film opened with a block and no record keeps
+  it, the save writes the block from the record; print/1: the overview
+  page (cast, sets with children, acts with pages and scenes), the pitch
+  and a multi-page argument, nothing included adds no page; the script's
+  first page follows. The form and the
+  panel node need a display: checked through the real window (2026-10-31).
+- `test_fountain_import_options.py` — front-matter/import/1: no option
+  changes nothing; emphasis removed in the body only (title page and
+  boneyard kept); sections and synopses as notes, act breaks kept; title
+  page lines as action; the title page dropped. `test_importfountain.py`
+  also: cancelled options import nothing.
+- `test_spellcheck.py` — spellcheck/pt-br/1: a correct pt-BR scene
+  (accents, plurals, conjugated verbs, INT.) has no unknown word in pt-BR;
+  a misspelled word found and `xícara` suggested; English unchanged; the
+  user's words known and suggested in both languages; a missing dictionary
+  gives the message; the setting round-trips, an old or bad value is
+  `en`. pt-BR needs the image's `hunspell-pt-br` (`docker/test.sh`).
+- `test_linkbyhand.py` — film-bible/links/6: scene labels (number and
+  heading, a scene gone from the script kept), `setScenes` writes the
+  difference once and keeps per-scene values, nothing written when
+  nothing changed, the scene side over the three maps (children under
+  their parent), wardrobe's character links untouched. The two dialogs
+  need a display: checked through the real window (2026-10-31).
 - `test_biblelinks.py` — film-bible/links: heading locations, a new
   location offered and never made, a known one linked, made sets linked,
   rename keeps the link, aliases, a set with no scene; the scene at a line
@@ -106,7 +166,8 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - `test_renderscreenplay.py` — PDF export with core fonts and with the
   custom TTF; an unusable custom font (not a font file, or no file) is an
   `error.MiscError`; non-Latin-1 widths in Helvetica; a printed PDF's
-  `/OpenAction` goes to the cursor's page, an export has none.
+  `/OpenAction` goes to the cursor's page, an export has none; a 45°
+  watermark keeps its accents (bugs/import-export/8).
 - `test_manual.py` — `manual.build`: from `doc/` with the DocBook XSL
   stylesheets (skipped without `docbook-xsl`), a prebuilt page wins, a
   missing source is a `ManualError`.
@@ -177,7 +238,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   read back), a heading turned into Action, a scene made and removed
   between saves, cut and paste, copy, no room and duplicates stop the
   save, one undo step with `sceneNumbersIssued`, Renumber all and its
-  undo, the cursor in a removed `OMITTED`.
+  undo, the cursor in a removed `OMITTED`; a number typed before a forced
+  heading (`.1. INT. X`) read as its number and saved as `#1#`
+  (bugs/import-export/11).
 - `test_scenes_screen.py` — scene numbers shown (fountain-native/scenes/4):
   `labels` / `labelAt` (`(1.A)` for a scene not numbered yet, `?` with no
   room), the PDF's numbers left and right of each heading and none when
@@ -204,7 +267,10 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `Titles.sort` by y, then x; `MyCtrl.OnCopySystem` (fake control,
   clipboard patched) keeps the script's Action indent; the screen's
   CONTINUED number equals the PDF's on every page; side-by-side scrolling
-  by direction.
+  by direction; the horizontal scroll's `contentLeft` / `clampOffset` /
+  `followOffset` and side by side's content width (bugs/editor/12; the
+  scroll bar and cursor following checked in the real window at 220 %,
+  2026-10-31).
 - `test_i18n.py` — static checks over `trelby/`: no `_()` around an
   already formatted string, and no translated string as a `setattr` name,
   a `Vars.add*` name or save name, or a helper argument that becomes one.
