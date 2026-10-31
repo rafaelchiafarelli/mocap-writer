@@ -86,6 +86,13 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   removes a proposal with nothing before; a per-scene override under its
   scene only; edit; needs-review values from the latest sync. The dialog
   needs a display: checked through the real window (2026-10-31).
+- `test_importfilm.py` — import-to-film: the original copied into a
+  `source` part added on first use, not logged; flow/2: the combined
+  plan of a neutral script, Create makes exactly the ticked items and
+  links (and "not a prop"), planning writes nothing, into an open film no
+  scenes; flow/3: the report's text for a neutral film. Import into film (a
+  `.fountain` and a PDF into new folders, a failed import making nothing)
+  needs a display: checked through the real window (2026-10-31).
 - `test_spellcheck.py` — spellcheck/pt-br/1: a correct pt-BR scene
   (accents, plurals, conjugated verbs, INT.) has no unknown word in pt-BR;
   a misspelled word found and `xícara` suggested; English unchanged; the
