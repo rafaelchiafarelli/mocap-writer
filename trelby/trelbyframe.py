@@ -18,6 +18,7 @@ import trelby.biblepanel as biblepanel
 import trelby.biblereviewdlg as biblereviewdlg
 import trelby.config as config
 import trelby.film as film
+import trelby.frontmatter as frontmatter
 import trelby.importfilm as importfilm
 import trelby.importreportdlg as importreportdlg
 import trelby.manual as manual
@@ -826,6 +827,12 @@ class MyFrame(wx.Frame):
 
         if os.path.realpath(ctrl.fileName or "") == os.path.realpath(str(f.partPath("script"))):
             scriptsettings.loadFor(f, ctrl.sp)
+
+            try:
+                frontmatter.syncTitle(f, ctrl.sp)
+            except Exception as e:
+                f.problem(_("Front matter"), frontmatter.PATH, str(e))
+
             ctrl.sp.markChanged(False)
             ctrl.updateScreen()
 

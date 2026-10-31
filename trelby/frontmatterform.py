@@ -118,10 +118,26 @@ class FrontMatterForm(wx.ScrolledWindow):
     def save(self):
         try:
             frontmatter.save(self.film, self.fm)
+            self.showInScript()
         except Exception as e:
             wx.MessageBox(str(e), _("Front matter"), wx.OK, self)
             self.fm = frontmatter.load(self.film)
             wx.CallAfter(self.build)
+
+    # the film's script, when it is the current tab, shows the new title
+    # page and is marked changed: its next save writes the title block
+    def showInScript(self):
+        frame = self.panel.frame
+        ctrl = frame.panel.ctrl
+        of = frame.filmOf(ctrl)
+
+        if of is not None and of.film is self.film:
+            if frontmatter.titleBlock(self.fm, ctrl.sp.fountainSource.eol if ctrl.sp.fountainSource
+                                      else "\n") != (ctrl.sp.fountainSource.title
+                                                      if ctrl.sp.fountainSource else ""):
+                frontmatter.applyTitle(ctrl.sp, self.fm)
+                ctrl.sp.markChanged(True)
+                ctrl.updateScreen()
 
     def OnText(self, key):
         if self.fm is None or key not in self.ctrls:

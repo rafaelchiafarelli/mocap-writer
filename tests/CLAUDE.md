@@ -98,7 +98,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
 - `test_frontmatter.py` — front-matter/record/1: a film without the file
   has an empty front matter; save → load round trip, an unchanged save
   writes nothing, the change log has the write; an invalid file is a
-  problem; an older film gets the part on first save. The form and the
+  problem; an older film gets the part on first save; title/1: record →
+  block, block → record, a film opened with a block and no record keeps
+  it, the save writes the block from the record. The form and the
   panel node need a display: checked through the real window (2026-10-31).
 - `test_spellcheck.py` — spellcheck/pt-br/1: a correct pt-BR scene
   (accents, plurals, conjugated verbs, INT.) has no unknown word in pt-BR;
