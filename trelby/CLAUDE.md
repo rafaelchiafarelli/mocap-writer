@@ -218,11 +218,16 @@ Model and file format
   snapshot and as the agents' `scene-index.json` (`trelby/sync.py:63`);
   `changeText(c, names)` (one change as a panel line, a set's id as its
   name, `trelby/sync.py:84`), `byScene(cs)` (the changes grouped by scene,
-  in their order).
+  in their order); sync/3: `affected(b, cs)` → `Affected(item, value,
+  scene)` for every bible value whose scene (per-scene) or source (the
+  scene number that states it) is a scene the sync changed, a move alone
+  not counted (`changedScenes`, `trelby/sync.py:125`), never stored and no
+  state changed; `affectedText` (`needs review: Ana — Occupation: nurse`).
 - `syncdlg.py` — `SyncDlg` (`trelby/syncdlg.py:11`), Sync to spec's
   change panel (preprod-link/sync/2), modeless: a header (first sync /
   `n` changes / nothing changed), a tree with one branch per scene
-  (`Scene 12 — INT. SALA`) and one line per change; a double click goes to
+  (`Scene 12 — INT. SALA`), one line per change and, in bold, the bible
+  values that need review there (`sync.affected`); a double click goes to
   the scene (`OnGoto`); Accept calls `sync.accept` and turns into
   Accepted; nothing in the bible changes from it.
 - `openfilms.py` — the films open in the window (bugs/editor/20), no wx:

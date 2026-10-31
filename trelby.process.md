@@ -459,7 +459,11 @@ Script → Sync to spec… (F5, toolbar) on a film's script
    (`changeset.diff`, scenes matched by number; none yet: every scene
    added). The change set is written to `<bible part>/sync/<time>-changes.json`;
    nothing else changes.
-3. `SyncDlg` lists the changes grouped by scene; a line goes to its scene.
+3. `SyncDlg` lists the changes grouped by scene, and under each scene,
+   in bold, the bible values that need review: those whose per-scene key
+   or source (the scene number that states them) is a scene that changed
+   (`sync.affected`, sync/3; a move alone does not count; nothing is
+   stored, no state changes). A line goes to its scene.
    **Accept** (`sync.accept`) writes the run's index as `last-sync.json`
    and as the agents' `<bible part>/scene-index.json`. A run not accepted
    can be repeated with the same changes. The sync files are built from
