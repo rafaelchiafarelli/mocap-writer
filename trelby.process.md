@@ -90,7 +90,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   the acts, their sizes in scenes and the cursor's act, untouched by zoom
   and scrolling (story-structure/acts/2). `MyCtrl` owns one `Screenplay` (`self.sp`) and binds paint,
   mouse and key events (`trelby/trelbyctrl.py:63-72`).
-- The **bible panel** (film-bible/tree/1, `trelby/biblepanel.py:24`) sits
+- The **bible panel** (film-bible/tree/1, `trelby/biblepanel.py:25`) sits
   left of the tabs in a splitter (`MyFrame.splitter`,
   `trelby/trelbyframe.py:324`), unsplit while hidden; View → Bible
   (Ctrl+Shift+B) shows or hides it (`showBible`,
@@ -100,7 +100,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   (`showFilm`, `trelby/trelbyframe.py:722`, bugs/editor/20); another
   film's bible first saves the field being typed into its own film and
   selects nothing, since ids repeat from film to film (`setBible`,
-  `trelby/biblepanel.py:113`). One
+  `trelby/biblepanel.py:137`). One
   tree per map (Sets, Characters, Props, Wardrobe), child items nested;
   New, New child, Rename, Delete (with confirmation, naming the child
   items and the scenes that use it), drag an item onto another item of its
@@ -160,6 +160,12 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   the zoom control `- 100 % +` (`trelby/misc.py:209-214`). The status area
   passes the keyboard focus back to the script when a click gives it focus
   (`MyFrame.OnStatusFocus`, `trelby/trelbyframe.py:1433`).
+
+- **Front matter** (front-matter/record/1): the bible panel's tree starts
+  with a Front matter node; selected, it shows the film's front matter in
+  a form under the tree (title page, then the overview, pitch and
+  argument pages with their Include ticks), saved to
+  `settings/front-matter.json` as it is edited (`frontmatter.save`).
 
 ## Stage 2 — the screenplay model
 

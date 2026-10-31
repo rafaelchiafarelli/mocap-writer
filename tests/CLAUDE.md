@@ -95,6 +95,11 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   scenes; flow/3: the report's text for a neutral film. Import into film (a
   `.fountain` and a PDF into new folders, a failed import making nothing)
   needs a display: checked through the real window (2026-10-31).
+- `test_frontmatter.py` — front-matter/record/1: a film without the file
+  has an empty front matter; save → load round trip, an unchanged save
+  writes nothing, the change log has the write; an invalid file is a
+  problem; an older film gets the part on first save. The form and the
+  panel node need a display: checked through the real window (2026-10-31).
 - `test_spellcheck.py` — spellcheck/pt-br/1: a correct pt-BR scene
   (accents, plurals, conjugated verbs, INT.) has no unknown word in pt-BR;
   a misspelled word found and `xícara` suggested; English unchanged; the
