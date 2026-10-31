@@ -16,7 +16,7 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 5. **film-bible** — the maps (sets, characters, props, wardrobe) as folders in the film root: bible panel, one form per map from the catalog, scene/prop/wardrobe links, links by hand, copy (done 2026-10-31, gate waived by Rafael; history: git log -- initiatives/film-bible)
 6. **preprod-link** — feed the mocap-preprod agents: scene index, Sync to spec (script-to-spec on every change), review of proposals
 7. **story-structure** — where we are in the story: an act is a marker (no print) and a panel shows act sizes (done 2026-10-26, gate waived by Rafael 2026-10-31; models and beats later; history: git log -- initiatives/story-structure)
-8. **spellcheck** — the spell checker in Brazilian Portuguese (pt-BR): study done 2026-10-27 (VERO through Hunspell via `pyenchant`); next the dictionary language setting (pt-br/1)
+8. **spellcheck** — the spell checker in Brazilian Portuguese (pt-BR): VERO through Hunspell via `pyenchant`, the language chosen in Settings → Misc (done 2026-10-31, gate waived; history: git log -- initiatives/spellcheck)
 
 9. **import-to-film** — an import ends in a complete film: Import into film (the original copied into the film), one review of the bible the script offers, a report (planned 2026-10-28; decisions taken 2026-10-31)
 

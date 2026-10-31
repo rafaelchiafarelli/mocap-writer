@@ -33,7 +33,8 @@ Global settings (`ConfigGlobal`)
 - `keyboardpanel.py` — `KeyboardPanel`: per command, list / add / delete
   keys, show conflicts (`trelby/configpages/keyboardpanel.py:6`).
 - `miscpanel.py` — `MiscPanel`: default script directory, PDF viewer path and
-  arguments (with Guess), editor switches, splash time, auto-paginate
+  arguments (with Guess), editor switches, the spell checker language
+  (`spellLanguage`, spellcheck/pt-br/1), splash time, auto-paginate
   interval, mouse-wheel lines (`trelby/configpages/miscpanel.py:8`).
 
 Script settings (`Config`)
