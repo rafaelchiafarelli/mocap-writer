@@ -2,7 +2,7 @@
 
 `trelby/myimport.py` (609 lines) turns foreign script files into a list of
 `Line` objects. It has one function per format and no shared importer
-interface. The caller, `MyCtrl.importFile` (`trelby/trelbyctrl.py:396`),
+interface. The caller, `MyCtrl.importFile` (`trelby/trelbyctrl.py:397`),
 picks the function by the file name's ending and replaces the tab's script
 with the result. A `.fountain` is not imported here: `importFile` reads it
 like Open, through `fountain.load` (fountain-native/io/5).
@@ -16,7 +16,7 @@ like Open, through `fountain.load` (fountain-native/io/5).
   type, the last line is `LB_LAST`
   (`screenplay.as-built.md`, Data-structure invariants). Lines need not be
   wrapped: the caller runs `reformatAll()` and `paginate()`
-  (`trelby/trelbyctrl.py:431-433`).
+  (`trelby/trelbyctrl.py:432-434`).
 - Most importers emit each source line as `LB_FORCED` and the element's
   last line as `LB_LAST` (e.g. `trelby/myimport.py:62-71`), so line breaks
   inside an element survive as forced breaks.
@@ -76,9 +76,9 @@ like Open, through `fountain.load` (fountain-native/io/5).
 
 - **A new format**: a new `import<Format>(fileName, frame) ->
   list[Line] | None` here that meets the contract above, an `elif` on the
-  file-name ending in `MyCtrl.importFile` (`trelby/trelbyctrl.py:411-424`, by the lower-cased extension),
+  file-name ending in `MyCtrl.importFile` (`trelby/trelbyctrl.py:412-425`, by the lower-cased extension),
   and an entry in the import dialog's wildcard
-  (`trelby/trelbyframe.py:1086-1114`). PDF followed this path, with the
+  (`MyFrame.askImportFile`, `trelby/trelbyframe.py:1086-1120`). PDF followed this path, with the
   wx-free work in its own module (`pdfimport.py`).
 
 ## Gotchas

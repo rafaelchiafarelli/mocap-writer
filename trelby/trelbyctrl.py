@@ -393,20 +393,21 @@ class MyCtrl(wx.Control):
 
         misc.showText(self.gd.mainFrame, msg, _("Warning"))
 
+    # returns True when the file was imported
     def importFile(self, fileName):
         # a .fountain is read like Open (fountain-native/io/5); the tab
         # stays untitled, as after every import
         if fileName.lower().endswith(".fountain"):
             sp = self.readFountain(fileName)
             if sp is None:
-                return
+                return False
 
             self.createEmptySp()
             self.sp = sp
             self.refreshCache()
             self.sp.markChanged(True)
 
-            return
+            return True
 
         ext = os.path.splitext(fileName)[1].lower()
 
@@ -424,7 +425,7 @@ class MyCtrl(wx.Control):
             lines = myimport.importTextFile(fileName, self.gd.mainFrame)
 
         if not lines:
-            return
+            return False
 
         self.createEmptySp()
 
@@ -432,6 +433,8 @@ class MyCtrl(wx.Control):
         self.sp.reformatAll()
         self.sp.paginate()
         self.sp.markChanged(True)
+
+        return True
 
     # generate exportable text from given screenplay, or None.
     def getExportText(self, sp):
