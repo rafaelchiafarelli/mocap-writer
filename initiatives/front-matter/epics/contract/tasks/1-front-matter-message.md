@@ -1,5 +1,6 @@
 ## 1. The front_matter message
 
+- **Status:** Done (2026-10-31) — `mocap-contracts` `v0.7.0` (`front_matter.harpia`, part names `front-matter` and `source`), pinned here; `front-matter` in `film.DEFAULT_PARTS`.
 - **Type:** code, in `mocap-contracts`, then the submodule pin here
 - **Depends on:** `mocap-contracts` `v0.6.0` (`common.harpia`'s `Flag`)
 - **Contract:**

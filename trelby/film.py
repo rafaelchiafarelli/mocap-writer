@@ -25,6 +25,7 @@ PROGRAM = "mocap-writer"
 DEFAULT_PARTS = (
     ("script", "script.fountain"),
     ("settings", "settings/script-settings.json"),
+    ("front-matter", "settings/front-matter.json"),
     ("bible", "bible/"),
     ("annotations", "annotations/"),
     ("history", "history/"),
