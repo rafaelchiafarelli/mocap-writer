@@ -1,5 +1,6 @@
 ## 1. Import into film
 
+- **Status:** Done (2026-10-31) — File → Import into film…, the choice on File → Import with a film open, `importfilm.copySource` (the `source` part added on first use, not with every new film); checked through the real window.
 - **Type:** code
 - **Depends on:** file-format/layout/4 (New film); the importers
   (`MyCtrl.importFile`)
