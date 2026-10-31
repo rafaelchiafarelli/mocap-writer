@@ -58,7 +58,10 @@ Chocolatey from `choco/`).
 - `trelby/` — the application package (`trelby/CLAUDE.md`).
 - `tests/` — pytest suite (`tests/CLAUDE.md`).
 - `docker/` — image, run and test scripts (`docker/CLAUDE.md`).
-- `doc/` — DocBook manual and man page (`doc/CLAUDE.md`).
+- `doc/` — DocBook manual and man page, and the architecture overview:
+  `doc/architecture.md` (for AI agents: read it first, then the as-built
+  docs) and `doc/architecture/` (the same as HTML pages for people)
+  (`doc/CLAUDE.md`).
 - `po/` — translation sources (`po/CLAUDE.md`).
 - `media/` — upstream artwork (`media/CLAUDE.md`).
 - `resources_mac/` — macOS icon (`resources_mac/CLAUDE.md`).
