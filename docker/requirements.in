@@ -10,3 +10,6 @@ pdfplumber
 # mocap-contracts (third_party/mocap-contracts, on PYTHONPATH) needs only protobuf
 # (BSD-3); its own pyproject asks >=4.21.12,<5.
 protobuf>=4.21.12,<5
+# pt-BR spell checking through Hunspell (spellcheck/pt-br/1): pyenchant (LGPL-2.1)
+# over libenchant-2 and the hunspell-pt-br dictionary (VERO, LGPL-3 or MPL), apt.
+pyenchant==3.3.0
