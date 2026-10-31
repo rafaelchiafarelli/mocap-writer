@@ -1,5 +1,6 @@
 ## 1. The record and its form
 
+- **Status:** Done (2026-10-31) — `trelby/frontmatter.py`, `trelby/frontmatterform.py`, the Front matter node in the bible panel; checked through the real window.
 - **Type:** code
 - **Depends on:** contract/1
 - **Contract:**
