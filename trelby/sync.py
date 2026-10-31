@@ -64,3 +64,46 @@ def accept(film, r):
     text = mc.to_json(r.index)
     film.writeText(syncDir(film) + LAST, text, "writer")
     film.writeText(sceneindex.path(film), text, "writer")
+
+
+# what a change says, for the change panel
+LABELS = {
+    "SCENE_ADDED": "scene added",
+    "SCENE_REMOVED": "scene removed",
+    "SCENE_MOVED": "moved",
+    "HEADING_CHANGED": "heading changed",
+    "TEXT_CHANGED": "text changed",
+    "CHARACTER_ENTERED": "character entered",
+    "CHARACTER_LEFT": "character left",
+    "PROP_ADDED": "prop added",
+    "PROP_REMOVED": "prop removed",
+    "SET_LINK_CHANGED": "set link changed",
+}
+
+
+def changeText(c, names=None):
+    kind = mc.SceneChangeType.Name(c.type).removeprefix("SCENE_CHANGE_TYPE_")
+    old, new = c.old_value, c.new_value
+
+    if names and kind == "SET_LINK_CHANGED":
+        old, new = names(old) if old else old, names(new) if new else new
+
+    if kind == "SCENE_MOVED":
+        detail = _("from place %s to %s") % (old, new)
+    elif old and new:
+        detail = "%s → %s" % (old, new)
+    else:
+        detail = old or new
+
+    return _(LABELS[kind]) + (": " + detail if detail else "")
+
+
+# the changes grouped by scene: [(scene, [SceneChange])], in the order the
+# changes come (removed scenes first, then the script's order)
+def byScene(cs):
+    out = {}
+
+    for c in cs.changes:
+        out.setdefault(c.scene, []).append(c)
+
+    return list(out.items())

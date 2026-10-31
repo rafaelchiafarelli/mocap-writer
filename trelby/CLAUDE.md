@@ -215,7 +215,16 @@ Model and file format
   `lastIndex` (`<bible part>/sync/last-sync.json`, None before the first
   accept), written to `<bible part>/sync/<yyyymmddThhmmssZ>-changes.json`
   and nothing else; `accept(film, r)` writes the run's index as the
-  snapshot and as the agents' `scene-index.json` (`trelby/sync.py:63`).
+  snapshot and as the agents' `scene-index.json` (`trelby/sync.py:63`);
+  `changeText(c, names)` (one change as a panel line, a set's id as its
+  name, `trelby/sync.py:84`), `byScene(cs)` (the changes grouped by scene,
+  in their order).
+- `syncdlg.py` — `SyncDlg` (`trelby/syncdlg.py:11`), Sync to spec's
+  change panel (preprod-link/sync/2), modeless: a header (first sync /
+  `n` changes / nothing changed), a tree with one branch per scene
+  (`Scene 12 — INT. SALA`) and one line per change; a double click goes to
+  the scene (`OnGoto`); Accept calls `sync.accept` and turns into
+  Accepted; nothing in the bible changes from it.
 - `openfilms.py` — the films open in the window (bugs/editor/20), no wx:
   `OpenFilm(film)` holds the film with its `Bible` and `Annotations`
   (`reload` reads both again, `trelby/openfilms.py:12`); `OpenFilms` keeps
@@ -345,23 +354,26 @@ Application and editor (wx)
 - `trelbyframe.py` — `MyFrame`: menus, toolbar, tabs, status area;
   `On<Command>` handlers for every menu item, mostly forwarding to the
   current `MyCtrl`; open/import into a tab; exit, whose Save saves every modified tab and
-  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1401`).
+  stops if one stays unsaved (`saveAll`, `trelby/trelbyframe.py:1447`).
   File → New film… / Open film… (`OnNewFilm`, `OnOpenFilm`,
-  `trelby/trelbyframe.py:733-770`); every open film in `openFilms`, and
+  `trelby/trelbyframe.py:738-775`); every open film in `openFilms`, and
   the current tab's film `film` (`showFilm` on a tab switch and on the
   current tab's file change, `filmOf`, `scriptFileChanged`,
-  `trelby/trelbyframe.py:703-730`, bugs/editor/20), with
+  `trelby/trelbyframe.py:708-735`, bugs/editor/20), with
   `filmListeners` (file-format/layout/4, `trelby.process.md` Stage 5), its
   `bible`, and the bible panel in `splitter` with View → Bible
   (`showBible`, film-bible/tree/1, `trelby.process.md` Stage 1); its
   `annotations` and View → Show annotations; Script → Annotate…,
-  Annotations here…, Unattached annotations… (`OnAnnotate`,
-  `trelby/trelbyframe.py:853`, `OnAnnotationsHere`,
-  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:966-994`); on Open
+  Annotations here…, Unattached annotations…, Sync to spec… (F5, also a
+  toolbar button: the film's script only; an unsaved script is saved
+  first, after asking; then `sync.run` and the `SyncDlg`, `OnSyncToSpec`,
+  `trelby/trelbyframe.py:859`) (`OnAnnotate`,
+  `trelby/trelbyframe.py:899`, `OnAnnotationsHere`,
+  `OnAnnotationsUnattached`, `trelby/trelbyframe.py:1012-1040`); on Open
   film the annotations whose text is gone join the film's problems
-  (`listUnattached`, `trelby/trelbyframe.py:820`).
+  (`listUnattached`, `trelby/trelbyframe.py:825`).
   View → Dark theme is a check item kept in step with the theme
-  (`updateThemeMenu`, `trelby/trelbyframe.py:1196-1200`, called from
+  (`updateThemeMenu`, `trelby/trelbyframe.py:1242-1246`, called from
   `MyCtrl.applyGlobalCfg`).
 - `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
   + `ActPanel` at the right (`trelby/trelbypanel.py:9`); the act panel is
@@ -416,9 +428,9 @@ Application and editor (wx)
   where each line is drawn and which line/column a mouse position hits.
   Detail: [viewmode.as-built.md](viewmode.as-built.md).
 - `ids.py` — wx menu ids (`ID_FILE_NEW_FILM`, `ID_FILE_OPEN_FILM`,
-  `ID_VIEW_BIBLE`, `ID_VIEW_ANNOTATIONS`, `ID_SCRIPT_ANNOTATE...` for the
-  film) and `idToLTMap` (right-click "Element type" ids →
-  line types, `trelby/ids.py:90`).
+  `ID_VIEW_BIBLE`, `ID_VIEW_ANNOTATIONS`, `ID_SCRIPT_ANNOTATE...`,
+  `ID_SCRIPT_SYNC` for the film) and `idToLTMap` (right-click "Element type" ids →
+  line types, `trelby/ids.py:91`).
 - `misc.py` — platform flags, `progPath` / `confPath` (`misc.init`,
   `trelby/misc.py:23`), `version` (`trelby/misc.py:20`), and shared widgets:
   `MyTabCtrl` (tab bar, `trelby/misc.py:287`), `MyStatus` (status area
@@ -590,8 +602,8 @@ Data and folders
   `manual.html`, Help → Manual makes the page from `doc/manual.xml`
   (`manual.py`).
 - Toolbar tooltips open partly off-screen (Rafael's review of unmodified
-  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:233`)
-  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:249-254`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
+  Trelby, 2026-10-23); the toolbar is vertical (`trelby/trelbyframe.py:236`)
+  and its tooltips come from `shortHelp` (`trelby/trelbyframe.py:252-257`). Bug: [bugs/editor/3](../initiatives/bugs/epics/editor/tasks/3-tooltips-off-screen.md).
 - Most source files are UTF-8 even where the header says `iso-8859-1`
   (e.g. `trelby/trelbyctrl.py:1`).
 - A missing file part other than the script (the settings record) is not
