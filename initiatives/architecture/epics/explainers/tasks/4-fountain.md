@@ -1,5 +1,6 @@
 ## 4. Fountain and scene numbers
 
+- **Status:** Done (2026-10-31) — published privately: https://claude.ai/artifact/KyZacNpzPJsvbTkca2gHAj (page `fountain.html`), built from the as-built docs at commit 959bc3c.
 - **Type:** explainer page
 - **Contract:**
   - In: `trelby/fountain.as-built.md`, `trelby/scenenumbers.py`
