@@ -69,6 +69,9 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   the bible, unknown names kept as written; "not a prop" words left out;
   the same script twice → the same file, not logged; an edit changes only
   its scene's hash.
+- `test_changeset.py` — preprod-link/contract/2: identical indexes →
+  no change; a first sync → every scene added; one test per change type;
+  a moved and edited scene reports both.
 - `test_spellcheck.py` — spellcheck/pt-br/1: a correct pt-BR scene
   (accents, plurals, conjugated verbs, INT.) has no unknown word in pt-BR;
   a misspelled word found and `xícara` suggested; English unchanged; the
