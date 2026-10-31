@@ -417,7 +417,7 @@ Model and file format
   sends with a second press not counted twice (bugs/editor/14-16).
 - `sample.fountain` — sample script (upstream's, converted 2026-10-25),
   loaded by a test-mode hotkey
-  (`trelby/trelbyctrl.py:1788`).
+  (`trelby/trelbyctrl.py:1851`).
 
 Configuration
 - `config.py` — `Config` (per script: element widths/indents/spacing and
@@ -471,10 +471,12 @@ Application and editor (wx)
   View → Dark theme is a check item kept in step with the theme
   (`updateThemeMenu`, `trelby/trelbyframe.py:1402-1406`, called from
   `MyCtrl.applyGlobalCfg`).
-- `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` + vertical scroll bar
+- `trelbypanel.py` — `MyPanel`: one tab = `MyCtrl` with a horizontal
+  scroll bar under it, shown only while the page is wider than the editor
+  (bugs/editor/12, `trelby/trelbypanel.py:27`), + vertical scroll bar
   + `ActPanel` at the right (`trelby/trelbypanel.py:9`); the act panel is
   made before `MyCtrl`, whose constructor already updates it
-  (`trelby/trelbypanel.py:28`).
+  (`trelby/trelbypanel.py:33`).
 - `biblepanel.py` — `BiblePanel` (`trelby/biblepanel.py:25`): the bible
   panel (film-bible/tree/1) over `MyFrame.bible`, the current tab's film's
   (`setBible`, `trelby/biblepanel.py:142`: on another film's bible the
@@ -517,8 +519,8 @@ Application and editor (wx)
   hint when there is no act break. Own pixel fonts, so the zoom never
   changes it, and it does not scroll. `update(sp)` repaints only when the
   acts or the cursor's act changed (`trelby/actpanel.py:40`), called from
-  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:631`); repainted on a theme
-  change (`trelby/trelbyctrl.py:680`); `draw(dc, w, h)` does the drawing
+  `MyCtrl.updateCommon` (`trelby/trelbyctrl.py:677`); repainted on a theme
+  change (`trelby/trelbyctrl.py:726`); `draw(dc, w, h)` does the drawing
   (`trelby/actpanel.py:60`); a click gives the focus back to the script
   (`trelby/actpanel.py:50`).
 - `trelbyctrl.py` — `MyCtrl`: the editor widget for one script; key

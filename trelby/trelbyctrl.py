@@ -34,6 +34,7 @@ import trelby.spellcheckcfgdlg as spellcheckcfgdlg
 import trelby.spellcheckdlg as spellcheckdlg
 import trelby.titlesdlg as titlesdlg
 import trelby.util as util
+import trelby.viewmode as viewmode
 import trelby.watermarkdlg as watermarkdlg
 from trelby.ids import ID_EDIT_REDO, ID_EDIT_UNDO, idToLTMap
 from trelby.line import Line
@@ -60,6 +61,10 @@ class MyCtrl(wx.Control):
 
         self.panel = parent
         self.gd = gd
+
+        # pixels the page is scrolled left by when it is wider than the
+        # widget (bugs/editor/12)
+        self.hOffset = 0
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -564,10 +569,37 @@ class MyCtrl(wx.Control):
     def makeLineVisible(self, line, direction=config.SCROLL_CENTER):
         texts = self.gd.vm.getScreen(self, False)[0]
 
-        if self.isLineVisible(line, texts):
+        if not self.isLineVisible(line, texts):
+            self.gd.vm.makeLineVisible(self, line, texts, direction)
+            texts = None
+
+        self.followCursor(texts)
+
+    # keep the cursor's column in view when the page is wider than the
+    # widget (bugs/editor/12). texts = getScreen(self, False)[0], or None
+    def followCursor(self, texts=None):
+        width = self.GetClientSize().width
+        contentW = self.gd.vm.getContentWidth(self)
+
+        if contentW <= width:
+            self.hOffset = 0
+
             return
 
-        self.gd.vm.makeLineVisible(self, line, texts, direction)
+        if texts is None:
+            texts = self.gd.vm.getScreen(self, False)[0]
+
+        for t in texts:
+            if t.line == self.sp.line:
+                self.hOffset = viewmode.followOffset(
+                    self.hOffset,
+                    t.x + self.sp.column * t.fi.fx,
+                    t.fi.fx,
+                    width,
+                    contentW,
+                )
+
+                return
 
     def adjustScrollBar(self):
         height = self.GetClientSize().height
@@ -580,6 +612,20 @@ class MyCtrl(wx.Control):
         self.panel.scrollBar.SetScrollbar(
             self.sp.getTopLine(), approx, len(self.sp.lines) + approx - 1, approx
         )
+
+        # the horizontal one, while the page is wider (bugs/editor/12)
+        width = self.GetClientSize().width
+        contentW = self.gd.vm.getContentWidth(self)
+        hsb = self.panel.hScrollBar
+        wide = contentW > width
+        self.hOffset = viewmode.clampOffset(self.hOffset, width, contentW)
+
+        if wide:
+            hsb.SetScrollbar(self.hOffset, width, contentW, max(1, width - viewmode.H_MARGIN))
+
+        if hsb.IsShown() != wide:
+            hsb.Show(wide)
+            self.panel.Layout()
 
     def clearAutoComp(self):
         if self.sp.clearAutoComp():
@@ -933,12 +979,29 @@ class MyCtrl(wx.Control):
 
             return
 
+        # sideways: a horizontal wheel, or Shift (bugs/editor/12)
+        if event.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL or event.ShiftDown():
+            step = 3 * self.getCfgGui().fonts[pml.NORMAL].fx
+            rot = event.GetWheelRotation()
+
+            if event.GetWheelAxis() != wx.MOUSE_WHEEL_HORIZONTAL:
+                rot = -rot
+
+            self.hOffset += step if rot > 0 else -step
+            self.updateScreen()
+
+            return
+
         if event.GetWheelRotation() > 0:
             delta = -self.gd.cfgGl.mouseWheelLines
         else:
             delta = self.gd.cfgGl.mouseWheelLines
 
         self.sp.setTopLine(self.sp.getTopLine() + delta)
+        self.updateScreen()
+
+    def OnHScroll(self, event):
+        self.hOffset = self.panel.hScrollBar.GetThumbPosition()
         self.updateScreen()
 
     def OnScroll(self, event):
@@ -1867,7 +1930,7 @@ class MyCtrl(wx.Control):
 
         if not dpages:
             # draft mode; draw an infinite page
-            lx = util.clamp((size.width - self.pageW) // 2, 0)
+            lx = viewmode.contentLeft(size.width, self.pageW, self.hOffset)
             rx = lx + self.pageW
 
             dc.SetBrush(self.gd.cfgGui.textBgBrush)

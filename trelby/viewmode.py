@@ -13,6 +13,38 @@ MAX_JUMP_DISTANCE = 17
 # side by side: gap between pages, and before the first one (pixels)
 SBS_PAGE_GAP = 10
 
+# pixels kept between the cursor and the widget's left or right edge when
+# the page is wider than the widget (bugs/editor/12)
+H_MARGIN = 40
+
+
+# the horizontal scroll hOffset (pixels) kept within content contentW wide
+# on a widget width wide
+def clampOffset(hOffset, width, contentW):
+    return util.clamp(hOffset, 0, max(0, contentW - width))
+
+
+# x of content contentW wide on a widget width wide: centered when it fits,
+# else moved left by the horizontal scroll (bugs/editor/12)
+def contentLeft(width, contentW, hOffset):
+    if contentW <= width:
+        return (width - contentW) // 2
+
+    return -clampOffset(hOffset, width, contentW)
+
+
+# the horizontal scroll that shows x to x + w (screen pixels at hOffset)
+# with H_MARGIN around it, if the widget is wide enough for that
+def followOffset(hOffset, x, w, width, contentW):
+    margin = min(H_MARGIN, max(0, (width - w) // 2))
+
+    if x < margin:
+        hOffset -= margin - x
+    elif x + w > width - margin:
+        hOffset += x + w - (width - margin)
+
+    return clampOffset(hOffset, width, contentW)
+
 
 # a piece of text on screen.
 class TextString:
@@ -97,6 +129,11 @@ class ViewMode:
     # return width of one page in (floating point) pixels
     def getPageWidth(self, ctrl):
         raise Exception("getPageWidth " + _("not implemented"))
+
+    # width in pixels of what is shown side to side, for the horizontal
+    # scroll: the page; side by side overrides it
+    def getContentWidth(self, ctrl):
+        return ctrl.pageW
 
     # see MyCtrl.OnPaint for what tl is. note: this is only a default
     # implementation, feel free to override this.
@@ -234,7 +271,7 @@ class ViewModeDraft(ViewMode):
         i = ctrl.sp.getTopLine()
 
         marginLeft = int(ctrl.mm2p * cfg.marginLeft)
-        cox = util.clamp((width - ctrl.pageW) // 2, 0)
+        cox = contentLeft(width, ctrl.pageW, ctrl.hOffset)
         fyd = ctrl.getCfgGui().fontYdelta
         length = len(ls)
 
@@ -319,7 +356,7 @@ class ViewModeLayout(ViewMode):
         mm2p = ctrl.mm2p
         fontY = cfgGui.fonts[pml.NORMAL].fy
 
-        cox = util.clamp((width - ctrl.pageW) // 2, 0)
+        cox = contentLeft(width, ctrl.pageW, ctrl.hOffset)
 
         y = 0
         topLine = ctrl.sp.getTopLine()
@@ -476,6 +513,9 @@ class ViewModeSideBySide(ViewMode):
 
         pagesDone = 0
 
+        # one page wider than the widget scrolls sideways (bugs/editor/12)
+        left = min(0, contentLeft(width, self.getContentWidth(ctrl), ctrl.hOffset))
+
         while 1:
             if (pagesDone >= pageCnt) or (pageNr >= len(ctrl.sp.pages)):
                 break
@@ -490,7 +530,7 @@ class ViewModeSideBySide(ViewMode):
             if not pg:
                 break
 
-            sx = pageGap + pagesDone * (ctrl.pageW + pageGap)
+            sx = left + pageGap + pagesDone * (ctrl.pageW + pageGap)
             sy = pageGap
 
             dp = DisplayPage(pageNr, sx, sy, sx + ctrl.pageW, sy + ctrl.pageH)
@@ -564,6 +604,9 @@ class ViewModeSideBySide(ViewMode):
         return (line, column)
 
     # how many pages fit on screen
+    def getContentWidth(self, ctrl):
+        return ctrl.pageW + 2 * SBS_PAGE_GAP
+
     def pageCount(self, ctrl):
         width = ctrl.GetClientSize()[0]
 

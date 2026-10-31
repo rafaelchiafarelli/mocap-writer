@@ -114,3 +114,43 @@ def testSideBySideScrollDirection():
 
     vm.makeLineVisible(ctrl, sp.page2lines(1)[0], [], config.SCROLL_DOWN)
     assert sp.line2page(sp.getTopLine()) == 1
+
+
+# a page wider than the widget scrolls sideways and follows the cursor
+# (bugs/editor/12)
+def testHorizontalScroll():
+    import trelby.viewmode as viewmode
+
+    # fits: centered, the scroll ignored
+    assert viewmode.contentLeft(1000, 600, 0) == 200
+    assert viewmode.contentLeft(1000, 600, 300) == 200
+
+    # wider: moved left by the scroll, kept within the page
+    assert viewmode.contentLeft(500, 800, 0) == 0
+    assert viewmode.contentLeft(500, 800, 120) == -120
+    assert viewmode.contentLeft(500, 800, 999) == -300
+    assert viewmode.clampOffset(-5, 500, 800) == 0
+
+    # the cursor past the right edge: scrolled so it is H_MARGIN inside
+    m = viewmode.H_MARGIN
+    assert viewmode.followOffset(0, 600, 10, 500, 2000) == 600 + 10 - (500 - m)
+
+    # past the left edge
+    assert viewmode.followOffset(300, -50, 10, 500, 2000) == 300 - 50 - m
+
+    # in view: unchanged
+    assert viewmode.followOffset(100, 200, 10, 500, 2000) == 100
+
+    # never past the page's end
+    assert viewmode.followOffset(0, 5000, 10, 500, 2000) == 1500
+
+
+# side by side, one page wider than the widget moves with the scroll
+def testSideBySideScrollsSideways():
+    import trelby.viewmode as viewmode
+
+    vm = viewmode.ViewModeSideBySide()
+    ctrl = mock.Mock()
+    ctrl.pageW = 800
+
+    assert vm.getContentWidth(ctrl) == 800 + 2 * viewmode.SBS_PAGE_GAP

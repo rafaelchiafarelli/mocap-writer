@@ -85,11 +85,13 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   (`misc.MyTabCtrl`), the status area (`misc.MyStatus`) and the right-click
   menus (`trelby/trelbyframe.py:343-366`).
 - Each open script is one tab: a `MyPanel` (`trelby/trelbypanel.py:9`)
-  holding a `MyCtrl` editor widget (`trelby/trelbyctrl.py:55`), a vertical
-  scroll bar and, at the right, the act panel (`trelby/actpanel.py:12`):
+  holding a `MyCtrl` editor widget (`trelby/trelbyctrl.py:56`), a vertical
+  scroll bar, a horizontal one under the editor while the page is wider
+  than it (the view also follows the cursor sideways, bugs/editor/12) and,
+  at the right, the act panel (`trelby/actpanel.py:12`):
   the acts, their sizes in scenes and the cursor's act, untouched by zoom
   and scrolling (story-structure/acts/2). `MyCtrl` owns one `Screenplay` (`self.sp`) and binds paint,
-  mouse and key events (`trelby/trelbyctrl.py:64-73`).
+  mouse and key events (`trelby/trelbyctrl.py:69-78`).
 - The **bible panel** (film-bible/tree/1, `trelby/biblepanel.py:25`) sits
   left of the tabs in a splitter (`MyFrame.splitter`,
   `trelby/trelbyframe.py:325`), unsplit while hidden; View → Bible
@@ -150,13 +152,13 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   film; a film open in the window is copied into through its open bible),
   film-bible/links/4. Delete names the scenes that still use the
   item before asking.
-- `createEmptySp()` (`trelby/trelbyctrl.py:114`) starts a script with the
+- `createEmptySp()` (`trelby/trelbyctrl.py:119`) starts a script with the
   default title page and header (`trelby/titles.py:13`,
   `trelby/headers.py:16`).
 - Menu commands go to `MyFrame.On<Name>`, which mostly forwards to the
   current tab's `MyCtrl.On<Name>` (e.g. `trelby/trelbyframe.py:1087-1091`).
 - Status area: page `x / y`, current element type, and what Tab and Enter
-  will produce next (`MyCtrl.updateCommon`, `trelby/trelbyctrl.py:613`), and
+  will produce next (`MyCtrl.updateCommon`, `trelby/trelbyctrl.py:659`), and
   the zoom control `- 100 % +` (`trelby/misc.py:209-214`). The status area
   passes the keyboard focus back to the script when a click gives it focus
   (`MyFrame.OnStatusFocus`, `trelby/trelbyframe.py:1448`).
@@ -217,7 +219,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 
 ## Stage 3 — editing and keyboard
 
-- `MyCtrl.OnKeyChar` (`trelby/trelbyctrl.py:1766`) receives every key, with the
+- `MyCtrl.OnKeyChar` (`trelby/trelbyctrl.py:1829`) receives every key, with the
     key code from `util.eventKeyCode` (`trelby/util.py:209`): the Unicode
     character, or the `WXK_` code for arrows, Home, End and other keys that
     have none. A key that matches no command is skipped, and GTK then uses an
@@ -225,17 +227,18 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   - A printable character without Ctrl/Alt (`util.isValidInputChar`:
     code 32–255 minus 0x7F–0x9F and 0xAD, `trelby/util.py:219`) replaces the
     selection if `overwriteSelectionOnInsert` and is inserted with
-    `Screenplay.addCharCmd` (`trelby/trelbyctrl.py:1769-1795`).
+    `Screenplay.addCharCmd` (`trelby/trelbyctrl.py:1832-1858`).
   - Anything else is looked up in `MyFrame.kbdCommands`
     (`trelby/trelbyframe.py:572-590`, built from `cfgGl.commands`,
     `trelby/config.py:742`). Menu commands call `MyFrame.On<Name>`; the rest
-    call `MyCtrl.cmd<Name>` (`trelby/trelbyctrl.py:1802-1808`), which mostly
+    call `MyCtrl.cmd<Name>` (`trelby/trelbyctrl.py:1865-1871`), which mostly
     forward to `Screenplay.<name>Cmd`.
   - After every command: `cmdPost` fixes the column and refreshes
     auto-completion (`trelby/screenplay.py:2478`); the script is re-paginated
     if `paginateInterval` seconds (default 1) have passed
-    (`trelby/trelbyctrl.py:1815-1821`); the cursor line is scrolled into view
-    and the screen is redrawn (`trelby/trelbyctrl.py:1823-1826`).
+    (`trelby/trelbyctrl.py:1882-1888`); the cursor line is scrolled into view
+    (and its column, sideways, when the page is wider than the editor)
+    and the screen is redrawn (`trelby/trelbyctrl.py:1890-1893`).
 - **Enter** (`NewElement`, `trelby/config.py:998`) →
   `Screenplay.splitElementCmd` (`trelby/screenplay.py:2856`): splits the
   element at the cursor and gives the new element the current type's
@@ -277,7 +280,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   - typing `(` as the only text of a Dialogue or Character element turns it
     into a Parenthetical `()` (`trelby/screenplay.py:2975-2981`).
 - Element type changes: Alt+letter shortcuts (e.g. Alt+A Action,
-  `trelby/config.py:766`) and the right-click menu call `convertTypeTo` (`trelby/screenplay.py:1412`, `trelby/trelbyctrl.py:81`).
+  `trelby/config.py:766`) and the right-click menu call `convertTypeTo` (`trelby/screenplay.py:1412`, `trelby/trelbyctrl.py:86`).
 - **Undo**: each edit records an `undo.*` object (`trelby/undo.py`) on a
   doubly linked list; consecutive typing and deleting are merged into word
   steps; history is trimmed past ~5 MB (`addUndo`,
@@ -287,29 +290,29 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   (`getMatchingText`, `trelby/screenplay.py:1764`).
 - **Clipboard**: the internal clipboard keeps typed lines (`ClipData`,
   `trelby/screenplay.py:3184`); pasting from the system clipboard turns each
-  non-empty text line into an Action element (`trelby/trelbyctrl.py:1246`).
+  non-empty text line into an Action element (`trelby/trelbyctrl.py:1309`).
 
 ## Stage 4 — screen rendering (`viewmode`)
 
-- `MyCtrl.OnPaint` (`trelby/trelbyctrl.py:1832`) asks the active view mode
+- `MyCtrl.OnPaint` (`trelby/trelbyctrl.py:1895`) asks the active view mode
   (`gd.vm`, `trelby/globaldata.py:106`) for `getScreen(ctrl, True, True)` →
   `(texts, dpages)`: positioned `TextString`s and, outside draft mode, page
-  rectangles (`trelby/viewmode.py:90`). It then paints the workspace, pages,
+  rectangles (`trelby/viewmode.py:122`). It then paints the workspace, pages,
   scene-heading hatches (a diagonal hatch in the Scene heading hatch
   color behind every scene heading line, so a scene's start stands out
   from Action; screen only, Rafael 2026-10-28), note boxes, selection,
   page-break lines, cursor, the text (one font per
   `TextString`) and the auto-completion popup.
-- **Draft** (`ViewModeDraft`, `trelby/viewmode.py:225`): one endless page;
+- **Draft** (`ViewModeDraft`, `trelby/viewmode.py:262`): one endless page;
   each line is `fontYdelta` pixels (default 18) below the previous one plus
   its spacing; x comes from the element indent times the screen font's
   character width.
-- **Layout** (`ViewModeLayout`, `trelby/viewmode.py:304`) and **side by
-  side** (`ViewModeSideBySide`, `trelby/viewmode.py:448`): pages are built
+- **Layout** (`ViewModeLayout`, `trelby/viewmode.py:341`) and **side by
+  side** (`ViewModeSideBySide`, `trelby/viewmode.py:485`): pages are built
   with `Screenplay.generatePMLPage(..., forPDF=False, ...)`
   (`trelby/screenplay.py:566`), the same code the PDF uses, and their
   millimeter positions are scaled to pixels by `ctrl.mm2p`
-  (`trelby/trelbyctrl.py:130`).
+  (`trelby/trelbyctrl.py:135`).
 - **Scene numbers** are shown left of each heading in every mode (and
   right of it in the page modes), in the header color: the permanent
   number, or in parentheses the one it will get once its heading is
@@ -324,15 +327,15 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   `Type.screen` (`trelby/config.py:193`). In Action lines, runs of words
   written fully in capitals (accents included; a one-letter word only
   inside a run) are underlined as props, each run as one, on screen only;
-  the run being typed at the cursor waits until something ends it (`propwords.find_prop_words`, `trelby/trelbyctrl.py:2020-2032`). **Zoom** (50–300 % in steps of
+  the run being typed at the cursor waits until something ends it (`propwords.find_prop_words`, `trelby/trelbyctrl.py:2083-2095`). **Zoom** (50–300 % in steps of
   10, Ctrl `+` / `-` / `0`, Ctrl + wheel, the status control) scales those
   fonts and the draft row height only; it is a global setting and never
-  touches the PDF (`trelby/config.py:1722-1734`, `trelby/trelbyctrl.py:699`). Colors are the global `*Color`
+  touches the PDF (`trelby/config.py:1722-1734`, `trelby/trelbyctrl.py:745`). Colors are the global `*Color`
   settings (`trelby/config.py:1280-1335`) of the chosen theme, Light or Dark
   (Settings → Colors, or the View → Dark theme check item, which switches
   at once and saves the config: `MyFrame.OnDarkTheme`,
   `trelby/trelbyframe.py:1399-1406`, `MyCtrl.OnDarkTheme`,
-  `trelby/trelbyctrl.py:724-737`); each theme keeps its own colors
+  `trelby/trelbyctrl.py:770-783`); each theme keeps its own colors
   (`trelby/config.py:1397-1426`). Under Docker, Dark also starts GTK's dark
   variant (`docker/run.sh:34-39`).
 
@@ -340,11 +343,11 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 
 - **Fountain only** (fountain-native/io/3, 2026-10-25): Open and Save As
   offer Fountain and All files (`trelby/trelbyframe.py:682-695`,
-  `trelby/trelbyctrl.py:1490-1509`); every file opened is read as
+  `trelby/trelbyctrl.py:1553-1572`); every file opened is read as
   Fountain, except a name ending in `.trelby`, which is refused with a
-  message (`MyCtrl.loadFile`, `trelby/trelbyctrl.py:141-148`); Save adds
+  message (`MyCtrl.loadFile`, `trelby/trelbyctrl.py:146-153`); Save adds
   `.fountain` unless the name ends in it (`MyCtrl.saveFile`,
-  `trelby/trelbyctrl.py:204-337`). There is no `.trelby` reader or writer
+  `trelby/trelbyctrl.py:209-342`). There is no `.trelby` reader or writer
   left (fountain-native/io/4).
 - **Scene numbers while editing** (fountain-native/scenes/6): before each
   screen update `MyCtrl.updateScreen` calls `scenenumbers.numberFinished`
@@ -355,7 +358,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   that brings back a heading from before its number brings it back
   without one, until the cursor leaves it again.
 - **Scene numbers before a save** (fountain-native/scenes/3,
-  `MyCtrl.numberScenes`, `trelby/trelbyctrl.py:341`, →
+  `MyCtrl.numberScenes`, `trelby/trelbyctrl.py:346`, →
   `scenenumbers.prepareSave`, `trelby/scenenumbers.py:426`): a number the
   script had at its open or last save and no longer on a heading comes
   back as an `OMITTED` heading at its place by number order (written as
@@ -372,7 +375,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   `trelby/scenenumbers.py:224`); after the file is written, the records
   of the film whose script it is (open in the window, current tab or not)
   that name those scenes follow (`MyCtrl.renameFilmScenes`,
-  `trelby/trelbyctrl.py:268`, `Bible.renameScenes`), written as by
+  `trelby/trelbyctrl.py:273`, `Bible.renameScenes`), written as by
   `writer`, so the change log has them (Rafael, 2026-10-30: records follow
   the save; an editor Undo changes only the script, a rewrite is taken back
   in the change log).
@@ -383,12 +386,12 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   Fountain, so open → save → open is byte-identical. Elements Fountain
   cannot hold the way they are (e.g. dialogue with no character) are listed
   in a warning after the save (`MyCtrl.showLost`,
-  `trelby/trelbyctrl.py:401`). The `.fountain` holds no per-script
+  `trelby/trelbyctrl.py:406`). The `.fountain` holds no per-script
   settings; when the file is an open film's script, `saveFilmSettings`
   also writes them as that film's settings record (the tab's own film,
-  found by `MyCtrl.openFilm`, `trelby/trelbyctrl.py:241`, so Save on exit
+  found by `MyCtrl.openFilm`, `trelby/trelbyctrl.py:246`, so Save on exit
   writes every film's records, bugs/editor/20)
-  (`scriptsettings.saveFor`, `trelby/trelbyctrl.py:248`;
+  (`scriptsettings.saveFor`, `trelby/trelbyctrl.py:253`;
   fountain-native/settings/1), and New film writes it after its first
   save. Outside a film, page setup and styles can be kept with Script →
   Settings → Save as / Load.
@@ -396,7 +399,7 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
 - **Open**: `MyFrame.openScript` (`trelby/trelbyframe.py:594`) reuses the
   current tab if it is untouched, else opens a new one, and calls
   `MyCtrl.loadFile`: `readFountain` reads the file as bytes, decodes it as
-  UTF-8 (else an error box, `trelby/trelbyctrl.py:175-192`) and builds it by
+  UTF-8 (else an error box, `trelby/trelbyctrl.py:180-197`) and builds it by
   `fountain.load` (`trelby/fountain.py:497`): elements and title page from
   the file, default headers and settings, `reformatAll`, `paginate`,
   refresh locations; its parsed source is kept in `sp.fountainSource` for
@@ -458,9 +461,9 @@ Baseline: Trelby 2.4.16.2 (`trelby/misc.py:20`) as forked into
   cursor, delete). Each tab shows and writes its own film's annotations.
   Saving the film's script renames the moved scenes in
   them, then places them again and writes the anchors that moved
-  (`MyCtrl.saveFilmAnnotations`, `trelby/trelbyctrl.py:295`).
-- **Revert** reloads from disk (`trelby/trelbyctrl.py:1153`). **Close** asks
-  before discarding changes (`trelby/trelbyctrl.py:1114`). **Exit** with
+  (`MyCtrl.saveFilmAnnotations`, `trelby/trelbyctrl.py:300`).
+- **Revert** reloads from disk (`trelby/trelbyctrl.py:1216`). **Close** asks
+  before discarding changes (`trelby/trelbyctrl.py:1177`). **Exit** with
   unsaved changes asks once; Save saves every modified tab, showing each
   (`MyFrame.saveAll`, `trelby/trelbyframe.py:1607`), and calls the exit off
   if one stays unsaved; then it writes the window state and removes
@@ -504,7 +507,7 @@ Script → Sync to spec… (F5, toolbar) on a film's script
   a new folder (a new film, as Import into film) or just open it
   (import-to-film, decision 3). `importIntoTab` reuses
   the tab if it is untouched, and calls `MyCtrl.importFile`
-  (`trelby/trelbyctrl.py:435`), which dispatches **on the file name's
+  (`trelby/trelbyctrl.py:440`), which dispatches **on the file name's
   ending**:
   - `.fountain` (any case) → the Fountain import options first
     (`askFountainOptions`: remove emphasis markup, sections and synopses
@@ -513,7 +516,7 @@ Script → Sync to spec… (F5, toolbar) on a film's script
     saved script's title block is written from it; front-matter/import/1,
     `fountain.importOptions`), then read like Open (`readFountain`, so
     `fountain.load`), but the tab stays untitled and marked modified
-    (`trelby/trelbyctrl.py:438-452`, fountain-native/io/5);
+    (`trelby/trelbyctrl.py:443-457`, fountain-native/io/5);
   - `fdx` → `importFDX` (`trelby/myimport.py:299`): Final Draft XML,
     `Content//Paragraph` by `Type`; script notes become Note elements;
   - `celtx` → `importCeltx` (`trelby/myimport.py:218`): the `script*` HTML
@@ -534,7 +537,7 @@ Script → Sync to spec… (F5, toolbar) on a film's script
     user correct it in `ImportDlg` (`trelby/importdlg.py:8`).
 - Every other importer returns a list of `Line`s, or `None` on failure. The result
   replaces the tab's script, then `reformatAll` + `paginate`, and the script
-  is marked modified with no file name (`trelby/trelbyctrl.py:472-477`).
+  is marked modified with no file name (`trelby/trelbyctrl.py:477-482`).
 - **PDF without the GUI:** `python -m trelby.pdfimport import <pdf>...
   --out <dir> [--profile <toml>] [--strict] [--trace]` writes one
   `.fountain` per PDF with `fountain.generate` (elements it cannot write
@@ -565,8 +568,8 @@ Script → Sync to spec… (F5, toolbar) on a film's script
 
 ## Stage 7 — export
 
-- `MyCtrl.OnExportScript` (`trelby/trelbyctrl.py:1511`) first calls
-  `getExportable` (`trelby/trelbyctrl.py:748`): optionally runs `findError`
+- `MyCtrl.OnExportScript` (`trelby/trelbyctrl.py:1574`) first calls
+  `getExportable` (`trelby/trelbyctrl.py:794`): optionally runs `findError`
   and asks whether to continue, drops Note elements on a copy when
   `pdfRemoveNotes`, re-paginates. The format is the file dialog's filter
   index:
@@ -589,27 +592,27 @@ Script → Sync to spec… (F5, toolbar) on a film's script
   - **Final Draft XML** → `generateFDX` (`trelby/screenplay.py:367`);
   - **HTML** → `generateHtml` (`trelby/screenplay.py:250`), notes optional;
   - **Fountain** → `fountain.generate`, the same writer as Save
-    (`trelby/trelbyctrl.py:1545-1551`); what it cannot write so it reads
+    (`trelby/trelbyctrl.py:1608-1614`); what it cannot write so it reads
     back the same is listed as on Save (`showLost`);
   - **formatted text** → `generateText` (`trelby/screenplay.py:216`), page
     markers optional.
 - **Print** writes the same PDF to a temporary file and opens the configured
   PDF viewer, else the first one found (`xdg-open`, else `evince`, which the
-  Docker image has; `trelby/util.py:1204-1220`) (`trelby/trelbyctrl.py:1570`, `trelby/gutil.py:82`). Export
+  Docker image has; `trelby/util.py:1204-1220`) (`trelby/trelbyctrl.py:1633`, `trelby/gutil.py:82`). Export
   and Print make the PDF through `MyCtrl.makePDF`
-  (`trelby/trelbyctrl.py:1574`): a custom PDF font that cannot be used is
+  (`trelby/trelbyctrl.py:1637`): a custom PDF font that cannot be used is
   shown in a message box and nothing is written.
 - **Watermark** writes one PDF per line of the watermark list, with that
   text and an optional common mark printed in light gray at 45° behind each
   page (`trelby/watermarkdlg.py:12`).
 - **Compare scripts** diffs two open scripts' formatted text and shows the
-  diff as a colored PDF (`trelby/trelbyctrl.py:1051`,
+  diff as a colored PDF (`trelby/trelbyctrl.py:1114`,
   `trelby/screenplay.py:2248`).
 
 ## Stage 8 — reports
 
 - Each report re-paginates and builds a PDF that is opened in the viewer
-  (`trelby/trelbyctrl.py:1031-1049`, `trelby/reports.py`):
+  (`trelby/trelbyctrl.py:1094-1112`, `trelby/reports.py`):
   - **script report** — line counts per type, interior/exterior share,
     longest/average scene and action length, speaking characters
     (`trelby/scriptreport.py:10`);

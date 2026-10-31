@@ -267,7 +267,10 @@ upstream also `pytest` / `make test` (`Makefile`) and the GitHub workflow.
   `Titles.sort` by y, then x; `MyCtrl.OnCopySystem` (fake control,
   clipboard patched) keeps the script's Action indent; the screen's
   CONTINUED number equals the PDF's on every page; side-by-side scrolling
-  by direction.
+  by direction; the horizontal scroll's `contentLeft` / `clampOffset` /
+  `followOffset` and side by side's content width (bugs/editor/12; the
+  scroll bar and cursor following checked in the real window at 220 %,
+  2026-10-31).
 - `test_i18n.py` — static checks over `trelby/`: no `_()` around an
   already formatted string, and no translated string as a `setattr` name,
   a `Vars.add*` name or save name, or a helper argument that becomes one.
