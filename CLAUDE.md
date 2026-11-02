@@ -40,9 +40,10 @@ run. What the editor writes (the film root, exports, reports) is listed in
 - `tools/` — `add_words.py`, the English word-list script
   (`tools/CLAUDE.md`).
 - `third_party/mocap-contracts/` — git submodule pinned to a tag
-  (`v0.7.0`): the film root formats (`film.harpia`, `bible.harpia`,
+  (`v0.8.0`): the film root formats (`film.harpia`, `bible.harpia`,
   `change.harpia`, `script_settings.harpia`, `annotation.harpia`,
-  `scene_index.harpia`, `change_set.harpia`, `front_matter.harpia`); on `PYTHONPATH` in the image (`docker/Dockerfile`), not
+  `scene_index.harpia`, `change_set.harpia`, `front_matter.harpia`,
+  `workflow.harpia`); on `PYTHONPATH` in the image (`docker/Dockerfile`), not
   installed, since a hashed lock can't hold a `git+` URL. Its own docs
   are inside it.
 - `initiatives/` — planning: initiatives, epics, tasks, the bug backlog
