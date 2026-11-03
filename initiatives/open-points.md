@@ -42,7 +42,7 @@ was done on 2026-10-31.
 ## Decisions for Rafael
 
 - **Versioning** — what a version of the film is and where each part
-  of the workflow records it (`versioning/versioning.md`).
+  of the workflow records it (`mocap-studio` `initiatives/versioning/versioning.md`).
 
 ## Work for another repository
 
