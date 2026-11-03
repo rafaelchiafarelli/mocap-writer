@@ -26,6 +26,6 @@ code: `../trelby.process.md` and a `CLAUDE.md` in each folder.
 
 12. **workflow-link** — the creator decides the agents' proposals and answers their requests in the review view, from the film's workflow database (planned 2026-10-31; needs `mocap-contracts` `v0.8.0`)
 
-13. **versioning** — one versioning system for the whole workflow (asked by Rafael 2026-10-31; to be planned)
+13. **versioning** — one versioning system for the whole workflow; it crosses repositories, so it moved to `mocap-studio` `initiatives/versioning/` (2026-11-03)
 
 `film-bible` needs `fountain-native/scenes` (scene numbers). `preprod-link` needs `film-bible`. `film-bible`, `preprod-link` and `fountain-native/settings/1` (per-script settings, was io/2) need `file-format/layout/1`. `pdf-import`, `editor-ux` and `spellcheck` need nothing.
